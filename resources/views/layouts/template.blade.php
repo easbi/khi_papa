@@ -71,7 +71,7 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link {{ Request::is('//user/profile')? 'active':'' }}" href="https://wa.me/6285265513571">
+                <a class="nav-link {{ Request::is('//user/profile')? 'active':'' }}" href="https://api.whatsapp.com/send/?phone=6285265513571&text=%22Mohon%20bantuannya%20terkait%20...%22&app_absent=0">
                   <i class="material-icons">person</i>
                   <span>Bantuan</span>
                 </a>
