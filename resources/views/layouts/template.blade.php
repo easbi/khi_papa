@@ -71,6 +71,12 @@
                 </a>
               </li>
               <li class="nav-item">
+                <a class="nav-link {{ Request::is('//user/profile')? 'active':'' }}" href="https://wa.me/6285265513571">
+                  <i class="material-icons">person</i>
+                  <span>Bantuan</span>
+                </a>
+              </li>
+              <li class="nav-item">
                 <a class="nav-link " href="{{ url('/logout')}}">
                   <i class="material-icons">error</i>
                   <span>Logout</span>
