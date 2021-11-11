@@ -66,6 +66,25 @@
 									</select>
 								</div>
 								<div class="form-group">
+					              <input type="checkbox" id="checkbox" name="checkbox">
+					              <label for="checkbox">Ceklist jika selesai pada waktu yang bukan pada saat sekarang ini</label><br>
+					              <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+					              <script type="text/javascript">
+					                $(function () {
+					                  $('input[name="tgl_selesai"]').hide();
+					                  //show it when the checkbox is clicked
+					                  $('input[name="checkbox"]').on('click', function () {
+					                    if ($(this).prop('checked')) {
+					                      $('input[name="tgl_selesai"]').fadeIn();
+					                    } else {
+					                      $('input[name="tgl_selesai"]').hide();
+					                    }
+					                  });
+					                });
+					              </script>
+					              <input type="date" class="form-control form-control-lg mb-3" name="tgl_selesai" value="{{ $activity->tgl }}">
+					            </div>
+								<div class="form-group">
 									<label for="berkas">Bukti Kegiatan:</label>
 									<input type="file" name="berkas">
 								</div>

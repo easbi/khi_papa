@@ -198,6 +198,12 @@ class ActivitiesController extends Controller
            $file = $request->file('berkas');
            $filename = $filename = \Carbon\Carbon::now()->format('Y-m-d H-i').'_'. Auth::user()->nip .'_'. str_replace(' ', '', substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 25)). '.' .$file->getClientOriginalExtension();
            $file->move('bukti', $filename);
+        }        
+
+        if($request->has('checkbox')) {
+            $tgl_selesai = $request->tgl_selesai;
+        } else {
+            $tgl_selesai = date('Y-m-d');
         }
 
         $activity = Activity::find($id);
@@ -209,8 +215,10 @@ class ActivitiesController extends Controller
             $activity->kuantitas = $request->kuantitas;
             $activity->tgl = $request->tgl;
             $activity->is_done = $request->is_done;
+            $activity->tgl_selesai = $tgl_selesai;
             $activity->created_by = Auth::user()->nip;
             $activity->berkas = $filename;
+            $activity->updated_at = now();
             $activity->save();
         }
         return redirect()->route('act.selftable')->with('success', 'The activity updated successfully');

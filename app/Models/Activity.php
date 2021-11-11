@@ -20,6 +20,7 @@ class Activity extends Model
         'kuantitas',
         'is_done',
         'tgl',
+        'tgl_selesai',
         'created_by'
     ];
 }
