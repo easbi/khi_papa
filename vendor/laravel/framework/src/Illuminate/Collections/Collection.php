@@ -4,13 +4,12 @@ namespace Illuminate\Support;
 
 use ArrayAccess;
 use ArrayIterator;
-use Illuminate\Collections\ItemNotFoundException;
-use Illuminate\Collections\MultipleItemsFoundException;
+use Illuminate\Contracts\Support\CanBeEscapedWhenCastToString;
 use Illuminate\Support\Traits\EnumeratesValues;
 use Illuminate\Support\Traits\Macroable;
 use stdClass;
 
-class Collection implements ArrayAccess, Enumerable
+class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerable
 {
     use EnumeratesValues, Macroable;
 
@@ -504,6 +503,29 @@ class Collection implements ArrayAccess, Enumerable
     }
 
     /**
+     * Determine if any of the keys exist in the collection.
+     *
+     * @param  mixed  $key
+     * @return bool
+     */
+    public function hasAny($key)
+    {
+        if ($this->isEmpty()) {
+            return false;
+        }
+
+        $keys = is_array($key) ? $key : func_get_args();
+
+        foreach ($keys as $value) {
+            if ($this->has($value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Concatenate values of a given key as a string.
      *
      * @param  string  $value
@@ -797,9 +819,15 @@ class Collection implements ArrayAccess, Enumerable
             return array_pop($this->items);
         }
 
+        if ($this->isEmpty()) {
+            return new static;
+        }
+
         $results = [];
 
-        foreach (range(1, $count) as $item) {
+        $collectionCount = $this->count();
+
+        foreach (range(1, min($count, $collectionCount)) as $item) {
             array_push($results, array_pop($this->items));
         }
 
@@ -823,7 +851,7 @@ class Collection implements ArrayAccess, Enumerable
     /**
      * Push one or more items onto the end of the collection.
      *
-     * @param  mixed  $values [optional]
+     * @param  mixed  $values
      * @return $this
      */
     public function push(...$values)
@@ -961,9 +989,15 @@ class Collection implements ArrayAccess, Enumerable
             return array_shift($this->items);
         }
 
+        if ($this->isEmpty()) {
+            return new static;
+        }
+
         $results = [];
 
-        foreach (range(1, $count) as $item) {
+        $collectionCount = $this->count();
+
+        foreach (range(1, min($count, $collectionCount)) as $item) {
             array_push($results, array_shift($this->items));
         }
 
@@ -1098,8 +1132,8 @@ class Collection implements ArrayAccess, Enumerable
      * @param  mixed  $value
      * @return mixed
      *
-     * @throws \Illuminate\Collections\ItemNotFoundException
-     * @throws \Illuminate\Collections\MultipleItemsFoundException
+     * @throws \Illuminate\Support\ItemNotFoundException
+     * @throws \Illuminate\Support\MultipleItemsFoundException
      */
     public function sole($key = null, $operator = null, $value = null)
     {
@@ -1118,6 +1152,33 @@ class Collection implements ArrayAccess, Enumerable
         }
 
         return $items->first();
+    }
+
+    /**
+     * Get the first item in the collection but throw an exception if no matching items exist.
+     *
+     * @param  mixed  $key
+     * @param  mixed  $operator
+     * @param  mixed  $value
+     * @return mixed
+     *
+     * @throws \Illuminate\Support\ItemNotFoundException
+     */
+    public function firstOrFail($key = null, $operator = null, $value = null)
+    {
+        $filter = func_num_args() > 1
+            ? $this->operatorForWhere(...func_get_args())
+            : $key;
+
+        $placeholder = new stdClass();
+
+        $item = $this->first($filter, $placeholder);
+
+        if ($item === $placeholder) {
+            throw new ItemNotFoundException;
+        }
+
+        return $item;
     }
 
     /**
@@ -1321,7 +1382,7 @@ class Collection implements ArrayAccess, Enumerable
             return new static(array_splice($this->items, $offset));
         }
 
-        return new static(array_splice($this->items, $offset, $length, $replacement));
+        return new static(array_splice($this->items, $offset, $length, $this->getArrayableItems($replacement)));
     }
 
     /**
@@ -1372,6 +1433,28 @@ class Collection implements ArrayAccess, Enumerable
         $this->items = $this->map($callback)->all();
 
         return $this;
+    }
+
+    /**
+     * Return only unique items from the collection array.
+     *
+     * @param  string|callable|null  $key
+     * @param  bool  $strict
+     * @return static
+     */
+    public function unique($key = null, $strict = false)
+    {
+        $callback = $this->valueRetriever($key);
+
+        $exists = [];
+
+        return $this->reject(function ($item, $key) use ($callback, $strict, &$exists) {
+            if (in_array($id = $callback($item, $key), $exists, $strict)) {
+                return true;
+            }
+
+            $exists[] = $id;
+        });
     }
 
     /**
