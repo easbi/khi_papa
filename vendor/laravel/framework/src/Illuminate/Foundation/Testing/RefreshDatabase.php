@@ -16,9 +16,13 @@ trait RefreshDatabase
      */
     public function refreshDatabase()
     {
+        $this->beforeRefreshingDatabase();
+
         $this->usingInMemoryDatabase()
                         ? $this->refreshInMemoryDatabase()
                         : $this->refreshTestDatabase();
+
+        $this->afterRefreshingDatabase();
     }
 
     /**
@@ -54,6 +58,7 @@ trait RefreshDatabase
     {
         return [
             '--seed' => $this->shouldSeed(),
+            '--seeder' => $this->seeder(),
         ];
     }
 
@@ -91,6 +96,12 @@ trait RefreshDatabase
             $connection->unsetEventDispatcher();
             $connection->beginTransaction();
             $connection->setEventDispatcher($dispatcher);
+
+            if ($this->app->resolved('db.transactions')) {
+                $this->app->make('db.transactions')->callbacksShouldIgnore(
+                    $this->app->make('db.transactions')->getTransactions()->first()
+                );
+            }
         }
 
         $this->beforeApplicationDestroyed(function () use ($database) {
@@ -99,7 +110,7 @@ trait RefreshDatabase
                 $dispatcher = $connection->getEventDispatcher();
 
                 $connection->unsetEventDispatcher();
-                $connection->rollback();
+                $connection->rollBack();
                 $connection->setEventDispatcher($dispatcher);
                 $connection->disconnect();
             }
@@ -115,5 +126,25 @@ trait RefreshDatabase
     {
         return property_exists($this, 'connectionsToTransact')
                             ? $this->connectionsToTransact : [null];
+    }
+
+    /**
+     * Perform any work that should take place before the database has started refreshing.
+     *
+     * @return void
+     */
+    protected function beforeRefreshingDatabase()
+    {
+        // ...
+    }
+
+    /**
+     * Perform any work that should take place once the database has finished refreshing.
+     *
+     * @return void
+     */
+    protected function afterRefreshingDatabase()
+    {
+        // ...
     }
 }

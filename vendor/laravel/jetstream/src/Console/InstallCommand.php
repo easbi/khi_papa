@@ -6,6 +6,8 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
+use RuntimeException;
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
 class InstallCommand extends Command
@@ -15,9 +17,12 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'jetstream:install {stack : The development stack that should be installed}
+    protected $signature = 'jetstream:install {stack : The development stack that should be installed (inertia,livewire)}
                                               {--teams : Indicates if team support should be installed}
+                                              {--api : Indicates if API support should be installed}
+                                              {--verification : Indicates if email verification support should be installed}
                                               {--pest : Indicates if Pest should be installed}
+                                              {--ssr : Indicates if Inertia SSR support should be installed}
                                               {--composer=global : Absolute path to the Composer binary which should be used to install packages}';
 
     /**
@@ -30,10 +35,16 @@ class InstallCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int|null
      */
     public function handle()
     {
+        if (! in_array($this->argument('stack'), ['inertia', 'livewire'])) {
+            $this->components->error('Invalid stack. Supported stacks are [inertia] and [livewire].');
+
+            return 1;
+        }
+
         // Publish...
         $this->callSilent('vendor:publish', ['--tag' => 'jetstream-config', '--force' => true]);
         $this->callSilent('vendor:publish', ['--tag' => 'jetstream-migrations', '--force' => true]);
@@ -41,6 +52,9 @@ class InstallCommand extends Command
         $this->callSilent('vendor:publish', ['--tag' => 'fortify-config', '--force' => true]);
         $this->callSilent('vendor:publish', ['--tag' => 'fortify-support', '--force' => true]);
         $this->callSilent('vendor:publish', ['--tag' => 'fortify-migrations', '--force' => true]);
+
+        // Storage...
+        $this->callSilent('storage:link');
 
         // "Home" Route...
         $this->replaceInFile('/home', '/dashboard', app_path('Providers/RouteServiceProvider.php'));
@@ -56,25 +70,36 @@ class InstallCommand extends Command
         // Configure Session...
         $this->configureSession();
 
-        // AuthenticateSession Middleware...
-        $this->replaceInFile(
-            '// \Illuminate\Session\Middleware\AuthenticateSession::class',
-            '\Laravel\Jetstream\Http\Middleware\AuthenticateSession::class',
-            app_path('Http/Kernel.php')
-        );
+        // Configure API...
+        if ($this->option('api')) {
+            $this->replaceInFile('// Features::api(),', 'Features::api(),', config_path('jetstream.php'));
+        }
+
+        // Configure Email Verification...
+        if ($this->option('verification')) {
+            $this->replaceInFile('// Features::emailVerification(),', 'Features::emailVerification(),', config_path('fortify.php'));
+        }
 
         // Install Stack...
         if ($this->argument('stack') === 'livewire') {
-            $this->installLivewireStack();
+            if (! $this->installLivewireStack()) {
+                return 1;
+            }
         } elseif ($this->argument('stack') === 'inertia') {
-            $this->installInertiaStack();
+            if (! $this->installInertiaStack()) {
+                return 1;
+            }
         }
 
         // Tests...
         $stubs = $this->getTestStubsPath();
 
         if ($this->option('pest')) {
-            $this->requireComposerPackages('pestphp/pest:^1.16', 'pestphp/pest-plugin-laravel:^1.1');
+            $this->removeComposerDevPackages(['nunomaduro/collision', 'phpunit/phpunit']);
+
+            if (! $this->requireComposerDevPackages(['nunomaduro/collision:^6.4', 'pestphp/pest:^1.22', 'pestphp/pest-plugin-laravel:^1.2'])) {
+                return 1;
+            }
 
             copy($stubs.'/Pest.php', base_path('tests/Pest.php'));
             copy($stubs.'/ExampleTest.php', base_path('tests/Feature/ExampleTest.php'));
@@ -111,15 +136,17 @@ class InstallCommand extends Command
     /**
      * Install the Livewire stack into the application.
      *
-     * @return void
+     * @return bool
      */
     protected function installLivewireStack()
     {
         // Install Livewire...
-        $this->requireComposerPackages('livewire/livewire:^2.5');
+        if (! $this->requireComposerPackages('livewire/livewire:^2.11')) {
+            return false;
+        }
 
         // Sanctum...
-        (new Process(['php', 'artisan', 'vendor:publish', '--provider=Laravel\Sanctum\SanctumServiceProvider', '--force'], base_path()))
+        (new Process([$this->phpBinary(), 'artisan', 'vendor:publish', '--provider=Laravel\Sanctum\SanctumServiceProvider', '--force'], base_path()))
                 ->setTimeout(null)
                 ->run(function ($type, $output) {
                     $this->output->write($output);
@@ -132,23 +159,25 @@ class InstallCommand extends Command
         // NPM Packages...
         $this->updateNodePackages(function ($packages) {
             return [
-                '@tailwindcss/forms' => '^0.3.1',
-                '@tailwindcss/typography' => '^0.4.0',
+                '@tailwindcss/forms' => '^0.5.2',
+                '@tailwindcss/typography' => '^0.5.0',
                 'alpinejs' => '^3.0.6',
-                'postcss-import' => '^14.0.1',
-                'tailwindcss' => '^2.2.2',
+                '@alpinejs/focus' => '^3.10.5',
+                'autoprefixer' => '^10.4.7',
+                'postcss' => '^8.4.14',
+                'tailwindcss' => '^3.1.0',
             ] + $packages;
         });
 
         // Tailwind Configuration...
         copy(__DIR__.'/../../stubs/livewire/tailwind.config.js', base_path('tailwind.config.js'));
-        copy(__DIR__.'/../../stubs/livewire/webpack.mix.js', base_path('webpack.mix.js'));
+        copy(__DIR__.'/../../stubs/livewire/postcss.config.js', base_path('postcss.config.js'));
+        copy(__DIR__.'/../../stubs/livewire/vite.config.js', base_path('vite.config.js'));
 
         // Directories...
         (new Filesystem)->ensureDirectoryExists(app_path('Actions/Fortify'));
         (new Filesystem)->ensureDirectoryExists(app_path('Actions/Jetstream'));
         (new Filesystem)->ensureDirectoryExists(app_path('View/Components'));
-        (new Filesystem)->ensureDirectoryExists(public_path('css'));
         (new Filesystem)->ensureDirectoryExists(resource_path('css'));
         (new Filesystem)->ensureDirectoryExists(resource_path('markdown'));
         (new Filesystem)->ensureDirectoryExists(resource_path('views/api'));
@@ -203,7 +232,6 @@ class InstallCommand extends Command
         }
 
         // Assets...
-        copy(__DIR__.'/../../stubs/public/css/app.css', public_path('css/app.css'));
         copy(__DIR__.'/../../stubs/resources/css/app.css', resource_path('css/app.css'));
         copy(__DIR__.'/../../stubs/livewire/resources/js/app.js', resource_path('js/app.js'));
 
@@ -224,9 +252,18 @@ class InstallCommand extends Command
             $this->installLivewireTeamStack();
         }
 
+        if (file_exists(base_path('pnpm-lock.yaml'))) {
+            $this->runCommands(['pnpm install', 'pnpm run build']);
+        } elseif (file_exists(base_path('yarn.lock'))) {
+            $this->runCommands(['yarn install', 'yarn run build']);
+        } else {
+            $this->runCommands(['npm install', 'npm run build']);
+        }
+
         $this->line('');
-        $this->info('Livewire scaffolding installed successfully.');
-        $this->comment('Please execute "npm install && npm run dev" to build your assets.');
+        $this->components->info('Livewire scaffolding installed successfully.');
+
+        return true;
     }
 
     /**
@@ -265,9 +302,15 @@ class InstallCommand extends Command
     {
         return <<<'EOF'
 
-Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified'
+])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+});
 
 EOF;
     }
@@ -275,31 +318,31 @@ EOF;
     /**
      * Install the Inertia stack into the application.
      *
-     * @return void
+     * @return bool
      */
     protected function installInertiaStack()
     {
         // Install Inertia...
-        $this->requireComposerPackages('inertiajs/inertia-laravel:^0.4.3', 'tightenco/ziggy:^1.0');
+        if (! $this->requireComposerPackages('inertiajs/inertia-laravel:^0.6.8', 'tightenco/ziggy:^1.0')) {
+            return false;
+        }
 
         // Install NPM packages...
         $this->updateNodePackages(function ($packages) {
             return [
-                '@inertiajs/inertia' => '^0.10.0',
-                '@inertiajs/inertia-vue3' => '^0.5.1',
-                '@inertiajs/progress' => '^0.2.6',
-                '@tailwindcss/forms' => '^0.2.1',
-                '@tailwindcss/typography' => '^0.3.0',
-                'postcss-import' => '^12.0.1',
-                'tailwindcss' => '^2.0.1',
-                'vue' => '^3.0.5',
-                '@vue/compiler-sfc' => '^3.0.5',
-                'vue-loader' => '^16.1.2',
+                '@inertiajs/vue3' => '^1.0.0',
+                '@tailwindcss/forms' => '^0.5.2',
+                '@tailwindcss/typography' => '^0.5.2',
+                '@vitejs/plugin-vue' => '^4.0.0',
+                'autoprefixer' => '^10.4.7',
+                'postcss' => '^8.4.14',
+                'tailwindcss' => '^3.1.0',
+                'vue' => '^3.2.31',
             ] + $packages;
         });
 
         // Sanctum...
-        (new Process(['php', 'artisan', 'vendor:publish', '--provider=Laravel\Sanctum\SanctumServiceProvider', '--force'], base_path()))
+        (new Process([$this->phpBinary(), 'artisan', 'vendor:publish', '--provider=Laravel\Sanctum\SanctumServiceProvider', '--force'], base_path()))
                 ->setTimeout(null)
                 ->run(function ($type, $output) {
                     $this->output->write($output);
@@ -307,15 +350,14 @@ EOF;
 
         // Tailwind Configuration...
         copy(__DIR__.'/../../stubs/inertia/tailwind.config.js', base_path('tailwind.config.js'));
-        copy(__DIR__.'/../../stubs/inertia/webpack.mix.js', base_path('webpack.mix.js'));
-        copy(__DIR__.'/../../stubs/inertia/webpack.config.js', base_path('webpack.config.js'));
+        copy(__DIR__.'/../../stubs/inertia/postcss.config.js', base_path('postcss.config.js'));
+        copy(__DIR__.'/../../stubs/inertia/vite.config.js', base_path('vite.config.js'));
 
         // Directories...
         (new Filesystem)->ensureDirectoryExists(app_path('Actions/Fortify'));
         (new Filesystem)->ensureDirectoryExists(app_path('Actions/Jetstream'));
-        (new Filesystem)->ensureDirectoryExists(public_path('css'));
         (new Filesystem)->ensureDirectoryExists(resource_path('css'));
-        (new Filesystem)->ensureDirectoryExists(resource_path('js/Jetstream'));
+        (new Filesystem)->ensureDirectoryExists(resource_path('js/Components'));
         (new Filesystem)->ensureDirectoryExists(resource_path('js/Layouts'));
         (new Filesystem)->ensureDirectoryExists(resource_path('js/Pages'));
         (new Filesystem)->ensureDirectoryExists(resource_path('js/Pages/API'));
@@ -336,13 +378,14 @@ EOF;
         $this->installServiceProviderAfter('FortifyServiceProvider', 'JetstreamServiceProvider');
 
         // Middleware...
-        (new Process(['php', 'artisan', 'inertia:middleware', 'HandleInertiaRequests', '--force'], base_path()))
+        (new Process([$this->phpBinary(), 'artisan', 'inertia:middleware', 'HandleInertiaRequests', '--force'], base_path()))
             ->setTimeout(null)
             ->run(function ($type, $output) {
                 $this->output->write($output);
             });
 
         $this->installMiddlewareAfter('SubstituteBindings::class', '\App\Http\Middleware\HandleInertiaRequests::class');
+        $this->installMiddlewareAfter('\App\Http\Middleware\HandleInertiaRequests::class', '\Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class');
 
         // Models...
         copy(__DIR__.'/../../stubs/app/Models/User.php', app_path('Models/User.php'));
@@ -368,7 +411,7 @@ EOF;
         copy(__DIR__.'/../../stubs/inertia/resources/js/Pages/TermsOfService.vue', resource_path('js/Pages/TermsOfService.vue'));
         copy(__DIR__.'/../../stubs/inertia/resources/js/Pages/Welcome.vue', resource_path('js/Pages/Welcome.vue'));
 
-        (new Filesystem)->copyDirectory(__DIR__.'/../../stubs/inertia/resources/js/Jetstream', resource_path('js/Jetstream'));
+        (new Filesystem)->copyDirectory(__DIR__.'/../../stubs/inertia/resources/js/Components', resource_path('js/Components'));
         (new Filesystem)->copyDirectory(__DIR__.'/../../stubs/inertia/resources/js/Layouts', resource_path('js/Layouts'));
         (new Filesystem)->copyDirectory(__DIR__.'/../../stubs/inertia/resources/js/Pages/API', resource_path('js/Pages/API'));
         (new Filesystem)->copyDirectory(__DIR__.'/../../stubs/inertia/resources/js/Pages/Auth', resource_path('js/Pages/Auth'));
@@ -380,7 +423,6 @@ EOF;
         copy(__DIR__.'/../../stubs/inertia/routes/web.php', base_path('routes/web.php'));
 
         // Assets...
-        copy(__DIR__.'/../../stubs/public/css/app.css', public_path('css/app.css'));
         copy(__DIR__.'/../../stubs/resources/css/app.css', resource_path('css/app.css'));
         copy(__DIR__.'/../../stubs/inertia/resources/js/app.js', resource_path('js/app.js'));
 
@@ -404,9 +446,22 @@ EOF;
             $this->installInertiaTeamStack();
         }
 
+        if ($this->option('ssr')) {
+            $this->installInertiaSsrStack();
+        }
+
+        if (file_exists(base_path('pnpm-lock.yaml'))) {
+            $this->runCommands(['pnpm install', 'pnpm run build']);
+        } elseif (file_exists(base_path('yarn.lock'))) {
+            $this->runCommands(['yarn install', 'yarn run build']);
+        } else {
+            $this->runCommands(['npm install', 'npm run build']);
+        }
+
         $this->line('');
-        $this->info('Inertia scaffolding installed successfully.');
-        $this->comment('Please execute "npm install && npm run dev" to build your assets.');
+        $this->components->info('Inertia scaffolding installed successfully.');
+
+        return true;
     }
 
     /**
@@ -484,6 +539,28 @@ EOF;
     }
 
     /**
+     * Install the Inertia SSR stack into the application.
+     *
+     * @return void
+     */
+    protected function installInertiaSsrStack()
+    {
+        $this->updateNodePackages(function ($packages) {
+            return [
+                '@vue/server-renderer' => '^3.2.31',
+            ] + $packages;
+        });
+
+        copy(__DIR__.'/../../stubs/inertia/resources/js/ssr.js', resource_path('js/ssr.js'));
+        $this->replaceInFile("input: 'resources/js/app.js',", "input: 'resources/js/app.js',".PHP_EOL."            ssr: 'resources/js/ssr.js',", base_path('vite.config.js'));
+
+        copy(__DIR__.'/../../stubs/inertia/app/Http/Middleware/HandleInertiaRequests.php', app_path('Http/Middleware/HandleInertiaRequests.php'));
+
+        $this->replaceInFile('vite build', 'vite build && vite build --ssr', base_path('package.json'));
+        $this->replaceInFile('/node_modules', '/bootstrap/ssr'.PHP_EOL.'/node_modules', base_path('.gitignore'));
+    }
+
+    /**
      * Install the service provider in the application configuration file.
      *
      * @param  string  $after
@@ -547,14 +624,14 @@ EOF;
      * Installs the given Composer Packages into the application.
      *
      * @param  mixed  $packages
-     * @return void
+     * @return bool
      */
     protected function requireComposerPackages($packages)
     {
         $composer = $this->option('composer');
 
         if ($composer !== 'global') {
-            $command = ['php', $composer, 'require'];
+            $command = [$this->phpBinary(), $composer, 'require'];
         }
 
         $command = array_merge(
@@ -562,11 +639,63 @@ EOF;
             is_array($packages) ? $packages : func_get_args()
         );
 
-        (new Process($command, base_path(), ['COMPOSER_MEMORY_LIMIT' => '-1']))
+        return ! (new Process($command, base_path(), ['COMPOSER_MEMORY_LIMIT' => '-1']))
             ->setTimeout(null)
             ->run(function ($type, $output) {
                 $this->output->write($output);
             });
+    }
+
+    /**
+     * Removes the given Composer Packages as "dev" dependencies.
+     *
+     * @param  mixed  $packages
+     * @return bool
+     */
+    protected function removeComposerDevPackages($packages)
+    {
+        $composer = $this->option('composer');
+
+        if ($composer !== 'global') {
+            $command = [$this->phpBinary(), $composer, 'remove', '--dev'];
+        }
+
+        $command = array_merge(
+            $command ?? ['composer', 'remove', '--dev'],
+            is_array($packages) ? $packages : func_get_args()
+        );
+
+        return (new Process($command, base_path(), ['COMPOSER_MEMORY_LIMIT' => '-1']))
+            ->setTimeout(null)
+            ->run(function ($type, $output) {
+                $this->output->write($output);
+            }) === 0;
+    }
+
+    /**
+     * Install the given Composer Packages as "dev" dependencies.
+     *
+     * @param  mixed  $packages
+     * @return bool
+     */
+    protected function requireComposerDevPackages($packages)
+    {
+        $composer = $this->option('composer');
+
+        if ($composer !== 'global') {
+            $command = [$this->phpBinary(), $composer, 'require', '--dev'];
+        }
+
+        $command = array_merge(
+            $command ?? ['composer', 'require', '--dev'],
+            is_array($packages) ? $packages : func_get_args()
+        );
+
+        return (new Process($command, base_path(), ['COMPOSER_MEMORY_LIMIT' => '-1']))
+            ->setTimeout(null)
+            ->run(function ($type, $output) {
+                $this->output->write($output);
+            }) === 0;
     }
 
     /**
@@ -609,6 +738,7 @@ EOF;
         tap(new Filesystem, function ($files) {
             $files->deleteDirectory(base_path('node_modules'));
 
+            $files->delete(base_path('pnpm-lock.yaml'));
             $files->delete(base_path('yarn.lock'));
             $files->delete(base_path('package-lock.json'));
         });
@@ -625,5 +755,38 @@ EOF;
     protected function replaceInFile($search, $replace, $path)
     {
         file_put_contents($path, str_replace($search, $replace, file_get_contents($path)));
+    }
+
+    /**
+     * Get the path to the appropriate PHP binary.
+     *
+     * @return string
+     */
+    protected function phpBinary()
+    {
+        return (new PhpExecutableFinder())->find(false) ?: 'php';
+    }
+
+    /**
+     * Run the given commands.
+     *
+     * @param  array  $commands
+     * @return void
+     */
+    protected function runCommands($commands)
+    {
+        $process = Process::fromShellCommandline(implode(' && ', $commands), null, null, null, null);
+
+        if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
+            try {
+                $process->setTty(true);
+            } catch (RuntimeException $e) {
+                $this->output->writeln('  <bg=yellow;fg=black> WARN </> '.$e->getMessage().PHP_EOL);
+            }
+        }
+
+        $process->run(function ($type, $line) {
+            $this->output->write('    '.$line);
+        });
     }
 }

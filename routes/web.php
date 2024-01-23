@@ -26,3 +26,5 @@ Route::resource('act', ActivitiesController::class);
 Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
+
+Route::get('generateDocx', [ActivitiesController::class, 'generateDocx'])->name('act.generateDocx');
