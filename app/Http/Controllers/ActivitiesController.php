@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Storage;
 use DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ActivitiesController extends Controller
 {
@@ -42,7 +44,7 @@ class ActivitiesController extends Controller
         foreach($record_status_wfo_wfh as $row) {
             $status_wfo_wfh['label'][] = $row->wfo_wfh;
             $status_wfo_wfh['data'][] = (int) $row->count;
-        } 
+        }
         $status_wfo_wfh = json_encode($status_wfo_wfh);
 
         // statuspenyelesaian pekerjaan
@@ -55,15 +57,15 @@ class ActivitiesController extends Controller
             $status_penyelesaian['label'][] = $row->is_done;
             $status_penyelesaian['data'][] = (int) $row->count;
         }
- 
+
         $status_penyelesaian = json_encode($status_penyelesaian);
 
         // dd($status_penyelesaian);
 
-        return view('dailyactivity.index', 
+        return view('dailyactivity.index',
             compact(
-                'activities', 
-                'userfill', 
+                'activities',
+                'userfill',
                 'act_count_today',
                 'act_count_yesterday',
                 'status_wfo_wfh',
@@ -74,14 +76,26 @@ class ActivitiesController extends Controller
 
     public function selftable()
     {
+        $bulan = "";
+        $tahun = "";
+
         $activities = DB::table('daily_activity')->where('daily_activity.nip', Auth::user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
 
-        $months =  DB::table('daily_activity')
-            ->select(DB::raw('YEAR(tgl) year, MONTH(tgl) month, MONTHNAME(tgl) month_name'))
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->get();
+        $months = [
+            ['value' => 1, 'name' => 'Januari'],
+            ['value' => 2, 'name' => 'Februari'],
+            ['value' => 3, 'name' => 'Maret'],
+            ['value' => 4, 'name' => 'April'],
+            ['value' => 5, 'name' => 'Mei'],
+            ['value' => 6, 'name' => 'Juni'],
+            ['value' => 7, 'name' => 'Juli'],
+            ['value' => 8, 'name' => 'Agustus'],
+            ['value' => 9, 'name' => 'September'],
+            ['value' => 10, 'name' => 'Oktober'],
+            ['value' => 11, 'name' => 'November'],
+            ['value' => 12, 'name' => 'Desember']
+        ];
+
 
         $years = DB::table('daily_activity')
             ->select(DB::raw('YEAR(tgl) year'))
@@ -90,7 +104,7 @@ class ActivitiesController extends Controller
             ->get();
 
         // dd($years);
-        return view('dailyactivity.selftable', compact('activities', 'months', 'years'))->with('i', (request()->input('page', 1) - 1) * 5);
+        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5 );
     }
 
     public function filterMonthYear(Request $request)
@@ -99,12 +113,22 @@ class ActivitiesController extends Controller
         $tahun = $request->tahun;
         $activities = DB::table('daily_activity')->whereYear('tgl', '=', date($tahun))->whereMonth('tgl', '=', date($bulan))->where('daily_activity.nip', Auth::user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
 
-        $months =  DB::table('daily_activity')
-            ->select(DB::raw('YEAR(tgl) year, MONTH(tgl) month, MONTHNAME(tgl) month_name'))
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->get();
+        $months = [
+            ['value' => 1, 'name' => 'Januari'],
+            ['value' => 2, 'name' => 'Februari'],
+            ['value' => 3, 'name' => 'Maret'],
+            ['value' => 4, 'name' => 'April'],
+            ['value' => 5, 'name' => 'Mei'],
+            ['value' => 6, 'name' => 'Juni'],
+            ['value' => 7, 'name' => 'Juli'],
+            ['value' => 8, 'name' => 'Agustus'],
+            ['value' => 9, 'name' => 'September'],
+            ['value' => 10, 'name' => 'Oktober'],
+            ['value' => 11, 'name' => 'November'],
+            ['value' => 12, 'name' => 'Desember']
+        ];
+
+        // dd($months);
 
         $years = DB::table('daily_activity')
             ->select(DB::raw('YEAR(tgl) year'))
@@ -112,11 +136,49 @@ class ActivitiesController extends Controller
             ->orderBy('year', 'desc')
             ->get();
 
-        return view('dailyactivity.selftable', compact('activities', 'months', 'years'))->with('i', (request()->input('page', 1) - 1) * 5);
-        
+        // $users = User::all();
+        // $activities = DB::table('daily_activity')->where('daily_activity.nip', auth()->user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
+
+        $activities = DB::table('daily_activity')->whereYear('tgl', '=', date($tahun))->whereMonth('tgl', '=', date($bulan))->where('daily_activity.nip', auth()->user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
+
+        // Load the template Excel file
+        $templatePath = storage_path('app\template.xlsx');
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($templatePath);
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Populate data starting from a specific row (e.g., row 2)
+        $dummydate = $tahun . '-' . $bulan . '-1'; // Example date
+        $row = 13;
+        $sheet->setCellValue('C' . 5, ":  ". auth()->user()->fullname);
+        $sheet->setCellValue('C' . 7, ":  1-". carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
+        $sheet->setCellValue('C' . 25, auth()->user()->fullname);
+        $sheet->setCellValue('C' . 26, "NIP. ". auth()->user()->nip);
+        $sheet->setCellValue('B' . 21, "Tanggal : ". Carbon::now()->translatedFormat('j F Y'));
+        // $sheet->setCellValue('C' . 6, ":  ". auth()->user()->);
+
+        foreach ($activities as $activity) {
+            $sheet->setCellValue('A' . $row, $row-12);
+            $sheet->setCellValue('B' . $row, $activity->kegiatan);
+            $sheet->setCellValue('D' . $row, $activity->satuan);
+            $sheet->setCellValue('E' . $row, 1);
+            $sheet->setCellValue('F' . $row, 1);
+            $sheet->setCellValue('G' . $row, "100");
+            $sheet->setCellValue('H' . $row, "100");
+            // Add more data fields as needed
+            $row++;
+            $sheet->insertNewRowBefore($row);
+            $sheet->mergeCells('B' . $row . ':C' . $row);
+        }
+
+        $sheet->removeRow($row);
+
+        // Save the new Excel file
+        $fileName = 'exported_users.xlsx';
+        $writer = new Xlsx($spreadsheet);
+        $writer->save(storage_path('app/' . $fileName));
+
+        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5);
     }
-
-
 
     /**
      * Show the form for creating a new resource.
@@ -147,7 +209,7 @@ class ActivitiesController extends Controller
         $result = Activity::create([
                 'nip' => Auth::user()->nip,
                 'wfo_wfh' => $request->wfo_wfh,
-                'kegiatan'=> $request->kegiatan, 
+                'kegiatan'=> $request->kegiatan,
                 'satuan'=> $request->satuan,
                 'kuantitas'=> $request->kuantitas,
                 'tgl'=> $request->tgl,
@@ -198,7 +260,7 @@ class ActivitiesController extends Controller
            $file = $request->file('berkas');
            $filename = $filename = \Carbon\Carbon::now()->format('Y-m-d H-i').'_'. Auth::user()->nip .'_'. str_replace(' ', '', substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 25)). '.' .$file->getClientOriginalExtension();
            $file->move('bukti', $filename);
-        }        
+        }
 
         if($request->has('checkbox')) {
             $tgl_selesai = $request->tgl_selesai;
