@@ -15,7 +15,8 @@ class Exports_CKP extends Controller
     public function exportToExcel()
     {
         // Download the file
-        $fileName = 'exported_users.xlsx';
+        $fileName = $tahun . $bulan . '_CKP_' . auth()->user()->nip . '.xlsx';
+
         return response()->download(storage_path('app/' . $fileName))->deleteFileAfterSend(true);
     }
 }
