@@ -91,13 +91,13 @@
             <!-- Main Navbar -->
             <nav class="navbar align-items-stretch navbar-light flex-md-nowrap p-0">
               <form action="#" class="main-navbar__search w-100 d-none d-md-flex d-lg-flex">
-                <div class="input-group input-group-seamless ml-3">
+                <div class="input-group input-group-seamless ml-3 d-flex align-items-center">
                   <div>
                     <img src="{{asset('template/images/avatars/bps3.png')}}" alt="User Avatar" style="width:150px;height:30px;">
                   </div>
                 </div>
               </form>
-              <ul class="navbar-nav border-left flex-row ">
+              <ul class="navbar-nav border-left flex-row align-items-center">
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle text-nowrap px-3" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
                     <img class="user-avatar rounded-circle mr-2" src="{{asset('template/images/avatars/bps.png')}}" alt="User Avatar">
@@ -132,7 +132,7 @@
             <!-- Content -->
             @yield('content')
             <!-- End of Content -->
-            
+
           </div>
           <footer class="main-footer d-flex p-2 px-3 bg-white border-top">
             <ul class="nav">
@@ -160,7 +160,7 @@
     <script src="{{asset('template/scripts/shards-dashboards.1.1.0.min.js')}}"></script>
     <script src="{{asset('template/scripts/app/app-blog-overview.1.1.0.js')}}"></script>
 
-        
+
 @stack('scripts')
   </body>
 </html>

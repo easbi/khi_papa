@@ -19,34 +19,44 @@
             <div class="card-header border-bottom">
                 <h6 class="m-0">Filter Berdasarkan Waktu</h6>
             </div>
-            <div class="card-body d-flex flex-column">                
+            <div class="card-body d-flex flex-column">
                 <div class="col-sm-12 col-md-12">
                     <form action="{{ route('act.filterMonthYear')}}" method="GET" enctype="multipart/form-data">
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="bulan">Bulan</label>
-                                <select class="form-control" name="bulan">
+                                <select class="form-control" name="bulan" id="bulan">
                                     <option value="" selected disabled>Select</option>
                                     @foreach($months as $m)
-                                    <option value="{{$m->month}}">{{$m->month_name}}</option>                                    
-                                    @endforeach 
+                                        @if ($m['value'] == $bulan)
+                                            <option value="{{$m['value']}}" selected> {{$m['name']}} </option>
+                                            {{-- <option value="{{$y->year}}">{{$y->year}}</option> --}}
+                                        @else
+                                            <option value="{{$m['value']}}"> {{$m['name']}} </option>
+                                        @endif
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="tahun">Tahun</label>
-                                <select class="form-control" name="tahun">
+                                <select class="form-control" name="tahun" id="tahun">
                                     <option value="" selected disabled>Select</option>
                                     @foreach($years as $y)
-                                    <option value="{{$y->year}}">{{$y->year}}</option>                                  
-                                    @endforeach 
+                                    @if ($y->year == $tahun)
+                                        <option value="{{$y->year}}" selected>{{$y->year}}</option>
+                                    @else
+                                        <option value="{{$y->year}}">{{$y->year}}</option>
+                                    @endif
+                                    @endforeach
                                 </select>
-                            </div>                            
+                            </div>
                             <div class="form-group">
                                 <button type="submit" class="btn btn-success">Filter</button>
                             </div>
+
                         </div>
                     </form>
-                </div>                    
+                </div>
             </div>
         </div>
     </div>
@@ -57,8 +67,18 @@
 <div class="row">
 	<div class="col">
 		<div class="card card-small mb-4">
-			<div class="card-header border-bottom">
-				<h6 class="m-0">List Kegiatan Ku</h6>
+			<div class="card-header border-bottom d-flex items-align-center h-100">
+                <div class="col-sm-6">
+                    <h6 class="m-0">List Kegiatan Ku</h6>
+                </div>
+                @if ($bulan <> "")
+                <div class="col-sm-6 d-flex justify-content-end">
+                    <div class="form-group m-0">
+                        {{-- <h1>Export User Activities</h1> --}}
+                        <a href="{{ route('export.activities') }}" class="btn btn-primary" id="export">Export to Excel</a>
+                    </div>
+                </div>
+                @endif
 			</div>
 			@if ($message = Session::get('success'))
             <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
@@ -80,7 +100,7 @@
                             <th>Kegiatan</th>
                             <th>Progres</th>
                             <th>Aksi</th>
-                        </tr>    
+                        </tr>
                     </thead>
                     <tbody>
                         @foreach ($activities as $act)
@@ -101,22 +121,22 @@
                                 <form action="{{ route('act.destroy',$act->id) }}" method="POST">
 
                                     <a class="btn btn-info btn-sm" href="{{ route('act.show',$act->id) }}">Show</a>
-                                    <a class="btn btn-primary btn-sm" href="{{ route('act.edit',$act->id) }}">Edit</a>                         
+                                    <a class="btn btn-primary btn-sm" href="{{ route('act.edit',$act->id) }}">Edit</a>
                                     @csrf
-                                    @method('DELETE')                         
+                                    @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
                                 </form>
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
-                </table>                        
+                </table>
             </div>
 		</div>
 	</div>
 </div>
 <!-- End Default Light Table -->
-<!-- End of Content -->		
+<!-- End of Content -->
 @endsection
 
 @push('scripts')
@@ -127,5 +147,24 @@
        responsive: true
     });
   } );
+
+  // Get references to the select element and the button
+    const selectElement1 = document.getElementById('bulan');
+    const selectElement2 = document.getElementById('tahun');
+    const buttonElement = document.getElementById('export');
+
+    // Add event listener to the select element
+    selectElement.addEventListener('change', function() {
+        // Check the selected option's value
+        if ((selectElement1.value === '') || (selectElement2.value === '') ) {
+            // Disable the button if option 1 is selected
+            // event.preventDefault();
+            link.setAttribute('disabled', 'disabled');
+        } else {
+            // Enable the button for other options
+            link.removeAttribute('disabled');
+        }
+    });
+
 </script>
 @endpush
