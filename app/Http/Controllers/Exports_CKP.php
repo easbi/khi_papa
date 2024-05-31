@@ -43,7 +43,7 @@ class Exports_CKP extends Controller
             $sheet->setCellValue('G' . $row, "100");
             $sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('H' . $row, "100");
-            $sheet->getStyle('B' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             // Add more data fields as needed
             $row++;
             $sheet->insertNewRowBefore($row);
