@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ActivitiesController extends Controller
 {
@@ -138,44 +136,6 @@ class ActivitiesController extends Controller
 
         // $users = User::all();
         // $activities = DB::table('daily_activity')->where('daily_activity.nip', auth()->user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
-
-        $activities = DB::table('daily_activity')->whereYear('tgl', '=', date($tahun))->whereMonth('tgl', '=', date($bulan))->where('daily_activity.nip', auth()->user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
-
-        // Load the template Excel file
-        $templatePath = storage_path('app\template.xlsx');
-        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($templatePath);
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Populate data starting from a specific row (e.g., row 2)
-        $dummydate = $tahun . '-' . $bulan . '-1'; // Example date
-        $row = 13;
-        $sheet->setCellValue('C' . 5, ":  ". auth()->user()->fullname);
-        $sheet->setCellValue('C' . 7, ":  1-". carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
-        $sheet->setCellValue('C' . 25, auth()->user()->fullname);
-        $sheet->setCellValue('C' . 26, "NIP. ". auth()->user()->nip);
-        $sheet->setCellValue('B' . 21, "Tanggal : ". Carbon::now()->translatedFormat('j F Y'));
-        // $sheet->setCellValue('C' . 6, ":  ". auth()->user()->);
-
-        foreach ($activities as $activity) {
-            $sheet->setCellValue('A' . $row, $row-12);
-            $sheet->setCellValue('B' . $row, $activity->kegiatan);
-            $sheet->setCellValue('D' . $row, $activity->satuan);
-            $sheet->setCellValue('E' . $row, 1);
-            $sheet->setCellValue('F' . $row, 1);
-            $sheet->setCellValue('G' . $row, "100");
-            $sheet->setCellValue('H' . $row, "100");
-            // Add more data fields as needed
-            $row++;
-            $sheet->insertNewRowBefore($row);
-            $sheet->mergeCells('B' . $row . ':C' . $row);
-        }
-
-        $sheet->removeRow($row);
-
-        // Save the new Excel file
-        $fileName = $tahun . $bulan . '_CKP_' . auth()->user()->nip . '.xlsx';
-        $writer = new Xlsx($spreadsheet);
-        $writer->save(storage_path('app/' . $fileName));
 
         return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5);
     }

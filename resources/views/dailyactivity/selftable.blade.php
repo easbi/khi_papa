@@ -75,7 +75,7 @@
                 <div class="col-sm-6 d-flex justify-content-end">
                     <div class="form-group m-0">
                         {{-- <h1>Export User Activities</h1> --}}
-                        <a href="{{ route('export.activities') }}" class="btn btn-primary" id="export">Export to Excel</a>
+                        <a href="{{ url('export-to-excel/'. $tahun . '/' . $bulan) }}" class="btn btn-primary" id="export">Export to Excel</a>
                     </div>
                 </div>
                 @endif

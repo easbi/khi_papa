@@ -30,4 +30,4 @@ Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
 
 Route::get('generateDocx', [ActivitiesController::class, 'generateDocx'])->name('act.generateDocx');
 
-Route::get('export-to-excel', [Exports_CKP::class, 'exportToExcel'])->name('export.activities');
+Route::get('export-to-excel/{tahun}/{bulan}', [Exports_CKP::class, 'exportToExcel'])->name('export.activities');
