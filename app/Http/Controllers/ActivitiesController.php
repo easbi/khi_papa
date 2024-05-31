@@ -173,7 +173,7 @@ class ActivitiesController extends Controller
         $sheet->removeRow($row);
 
         // Save the new Excel file
-        $fileName = 'exported_users.xlsx';
+        $fileName = $tahun . $bulan . '_CKP_' . auth()->user()->nip . '.xlsx';
         $writer = new Xlsx($spreadsheet);
         $writer->save(storage_path('app/' . $fileName));
 
