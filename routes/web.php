@@ -5,6 +5,7 @@ use App\Http\Controllers\DailyactivityController;
 use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\Exports_CKP;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
+use App\Http\Controllers\test;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -31,3 +32,5 @@ Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
 Route::get('generateDocx', [ActivitiesController::class, 'generateDocx'])->name('act.generateDocx');
 
 Route::get('export-to-excel/{tahun}/{bulan}', [Exports_CKP::class, 'exportToExcel'])->name('export.activities');
+
+Route::get('test', [test::class,'index']);
