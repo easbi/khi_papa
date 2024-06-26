@@ -51,10 +51,16 @@
               <span class="d-flex">
                   <i class="material-icons mr-1">score</i>
                   <strong class="mr-1">Berkas/Bukti Kegiatan:</strong>
-                  @if ($activity->berkas == NULL )
-                    <strong class="text-warning">- </strong>
-                  @else 
+                  @if ($activity->berkas == NULL AND $activity->link == NULL )
+                    <strong class="text-danger"> Belum ada Bukti Penyelesaian! </strong>
+                  @elseif ($activity->berkas != NULL AND $activity->link == NULL )
                     <a class="btn btn-primary btn-sm" href="{{ url('/bukti',$activity->berkas) }}">Berkas</a>
+                  @elseif ($activity->berkas == NULL AND $activity->link != NULL )
+                    <a class="btn btn-primary btn-sm" href="{{ $activity->link }}">Link</a>
+                    @elseif ($activity->berkas != NULL AND $activity->link != NULL )
+                    <a class="btn btn-primary btn-sm" href="{{ url('/bukti',$activity->berkas) }}">Berkas</a> 
+                     dan        
+                    <a class="btn btn-primary btn-sm" href="{{ $activity->link }}">Link</a>
                   @endif
               </span>
               <span class="d-flex">

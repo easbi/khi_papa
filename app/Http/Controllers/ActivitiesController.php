@@ -240,6 +240,7 @@ class ActivitiesController extends Controller
             $activity->tgl_selesai = $tgl_selesai;
             $activity->created_by = Auth::user()->nip;
             $activity->berkas = $filename;
+            $activity->link = $request->link;
             $activity->updated_at = now();
             $activity->save();
         }
