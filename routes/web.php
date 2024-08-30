@@ -6,6 +6,7 @@ use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\Exports_CKP;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\test;
+use App\Http\Controllers\SuggestController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -33,4 +34,7 @@ Route::get('generateDocx', [ActivitiesController::class, 'generateDocx'])->name(
 
 Route::get('export-to-excel/{tahun}/{bulan}', [Exports_CKP::class, 'exportToExcel'])->name('export.activities');
 
-Route::get('test', [test::class,'index']);
+// Route::get('test', [test::class,'index']);
+
+//Suggestion
+Route::get('/autocomplete/search', [SuggestController::class, 'search'])->name('autocomplete.search');
