@@ -24,8 +24,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
-        $schedule->command('app:dispatch-messages')->dailyAt('14:23')->weekdays();
+        
+        $schedule->command('app:dispatch-messages')->dailyAt('15:00')->weekdays();
+        $schedule->command('queue:work --stop-when-empty')->everyMinute();
     }
 
     /**
