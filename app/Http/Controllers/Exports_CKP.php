@@ -16,7 +16,23 @@ class Exports_CKP extends Controller
 {
     public function exportToExcel($tahun, $bulan)
     {
-        $activities = DB::table('daily_activity')->whereYear('tgl', '=', date($tahun))->whereMonth('tgl', '=', date($bulan))->where('daily_activity.nip', auth()->user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
+        // $activities = DB::table('daily_activity')
+        //     ->whereYear('tgl', '=', date($tahun))
+        //     ->whereMonth('tgl', '=', date($bulan))
+        //     ->where('daily_activity.nip', auth()->user()->nip)
+        //     ->join('users', 'daily_activity.nip', 'users.nip')
+        //     ->select('daily_activity.*', 'users.fullname')
+        //     ->orderBy('id', 'asc')->get();
+
+        $activities = DB::table('daily_activity')
+            ->whereYear('tgl', '=', $tahun) // Filter by year
+            ->whereMonth('tgl', '=', $bulan) // Filter by month
+            ->where('daily_activity.nip', auth()->user()->nip) // Filter by the authenticated user's nip
+            ->join('users', 'daily_activity.nip', '=', 'users.nip') // Join with the users table
+            ->select('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname', DB::raw('SUM(daily_activity.kuantitas) as total_kuantitas'), DB::raw('MIN(daily_activity.id) as min_id')) // Select the required fields
+            ->groupBy('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname') // Group by kegiatan, satuan, and fullname
+            ->orderBy('min_id', 'asc') // Order by the minimum id within each group
+            ->get();
 
         // Load the template Excel file
         $templatePath = public_path('template.xlsx');
@@ -38,8 +54,8 @@ class Exports_CKP extends Controller
             $sheet->setCellValue('A' . $row, $row-12);
             $sheet->setCellValue('B' . $row, $activity->kegiatan);
             $sheet->setCellValue('D' . $row, $activity->satuan);
-            $sheet->setCellValue('E' . $row, $activity->kuantitas);
-            $sheet->setCellValue('F' . $row, $activity->kuantitas);
+            $sheet->setCellValue('E' . $row, $activity->total_kuantitas);
+            $sheet->setCellValue('F' . $row, $activity->total_kuantitas);
             $sheet->setCellValue('G' . $row, "100");
             $sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('H' . $row, "100");
