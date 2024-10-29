@@ -147,7 +147,7 @@
                         //get the bar chart canvas
                         var cData = <?php echo $leastEmployeesDataJson; ?>;
                         var labels = cData.map(employee => employee.nama); // Nama pegawai
-                        var dataValues = cData.map(employee => employee.jumlah_kegiatan); // Data pekerjaan yang selesai
+                        var dataValues = cData.map(employee => employee.jumlah_hari_tdk_mengisi); // Data pekerjaan yang selesai
                         var ctx = $("#bar-chart-min-5");
                     
                         //bar chart data
@@ -155,7 +155,7 @@
                             labels: labels, // Nama pegawai
                             datasets: [
                                 {
-                                    label: "Jumlah Pekerjaan Selesai",
+                                    label: "Jumlah Hari Kerja Tidak Mengisi Kegiatan di KHI",
                                     data: dataValues, // Data pekerjaan yang selesai
                                     backgroundColor: [
                                         "#FF6384",

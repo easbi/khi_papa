@@ -57,21 +57,44 @@ class ActivitiesController extends Controller
         
 
         // Query to get the 5 employees with the least daily activity submissions for the current month
-        $leastEmployees = DB::table('daily_activity')
-            ->join('users', 'daily_activity.nip', '=', 'users.nip')
-            ->select('users.fullname', 'daily_activity.nip', DB::raw('COUNT(*) as jumlah_kegiatan'))
-            ->whereMonth('daily_activity.created_at', '=', date('m'))
-            ->whereYear('daily_activity.created_at', '=', date('Y'))
-            ->groupBy('daily_activity.nip', 'users.fullname')
-            ->orderBy('jumlah_kegiatan')
+        $leastEmployees = DB::table('users')
+            ->leftJoin('daily_activity', function($join) {
+                $join->on('users.nip', '=', 'daily_activity.nip')
+                     ->whereMonth('daily_activity.created_at', '=', date('m'))
+                     ->whereYear('daily_activity.created_at', '=', date('Y'));
+            })
+            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002']) // Mengecualikan pegawai tertentu
+            ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
+            ->groupBy('users.nip', 'users.fullname')
+            ->orderBy('jumlah_pengisian', 'asc')
             ->limit(5)
-            ->get();
+            ->get()
+            ->map(function ($user) {
+                // Hitung hari kerja dalam bulan ini (kecuali Sabtu dan Minggu)
+                $workDays = Carbon::now()->startOfMonth()->diffInWeekdays(Carbon::now()->endOfMonth());
+
+                // Hitung hari yang sudah diisi oleh pengguna
+                $filledDays = DB::table('daily_activity')
+                    ->where('nip', $user->nip)
+                    ->whereMonth('created_at', date('m'))
+                    ->whereYear('created_at', date('Y'))
+                    ->distinct('created_at')
+                    ->count();
+
+                // Menghitung hari kerja yang tidak diisi
+                $user->missed_days = $workDays - $filledDays;
+
+                return $user;
+            });
+
+
+        // dd($leastEmployees);
 
         // Convert the data to a single array containing employee data
         $leastEmployeesData = $leastEmployees->map(function ($employee) {
             return [
                 'nama' => $employee->fullname,
-                'jumlah_kegiatan' => $employee->jumlah_kegiatan
+                'jumlah_hari_tdk_mengisi' => $employee->missed_days
             ];
         })->toArray();
 
@@ -91,7 +114,7 @@ class ActivitiesController extends Controller
 
         $status_penyelesaian = json_encode($status_penyelesaian);
 
-        // dd($status_penyelesaian);
+        
 
         return view('dailyactivity.index',
             compact(
