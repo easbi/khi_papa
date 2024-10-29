@@ -204,6 +204,11 @@
                                         maxRotation: 45,
                                         minRotation: 45
                                     }
+                                }],
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
                                 }]
                             }};
                     
@@ -290,6 +295,11 @@
                                         autoSkip: false,
                                         maxRotation: 45,
                                         minRotation: 45
+                                    }
+                                }],
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
                                     }
                                 }]
                             }};
