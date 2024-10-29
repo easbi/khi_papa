@@ -694,6 +694,7 @@ LongURL API
 longurl-r-package
 looid\.com
 looksystems\.net
+lscache_runner
 ltx71
 lua-resty-http
 Lucee \(CFML Engine\)
@@ -999,6 +1000,7 @@ ROI Hunter
 RPT-HTTPClient
 RSSMix\/
 RSSOwl
+RuxitSynthetic
 RyowlEngine
 safe-agent-scanner
 SalesIntelligent
@@ -1392,6 +1394,7 @@ YP\.PL
 Zabbix
 Zade
 Zao
+Zapier
 Zauba
 Zemanta Aggregator
 Zend\\Http\\Client

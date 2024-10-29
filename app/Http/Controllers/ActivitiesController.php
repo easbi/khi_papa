@@ -32,18 +32,51 @@ class ActivitiesController extends Controller
 
         $userfill = Activity::whereDate('tgl', Carbon::today())->distinct('nip')->count();
 
+        // Query to get the top 5 employees with the most daily activity submissions
+        $topEmployees = DB::table('daily_activity')
+            ->join('users', 'daily_activity.nip', '=', 'users.nip')
+            ->select('users.fullname', 'daily_activity.nip', DB::raw('COUNT(*) as jumlah_kegiatan'))            
+            ->whereMonth('daily_activity.created_at', '=', date('m'))
+            ->whereYear('daily_activity.created_at', '=', date('Y'))
+            ->groupBy('daily_activity.nip', 'users.fullname')
+            ->orderByDesc('jumlah_kegiatan')
+            ->limit(5)
+            ->get();
 
-        // status WFH/WFO/dll
-        $record_status_wfo_wfh = Activity::whereDate('tgl', Carbon::today())
-                ->select('wfo_wfh', \DB::raw("COUNT('id') as count"))
-                ->groupBy('wfo_wfh')
-                ->get();
-        $status_wfo_wfh = [];
-        foreach($record_status_wfo_wfh as $row) {
-            $status_wfo_wfh['label'][] = $row->wfo_wfh;
-            $status_wfo_wfh['data'][] = (int) $row->count;
-        }
-        $status_wfo_wfh = json_encode($status_wfo_wfh);
+        // Convert the data to a single array containing employee data
+        $topEmployeesData = $topEmployees->map(function ($employee) {
+            return [
+                'nama' => $employee->fullname,
+                'jumlah_kegiatan' => $employee->jumlah_kegiatan
+            ];
+        })->toArray();
+
+        // Convert the employee data to JSON for JavaScript usage
+        $topEmployeesDataJson = json_encode($topEmployeesData);
+
+        
+
+        // Query to get the 5 employees with the least daily activity submissions for the current month
+        $leastEmployees = DB::table('daily_activity')
+            ->join('users', 'daily_activity.nip', '=', 'users.nip')
+            ->select('users.fullname', 'daily_activity.nip', DB::raw('COUNT(*) as jumlah_kegiatan'))
+            ->whereMonth('daily_activity.created_at', '=', date('m'))
+            ->whereYear('daily_activity.created_at', '=', date('Y'))
+            ->groupBy('daily_activity.nip', 'users.fullname')
+            ->orderBy('jumlah_kegiatan')
+            ->limit(5)
+            ->get();
+
+        // Convert the data to a single array containing employee data
+        $leastEmployeesData = $leastEmployees->map(function ($employee) {
+            return [
+                'nama' => $employee->fullname,
+                'jumlah_kegiatan' => $employee->jumlah_kegiatan
+            ];
+        })->toArray();
+
+        // Convert the employee data to JSON for JavaScript usage
+        $leastEmployeesDataJson = json_encode($leastEmployeesData); 
 
         // statuspenyelesaian pekerjaan
         $record_status_penyelesaian = Activity::whereDate('tgl', Carbon::today())
@@ -66,8 +99,9 @@ class ActivitiesController extends Controller
                 'userfill',
                 'act_count_today',
                 'act_count_yesterday',
-                'status_wfo_wfh',
-                'status_penyelesaian'
+                'status_penyelesaian',
+                'topEmployeesDataJson',
+                'leastEmployeesDataJson'
             ))
         ->with('i');
     }

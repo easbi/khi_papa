@@ -27,7 +27,7 @@
             <div class="card-body d-flex flex-column">
                 <style type="text/css">
                     .chart1 {
-                        height:80px
+                        height:105px
                     }
                 </style>
                 <div class="chart1">
@@ -91,7 +91,7 @@
                                     dataArr.map(data => {
                                         sum += data;
                                     });
-                                    let percentage = (value).toFixed(2)+"%   "+ "("+ (value*13/100).toFixed(0)+" org)";
+                                    let percentage = (value*13/100).toFixed(0)+" org";
                                     return percentage;
                                 },
                               },
@@ -134,86 +134,86 @@
     <div class="col-sm-6">
         <div class="card card-small mb-4">
             <div class="card-header border-bottom">
-                <h6 class="m-0">Pegawai Menurut Kondisi Pekerjaan</h6>
+                <h6 class="m-0">Top 5 Pegawai Kurang Aktif Bulan ini</h6>
             </div>
             <div class="card-body d-flex flex-column">  
                 <div class="chart-container">
-                    <div class="pie-chart-container">
-                      <canvas id="pie-chart1"></canvas>
+                    <div class="bar-chart-container">
+                        <canvas id="bar-chart-min-5"></canvas>
                     </div>
                 </div>  
                 <script>
                     $(function(){
-                          //get the pie chart canvas
-                          var cData = JSON.parse('<?php echo $status_wfo_wfh; ?>');
-                          var ctx = $("#pie-chart1");
-                     
-                          //pie chart data
-                          var data = {
-                            labels: cData.label,
+                        //get the bar chart canvas
+                        var cData = <?php echo $leastEmployeesDataJson; ?>;
+                        var labels = cData.map(employee => employee.nama); // Nama pegawai
+                        var dataValues = cData.map(employee => employee.jumlah_kegiatan); // Data pekerjaan yang selesai
+                        var ctx = $("#bar-chart-min-5");
+                    
+                        //bar chart data
+                        var data = {
+                            labels: labels, // Nama pegawai
                             datasets: [
-                              {
-                                label: "Users Count",
-                                data: cData.data,
-                                backgroundColor: [
-                                  "#F7D002",
-                                  "#018E42",
-                                  "#454E9E",
-                                  "#F00699",
-                                ],
-                                borderColor: [
-                                  "#F7D002",
-                                  "#018E42",
-                                  "#454E9E",
-                                  "#F00699",
-                                ],
-                                borderWidth: [1, 1, 1, 1]
-                              }
+                                {
+                                    label: "Jumlah Pekerjaan Selesai",
+                                    data: dataValues, // Data pekerjaan yang selesai
+                                    backgroundColor: [
+                                        "#FF6384",
+                                        "#36A2EB",
+                                        "#FFCE56",
+                                        "#4BC0C0",
+                                        "#9966FF"
+                                    ],
+                                    borderColor: [
+                                        "#FF6384",
+                                        "#36A2EB",
+                                        "#FFCE56",
+                                        "#4BC0C0",
+                                        "#9966FF"
+                                    ],
+                                    borderWidth: 1
+                                }
                             ]
-                          };
-                     
-                          //options
-                          var options = {
+                        };
+                    
+                        //options
+                        var options = {
                             responsive: true,
                             title: {
-                              display: true,
-                              position: "top",
-                              text: "",
-                              fontSize: 18,
-                              fontColor: "#111"
+                                display: true,
+                                position: "top",
+                                text: "Top 5 Pegawai Kurang Aktif",
+                                fontSize: 18,
+                                fontColor: "#111"
                             },
                             legend: {
-                              display: true,
-                              position: "bottom",
-                              labels: {
-                                fontColor: "#333",
-                                fontSize: 16
-                              }
-                            },
-                            datalabels: {
-                                color: 'blue',
+                                display: false,
+                                position: "bottom",
                                 labels: {
-                                  title: {
-                                    font: {
-                                      weight: 'bold'
-                                    }
-                                  },
-                                  value: {
-                                    color: 'green'
-                                  }
+                                    fontColor: "#333",
+                                    fontSize: 16
                                 }
-                              }
-  
-                          };
-                     
-                          //create Pie Chart class object
-                          var chart1 = new Chart(ctx, {
-                            type: "doughnut",
+                            },
+                            scales: {
+                                xAxes: [{
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.length > 15 ? value : value;
+                                        },
+                                        autoSkip: false,
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    }
+                                }]
+                            }};
+                    
+                        //create Bar Chart class object
+                        var chart1 = new Chart(ctx, {
+                            type: "bar",
                             data: data,
                             options: options
-                          });
-                     
-                      });
+                        });
+                    });
                 </script>               
             </div>
         </div>
@@ -221,79 +221,86 @@
     <div class="col-sm-6">
         <div class="card card-small mb-4">
             <div class="card-header border-bottom">
-                <h6 class="m-0">Pegawai Menurut Penyelesaian Pekerjaan</h6>
+                <h6 class="m-0">Top 5 Pegawai Rajin Mengisi KHI Bulan ini</h6>
             </div>
             <div class="card-body d-flex flex-column">  
                 <div class="chart-container">
-                    <div class="pie-chart-container">
-                      <canvas id="pie-chart2"></canvas>
+                    <div class="bar-chart-container">
+                        <canvas id="bar-chart-top-5"></canvas>
                     </div>
-                </div>
-                <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/emn178/chartjs-plugin-labels/src/chartjs-plugin-labels.js"></script>  
+                </div>  
                 <script>
                     $(function(){
-                          //get the pie chart canvas
-                          var cData = JSON.parse('<?php echo $status_penyelesaian; ?>');
-                          var ctx = $("#pie-chart2");
-                     
-                          //pie chart data
-                          var data = {
-                            labels: cData.label,
+                        //get the bar chart canvas
+                        var cData = <?php echo $topEmployeesDataJson; ?>;
+                        var labels = cData.map(employee => employee.nama); // Nama pegawai
+                        var dataValues = cData.map(employee => employee.jumlah_kegiatan); // Data pekerjaan yang selesai
+                        var ctx = $("#bar-chart-top-5");
+                    
+                        //bar chart data
+                        var data = {
+                            labels: labels, // Nama pegawai
                             datasets: [
-                              {
-                                label: "Users Count",
-                                data: cData.data,
-                                backgroundColor: [
-                                  "#454E9E",
-                                  "#F00699",
-                                ],
-                                borderColor: [
-                                  "#454E9E",
-                                  "#F00699",
-                                ],
-                                borderWidth: [1, 1, 1, 1]
-                              }
+                                {
+                                    label: "Jumlah Pekerjaan Selesai",
+                                    data: dataValues, // Data pekerjaan yang selesai
+                                    backgroundColor: [
+                                        "#FF6384",
+                                        "#36A2EB",
+                                        "#FFCE56",
+                                        "#4BC0C0",
+                                        "#9966FF"
+                                    ],
+                                    borderColor: [
+                                        "#FF6384",
+                                        "#36A2EB",
+                                        "#FFCE56",
+                                        "#4BC0C0",
+                                        "#9966FF"
+                                    ],
+                                    borderWidth: 1
+                                }
                             ]
-                          };
-                     
-                          //options
-                          var options = {
+                        };
+                    
+                        //options
+                        var options = {
                             responsive: true,
                             title: {
-                              display: true,
-                              position: "top",
-                              text: "",
-                              fontSize: 18,
-                              fontColor: "#111"
+                                display: true,
+                                position: "top",
+                                text: "Top 5 Pegawai Terajin",
+                                fontSize: 18,
+                                fontColor: "#111"
                             },
                             legend: {
-                              display: true,
-                              position: "bottom",
-                              labels: {
-                                fontColor: "#333",
-                                fontSize: 16
-                              }
+                                display: false,
+                                position: "bottom",
+                                labels: {
+                                    fontColor: "#333",
+                                    fontSize: 16
+                                }
                             },
-                            plugins: {
-                                datalabels: {
-                                    formatter: function (value, context) {
-                                        return context.chart.data.labels[
-                                            context.dataIndex
-                                        ];
-                                    },
-                                },
-                            },
-  
-                          };
-                     
-                          //create Pie Chart class object
-                          var chart1 = new Chart(ctx, {
-                            type: "doughnut",
+                            scales: {
+                                xAxes: [{
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.length > 15 ? value : value;
+                                        },
+                                        autoSkip: false,
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    }
+                                }]
+                            }};
+                    
+                        //create Bar Chart class object
+                        var chart1 = new Chart(ctx, {
+                            type: "bar",
                             data: data,
                             options: options
-                          });
-                     
-                      });
+                        });
+                    });
                 </script>               
             </div>
         </div>
