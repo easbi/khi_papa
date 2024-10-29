@@ -97,7 +97,8 @@
                             <th>Pegawai</th>
                             <th>Tanggal Mulai</th>
                             <th>Tanggal Selesai</th>
-                            <th>Kegiatan</th>
+                            <th>Jenis Kegiatan</th>
+                            <th>Nama Kegiatan</th>
                             <th>Progres</th>
                             <th>Aksi</th>
                         </tr>
@@ -109,6 +110,7 @@
                             <td>{{ \Illuminate\Support\Str::limit($act->fullname , 17) }}</td>
                             <td>{{ Carbon\Carbon::parse($act->tgl)->format('d-M-Y')  }}</td>
                             <td>{{ Carbon\Carbon::parse($act->tgl_selesai)->format('d-M-Y')  }}</td>
+                            <td>{{ $act->jenis_kegiatan }}</td>
                             <td>{{ \Illuminate\Support\Str::limit($act->kegiatan , 40) }}</td>
                             <td>
                                 @if($act->is_done == 2)

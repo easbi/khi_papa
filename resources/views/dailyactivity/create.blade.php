@@ -45,6 +45,13 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
+                                    <label for="jenis_kegiatan">Pekerjaan Utama/Tambahan</label>
+                                    <select class="form-control" id="jenis_kegiatan" name="jenis_kegiatan" required>
+                                        <option value="UTAMA" selected>Pekerjaan Utama</option>
+                                        <option value="TAMBAHAN">Pekerjaan Tambahan</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
                                     <label for="kegiatan">Detail Kegiatan:</label>
                                     <input list="kegiatan-options" class="form-control" name="kegiatan" id="kegiatan" autocomplete="off" required/>
                                     <datalist id="kegiatan-options">

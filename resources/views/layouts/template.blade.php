@@ -137,10 +137,10 @@
           <footer class="main-footer d-flex p-2 px-3 bg-white border-top">
             <ul class="nav">
               <li class="nav-item">
-                <a class="nav-link" href="#">Versi 1.0.0</a>
+                <a class="nav-link" href="#">Versi 2.1.0</a>
               </li>
             </ul>
-            <span class="copyright ml-auto my-auto mr-2">Copyright © 2021
+            <span class="copyright ml-auto my-auto mr-2">Copyright ©2021-<?php echo date("Y"); ?>
               <a href="https://padangpanjangkota.bps.go.id" rel="nofollow">BPS Kota Padang Panjang</a>
             </span>
           </footer>

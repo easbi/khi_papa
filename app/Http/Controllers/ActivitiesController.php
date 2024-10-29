@@ -217,6 +217,7 @@ class ActivitiesController extends Controller
     {
         $request->validate([
             'wfo_wfh' => 'required',
+            'jenis_kegiatan' => 'required',
             'kegiatan'=> 'required',
             'satuan'=> 'required',
             'kuantitas'=> 'required',
@@ -226,6 +227,7 @@ class ActivitiesController extends Controller
         $result = Activity::create([
                 'nip' => Auth::user()->nip,
                 'wfo_wfh' => $request->wfo_wfh,
+                'jenis_kegiatan' => $request->jenis_kegiatan,
                 'kegiatan'=> $request->kegiatan,
                 'satuan'=> $request->satuan,
                 'kuantitas'=> $request->kuantitas,
@@ -290,6 +292,7 @@ class ActivitiesController extends Controller
             $activity->nip = Auth::user()->nip;
             $activity->wfo_wfh = $request->wfo_wfh;
             $activity->kegiatan = $request->kegiatan;
+            $activity->jenis_kegiatan = $request->jenis_kegiatan;
             $activity->satuan = $request->satuan;
             $activity->kuantitas = $request->kuantitas;
             $activity->tgl = $request->tgl;
