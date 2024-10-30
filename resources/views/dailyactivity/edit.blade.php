@@ -43,20 +43,13 @@
 									<label for="tgl"><b>Tangal</b></label>
 									<input type="date" class="form-control form-control-lg mb-3" name="tgl" value="{{ $activity->tgl }}">
 								</div>
-									<div class="form-group">
-										<label for="wfo_wfh"><b>WFO/WFH:</label>
+								<div class="form-group">
+									<label for="wfo_wfh"><b>WFO/WFH:</label>
 										<select class="form-control" id="wfo_wfh" name="wfo_wfh">
 											<option value="WFO" @if($activity->wfo_wfh == "WFO") selected @endif>WFO - Work From Office</option>
 											<option value="WFH" @if($activity->wfo_wfh == "WFH") selected @endif>WFH - Work From Home</option>
 											<option value="TL" @if($activity->wfo_wfh == "TL") selected @endif>Tugas Luar</option>
 											<option value="Lainnya" @if($activity->wfo_wfh == "Lainnya") selected @endif>Lainnya (Cuti, Sakit, Izin)</option>
-										</select>
-									</div>
-									<div class="form-group">
-										<label for="jenis_kegiatan"><b>Jenis Kegiatan (Utama/Tambahan):</label>
-										<select class="form-control" id="jenis_kegiatan" name="jenis_kegiatan">
-											<option value="UTAMA" @if($activity->jenis_kegiatan == "UTAMA") selected @endif>Utama</option>
-											<option value="TAMBAHAN" @if($activity->jenis_kegiatan == "TAMBAHAN") selected @endif>Tambahan</option>
 										</select>
 									</div>
 									<div class="form-group">
