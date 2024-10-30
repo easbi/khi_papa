@@ -10,6 +10,7 @@ $config = new PhpCsFixer\Config();
 $config
     ->setRiskyAllowed(true)
     ->setFinder($finder)
+    ->setParallelConfig(PhpCsFixer\Runner\Parallel\ParallelConfigFactory::detect(null, 600))
     ->setCacheFile(sys_get_temp_dir() . '/php-cs-fixer' . preg_replace('~\W~', '-', __DIR__))
     ->setRules([
         'align_multiline_comment' => true,
@@ -89,7 +90,6 @@ $config
         'native_constant_invocation' => false, // Micro optimization that look messy
         'native_function_casing' => true,
         'native_function_invocation' => false, // I suppose this would be best, but I am still unconvinced about the visual aspect of it
-        'native_type_declaration_casing' => true,
         'new_with_parentheses' => ['anonymous_class' => true, 'named_class' => true],
         'no_alias_functions' => true,
         'no_alias_language_construct_call' => true,
@@ -168,7 +168,6 @@ $config
         'phpdoc_align' => false, // Waste of time
         'phpdoc_annotation_without_dot' => true,
         'phpdoc_indent' => true,
-        //'phpdoc_inline_tag' => true,
         'phpdoc_line_span' => false, // Unfortunately our old comments turn even uglier with this
         'phpdoc_no_access' => true,
         'phpdoc_no_alias_tag' => true,
@@ -214,7 +213,6 @@ $config
         'single_line_comment_style' => true,
         'single_line_throw' => false, // I don't see any reason for having a special case for Exception
         'single_quote' => true,
-        'single_space_around_construct' => true,
         'single_trait_insert_per_statement' => true,
         'space_after_semicolon' => true,
         'spaces_inside_parentheses' => ['space' => 'none'],
@@ -222,8 +220,8 @@ $config
         'standardize_not_equals' => true,
         'static_lambda' => false, // Risky if we can't guarantee nobody use `bindTo()`
         'strict_comparison' => false, // No, too dangerous to change that
-        'strict_param' => false, // No, too dangerous to change that
         'string_implicit_backslashes' => false, // was escape_implicit_backslashes, too confusing
+        'strict_param' => false, // No, too dangerous to change that
         'string_length_to_empty' => true,
         'string_line_ending' => true,
         'switch_case_semicolon_to_colon' => true,
