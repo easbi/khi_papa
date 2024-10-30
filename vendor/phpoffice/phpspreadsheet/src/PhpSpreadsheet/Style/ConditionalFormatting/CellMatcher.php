@@ -235,7 +235,7 @@ class CellMatcher
             self::COMPARISON_DUPLICATES_OPERATORS[$conditional->getConditionType()],
             $worksheetName,
             $this->conditionalRange,
-            $this->cellConditionCheck($this->cell->getCalculatedValueString())
+            $this->cellConditionCheck($this->cell->getCalculatedValue())
         );
 
         return $this->evaluateExpression($expression);

@@ -4,7 +4,6 @@ namespace PhpOffice\PhpSpreadsheet\Calculation\TextData;
 
 use PhpOffice\PhpSpreadsheet\Calculation\ArrayEnabled;
 use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
-use PhpOffice\PhpSpreadsheet\Calculation\Exception as CalcExp;
 use PhpOffice\PhpSpreadsheet\Calculation\Functions;
 use PhpOffice\PhpSpreadsheet\Calculation\Information\ErrorValue;
 
@@ -18,20 +17,16 @@ class Text
      * @param mixed $value String Value
      *                         Or can be an array of values
      *
-     * @return array|int|string If an array of values is passed for the argument, then the returned result
+     * @return array|int If an array of values is passed for the argument, then the returned result
      *            will also be an array with matching dimensions
      */
-    public static function length(mixed $value = ''): array|int|string
+    public static function length(mixed $value = ''): array|int
     {
         if (is_array($value)) {
             return self::evaluateSingleArgumentArray([self::class, __FUNCTION__], $value);
         }
 
-        try {
-            $value = Helpers::extractString($value, true);
-        } catch (CalcExp $e) {
-            return $e->getMessage();
-        }
+        $value = Helpers::extractString($value);
 
         return mb_strlen($value, 'UTF-8');
     }
@@ -46,21 +41,17 @@ class Text
      * @param mixed $value2 String Value
      *                         Or can be an array of values
      *
-     * @return array|bool|string If an array of values is passed for either of the arguments, then the returned result
+     * @return array|bool If an array of values is passed for either of the arguments, then the returned result
      *            will also be an array with matching dimensions
      */
-    public static function exact(mixed $value1, mixed $value2): array|bool|string
+    public static function exact(mixed $value1, mixed $value2): array|bool
     {
         if (is_array($value1) || is_array($value2)) {
             return self::evaluateArrayArguments([self::class, __FUNCTION__], $value1, $value2);
         }
 
-        try {
-            $value1 = Helpers::extractString($value1, true);
-            $value2 = Helpers::extractString($value2, true);
-        } catch (CalcExp $e) {
-            return $e->getMessage();
-        }
+        $value1 = Helpers::extractString($value1);
+        $value2 = Helpers::extractString($value2);
 
         return $value2 === $value1;
     }
@@ -106,14 +97,11 @@ class Text
      * @param mixed $padding The value with which to pad the result.
      *                              The default is #N/A.
      *
-     * @return array|string the array built from the text, split by the row and column delimiters, or an error string
+     * @return array the array built from the text, split by the row and column delimiters
      */
-    public static function split(mixed $text, $columnDelimiter = null, $rowDelimiter = null, bool $ignoreEmpty = false, bool $matchMode = true, mixed $padding = '#N/A'): array|string
+    public static function split(mixed $text, $columnDelimiter = null, $rowDelimiter = null, bool $ignoreEmpty = false, bool $matchMode = true, mixed $padding = '#N/A'): array
     {
         $text = Functions::flattenSingleValue($text);
-        if (ErrorValue::isError($text, true)) {
-            return $text;
-        }
 
         $flags = self::matchFlags($matchMode);
 

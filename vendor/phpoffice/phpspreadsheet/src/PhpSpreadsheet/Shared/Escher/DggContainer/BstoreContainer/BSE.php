@@ -25,6 +25,8 @@ class BSE
 
     /**
      * The BLIP (Big Large Image or Picture).
+     *
+     * @var ?BSE\Blip
      */
     private ?BSE\Blip $blip = null;
 

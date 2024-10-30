@@ -268,7 +268,6 @@ class Slk extends BaseReader
         if ($sharedFormula === true && $sharedRow >= 0 && $sharedColumn >= 0) {
             $thisCoordinate = Coordinate::stringFromColumnIndex((int) $column) . $row;
             $sharedCoordinate = Coordinate::stringFromColumnIndex($sharedColumn) . $sharedRow;
-            /** @var string */
             $formula = $spreadsheet->getActiveSheet()->getCell($sharedCoordinate)->getValue();
             $spreadsheet->getActiveSheet()->getCell($thisCoordinate)->setValue($formula);
             $referenceHelper = ReferenceHelper::getInstance();
@@ -282,7 +281,6 @@ class Slk extends BaseReader
             return;
         }
         $columnLetter = Coordinate::stringFromColumnIndex((int) $column);
-        /** @var string */
         $cellData = Calculation::unwrapResult($cellData);
 
         // Set cell value
@@ -449,7 +447,7 @@ class Slk extends BaseReader
     private function processPColors(string $rowDatum, array &$formatArray): void
     {
         if (preg_match('/L([1-9]\\d*)/', $rowDatum, $matches)) {
-            $fontColor = ((int) $matches[1]) % 8;
+            $fontColor = $matches[1] % 8;
             $formatArray['font']['color']['argb'] = self::COLOR_ARRAY[$fontColor];
         }
     }

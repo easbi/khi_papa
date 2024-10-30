@@ -3,7 +3,6 @@
 namespace PhpOffice\PhpSpreadsheet\Calculation\Information;
 
 use PhpOffice\PhpSpreadsheet\Calculation\ArrayEnabled;
-use PhpOffice\PhpSpreadsheet\Calculation\Functions;
 
 class ErrorValue
 {
@@ -36,7 +35,7 @@ class ErrorValue
      * @return array|bool If an array of numbers is passed as an argument, then the returned result will also be an array
      *            with the same dimensions
      */
-    public static function isError(mixed $value = '', bool $tryNotImplemented = false): array|bool
+    public static function isError(mixed $value = ''): array|bool
     {
         if (is_array($value)) {
             return self::evaluateSingleArgumentArray([self::class, __FUNCTION__], $value);
@@ -44,9 +43,6 @@ class ErrorValue
 
         if (!is_string($value)) {
             return false;
-        }
-        if ($tryNotImplemented && $value === Functions::NOT_YET_IMPLEMENTED) {
-            return true;
         }
 
         return in_array($value, ExcelError::ERROR_CODES, true);

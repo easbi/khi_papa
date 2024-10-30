@@ -17,6 +17,7 @@ class Delimiter
 
     protected int $numberLines = 0;
 
+    /** @var ?string */
     protected ?string $delimiter = null;
 
     /**

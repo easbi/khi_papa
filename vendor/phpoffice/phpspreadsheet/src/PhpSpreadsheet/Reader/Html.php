@@ -2,14 +2,12 @@
 
 namespace PhpOffice\PhpSpreadsheet\Reader;
 
-use DOMAttr;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMText;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use PhpOffice\PhpSpreadsheet\Comment;
 use PhpOffice\PhpSpreadsheet\Document\Properties;
 use PhpOffice\PhpSpreadsheet\Exception as SpreadsheetException;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension as CssDimension;
@@ -149,8 +147,10 @@ class Html extends BaseReader
             return false;
         }
 
-        $beginning = preg_replace(self::STARTS_WITH_BOM, '', $this->readBeginning()) ?? '';
-
+        $beginning = $this->readBeginning();
+        if (preg_match(self::STARTS_WITH_BOM, $beginning)) {
+            return true;
+        }
         $startWithTag = self::startsWithTag($beginning);
         $containsTags = self::containsTags($beginning);
         $endsWithTag = self::endsWithTag($this->readEnding());
@@ -170,8 +170,7 @@ class Html extends BaseReader
     private function readEnding(): string
     {
         $meta = stream_get_meta_data($this->fileHandle);
-        // Phpstan incorrectly flags following line for Php8.2-, corrected in 8.3
-        $filename = $meta['uri']; //@phpstan-ignore-line
+        $filename = $meta['uri'];
 
         $size = (int) filesize($filename);
         if ($size === 0) {
@@ -292,7 +291,6 @@ class Html extends BaseReader
     private function processDomElementBody(Worksheet $sheet, int &$row, string &$column, string &$cellContent, DOMElement $child): void
     {
         $attributeArray = [];
-        /** @var DOMAttr $attribute */
         foreach ($child->attributes as $attribute) {
             $attributeArray[$attribute->name] = $attribute->value;
         }
@@ -333,15 +331,6 @@ class Html extends BaseReader
                 $sheet->getComment($column . $row)
                     ->getText()
                     ->createTextRun($child->textContent);
-                if (isset($attributeArray['dir']) && $attributeArray['dir'] === 'rtl') {
-                    $sheet->getComment($column . $row)->setTextboxDirection(Comment::TEXTBOX_DIRECTION_RTL);
-                }
-                if (isset($attributeArray['style'])) {
-                    $alignStyle = $attributeArray['style'];
-                    if (preg_match('/\\btext-align:\\s*(left|right|center|justify)\\b/', $alignStyle, $matches) === 1) {
-                        $sheet->getComment($column . $row)->setAlignment($matches[1]);
-                    }
-                }
             } else {
                 $this->processDomElement($child, $sheet, $row, $column, $cellContent);
             }
@@ -627,10 +616,7 @@ class Html extends BaseReader
     {
         foreach ($element->childNodes as $child) {
             if ($child instanceof DOMText) {
-                $domText = (string) preg_replace('/\s+/', ' ', trim($child->nodeValue ?? ''));
-                if ($domText === "\u{a0}") {
-                    $domText = '';
-                }
+                $domText = (string) preg_replace('/\s+/u', ' ', trim($child->nodeValue ?? ''));
                 if (is_string($cellContent)) {
                     //    simply append the text if the cell content is a plain text string
                     $cellContent .= $domText;

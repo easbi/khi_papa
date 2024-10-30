@@ -7,7 +7,6 @@ use PhpOffice\PhpSpreadsheet\Calculation\Calculation;
 use PhpOffice\PhpSpreadsheet\Document\Properties;
 use PhpOffice\PhpSpreadsheet\Document\Security;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Shared\File;
 use PhpOffice\PhpSpreadsheet\Shared\StringHelper;
 use PhpOffice\PhpSpreadsheet\Style\Style;
@@ -31,8 +30,6 @@ class Spreadsheet implements JsonSerializable
         self::VISIBILITY_HIDDEN,
         self::VISIBILITY_VERY_HIDDEN,
     ];
-
-    protected int $excelCalendar = Date::CALENDAR_WINDOWS_1900;
 
     /**
      * Unique ID.
@@ -256,7 +253,7 @@ class Spreadsheet implements JsonSerializable
      */
     public function setRibbonXMLData(mixed $target, mixed $xmlData): void
     {
-        if (is_string($target) && is_string($xmlData)) {
+        if ($target !== null && $xmlData !== null) {
             $this->ribbonXMLData = ['target' => $target, 'data' => $xmlData];
         } else {
             $this->ribbonXMLData = null;
@@ -557,9 +554,6 @@ class Spreadsheet implements JsonSerializable
             // Adjust active sheet index if necessary
             if ($this->activeSheetIndex >= $sheetIndex) {
                 ++$this->activeSheetIndex;
-            }
-            if ($this->activeSheetIndex < 0) {
-                $this->activeSheetIndex = 0;
             }
         }
 
@@ -1558,27 +1552,5 @@ class Spreadsheet implements JsonSerializable
         }
 
         return $table;
-    }
-
-    /**
-     * @return bool Success or failure
-     */
-    public function setExcelCalendar(int $baseYear): bool
-    {
-        if (($baseYear === Date::CALENDAR_WINDOWS_1900) || ($baseYear === Date::CALENDAR_MAC_1904)) {
-            $this->excelCalendar = $baseYear;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @return int Excel base date (1900 or 1904)
-     */
-    public function getExcelCalendar(): int
-    {
-        return $this->excelCalendar;
     }
 }

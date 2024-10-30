@@ -19,6 +19,8 @@ class Styles extends BaseParserClass
 {
     /**
      * Theme instance.
+     *
+     * @var ?Theme
      */
     private ?Theme $theme = null;
 

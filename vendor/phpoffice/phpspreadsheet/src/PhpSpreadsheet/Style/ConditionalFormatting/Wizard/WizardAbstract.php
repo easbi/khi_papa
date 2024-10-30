@@ -9,6 +9,9 @@ use PhpOffice\PhpSpreadsheet\Style\Style;
 
 abstract class WizardAbstract
 {
+    /**
+     * @var ?Style
+     */
     protected ?Style $style = null;
 
     protected string $expression;

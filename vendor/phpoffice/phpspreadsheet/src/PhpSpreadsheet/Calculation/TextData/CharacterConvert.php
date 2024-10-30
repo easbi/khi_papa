@@ -3,7 +3,6 @@
 namespace PhpOffice\PhpSpreadsheet\Calculation\TextData;
 
 use PhpOffice\PhpSpreadsheet\Calculation\ArrayEnabled;
-use PhpOffice\PhpSpreadsheet\Calculation\Exception as CalcExp;
 use PhpOffice\PhpSpreadsheet\Calculation\Functions;
 use PhpOffice\PhpSpreadsheet\Calculation\Information\ExcelError;
 
@@ -27,12 +26,7 @@ class CharacterConvert
             return self::evaluateSingleArgumentArray([self::class, __FUNCTION__], $character);
         }
 
-        try {
-            $character = Helpers::validateInt($character, true);
-        } catch (CalcExp $e) {
-            return $e->getMessage();
-        }
-
+        $character = Helpers::validateInt($character);
         $min = Functions::getCompatibilityMode() === Functions::COMPATIBILITY_OPENOFFICE ? 0 : 1;
         if ($character < $min || $character > 255) {
             return ExcelError::VALUE();
@@ -58,12 +52,7 @@ class CharacterConvert
             return self::evaluateSingleArgumentArray([self::class, __FUNCTION__], $characters);
         }
 
-        try {
-            $characters = Helpers::extractString($characters, true);
-        } catch (CalcExp $e) {
-            return $e->getMessage();
-        }
-
+        $characters = Helpers::extractString($characters);
         if ($characters === '') {
             return ExcelError::VALUE();
         }

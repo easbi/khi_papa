@@ -32,8 +32,6 @@ class SpgrContainer
 
     /**
      * Add a child. This will be either spgrContainer or spContainer.
-     *
-     * @param SpgrContainer|SpgrContainer\SpContainer $child child to be added
      */
     public function addChild(mixed $child): void
     {

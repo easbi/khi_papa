@@ -24,6 +24,8 @@ class ReferenceHelper
 
     /**
      * Instance of this class.
+     *
+     * @var ?ReferenceHelper
      */
     private static ?ReferenceHelper $instance = null;
 
@@ -442,7 +444,7 @@ class ReferenceHelper
                 if ($cell->getDataType() === DataType::TYPE_FORMULA) {
                     // Formula should be adjusted
                     $worksheet->getCell($newCoordinate)
-                        ->setValue($this->updateFormulaReferences($cell->getValueString(), $beforeCellAddress, $numberOfColumns, $numberOfRows, $worksheet->getTitle(), true));
+                        ->setValue($this->updateFormulaReferences($cell->getValue(), $beforeCellAddress, $numberOfColumns, $numberOfRows, $worksheet->getTitle(), true));
                 } else {
                     // Cell value should not be adjusted
                     $worksheet->getCell($newCoordinate)->setValueExplicit($cell->getValue(), $cell->getDataType());
@@ -455,7 +457,7 @@ class ReferenceHelper
                         but we do still need to adjust any formulae in those cells                    */
                 if ($cell->getDataType() === DataType::TYPE_FORMULA) {
                     // Formula should be adjusted
-                    $cell->setValue($this->updateFormulaReferences($cell->getValueString(), $beforeCellAddress, $numberOfColumns, $numberOfRows, $worksheet->getTitle(), true));
+                    $cell->setValue($this->updateFormulaReferences($cell->getValue(), $beforeCellAddress, $numberOfColumns, $numberOfRows, $worksheet->getTitle(), true));
                 }
             }
         }
@@ -895,7 +897,7 @@ class ReferenceHelper
             foreach ($sheet->getCoordinates(false) as $coordinate) {
                 $cell = $sheet->getCell($coordinate);
                 if ($cell->getDataType() === DataType::TYPE_FORMULA) {
-                    $formula = $cell->getValueString();
+                    $formula = $cell->getValue();
                     if (str_contains($formula, $oldName)) {
                         $formula = str_replace("'" . $oldName . "'!", "'" . $newName . "'!", $formula);
                         $formula = str_replace($oldName . '!', $newName . '!', $formula);

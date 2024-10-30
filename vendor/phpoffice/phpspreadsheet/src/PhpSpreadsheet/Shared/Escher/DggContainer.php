@@ -21,6 +21,8 @@ class DggContainer
 
     /**
      * BLIP Store Container.
+     *
+     * @var ?DggContainer\BstoreContainer
      */
     private ?DggContainer\BstoreContainer $bstoreContainer = null;
 

@@ -31,7 +31,7 @@ class Extract
         }
 
         try {
-            $value = Helpers::extractString($value, true);
+            $value = Helpers::extractString($value);
             $chars = Helpers::extractInt($chars, 0, 1);
         } catch (CalcExp $e) {
             return $e->getMessage();
@@ -61,7 +61,7 @@ class Extract
         }
 
         try {
-            $value = Helpers::extractString($value, true);
+            $value = Helpers::extractString($value);
             $start = Helpers::extractInt($start, 1);
             $chars = Helpers::extractInt($chars, 0);
         } catch (CalcExp $e) {
@@ -90,7 +90,7 @@ class Extract
         }
 
         try {
-            $value = Helpers::extractString($value, true);
+            $value = Helpers::extractString($value);
             $chars = Helpers::extractInt($chars, 0, 1);
         } catch (CalcExp $e) {
             return $e->getMessage();
@@ -132,13 +132,7 @@ class Extract
             return self::evaluateArrayArgumentsIgnore([self::class, __FUNCTION__], 1, $text, $delimiter, $instance, $matchMode, $matchEnd, $ifNotFound);
         }
 
-        try {
-            $text = Helpers::extractString($text ?? '', true);
-            Helpers::extractString(Functions::flattenSingleValue($delimiter ?? ''), true);
-        } catch (CalcExp $e) {
-            return $e->getMessage();
-        }
-
+        $text = Helpers::extractString($text ?? '');
         $instance = (int) $instance;
         $matchMode = (int) $matchMode;
         $matchEnd = (int) $matchEnd;
@@ -196,13 +190,7 @@ class Extract
             return self::evaluateArrayArgumentsIgnore([self::class, __FUNCTION__], 1, $text, $delimiter, $instance, $matchMode, $matchEnd, $ifNotFound);
         }
 
-        try {
-            $text = Helpers::extractString($text ?? '', true);
-            Helpers::extractString(Functions::flattenSingleValue($delimiter ?? ''), true);
-        } catch (CalcExp $e) {
-            return $e->getMessage();
-        }
-
+        $text = Helpers::extractString($text ?? '');
         $instance = (int) $instance;
         $matchMode = (int) $matchMode;
         $matchEnd = (int) $matchEnd;
