@@ -43,10 +43,8 @@ class DailyReminder implements ShouldQueue
           CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
           CURLOPT_CUSTOMREQUEST => 'POST',
           CURLOPT_POSTFIELDS => 'token='.$token.'&number='.$this->details['no_hp'].'&message='.$this->details['message'],
-        //   CURLOPT_POSTFIELDS => 'token=Gj2npNWz7fTTka91sWKSxdK7wArGKAgik4Ge7SALGmt7pMKTik&number=6281312315895&message=Test WA BOT',
         ));
         $response = curl_exec($curl);
-        // $affected = DB::table('transaksi_pembayaran')->where('id', $this->details['id'])->where('send_notif', 0)->update(['send_notif' => 1]);
         curl_close($curl);
         echo $response;
     }
