@@ -247,7 +247,7 @@
                             labels: labels, // Nama pegawai
                             datasets: [
                                 {
-                                    label: "Jumlah Pekerjaan Selesai",
+                                    label: "Jumlah Pekerjaan",
                                     data: dataValues, // Data pekerjaan yang selesai
                                     backgroundColor: [
                                         "#FF6384",

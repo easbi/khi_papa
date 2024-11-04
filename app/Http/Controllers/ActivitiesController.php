@@ -63,7 +63,7 @@ class ActivitiesController extends Controller
                      ->whereMonth('daily_activity.created_at', '=', date('m'))
                      ->whereYear('daily_activity.created_at', '=', date('Y'));
             })
-            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002']) // Mengecualikan pegawai tertentu
+            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001' ]) // Mengecualikan pegawai tertentu
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
             ->orderBy('jumlah_pengisian', 'asc')
@@ -71,7 +71,7 @@ class ActivitiesController extends Controller
             ->get()
             ->map(function ($user) {
                 // Hitung hari kerja dalam bulan ini (kecuali Sabtu dan Minggu)
-                $workDays = Carbon::now()->startOfMonth()->diffInWeekdays(Carbon::now()->endOfMonth());
+                $workDays = Carbon::now()->startOfMonth()->diffInWeekdays(Carbon::now());
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')

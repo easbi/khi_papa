@@ -31,11 +31,7 @@ class DailyReminder implements ShouldQueue
      */
     public function handle(): void
     {
-        // $token = "6y9HFiTodpFEUJnN64rK5bKHtGhhNbnvBNGEF5Uabobe6LxnAN";
         $token = "6y9HFiTodpFEUJnN64rK5bKHtGhhNbnvBNGEF5Uabobe6LxnAN";
-        // $phone= "081312315895"; //untuk group pakai groupid contoh: 62812xxxxxx-xxxxx
-        // $message = "Test Daily Notifikasi At 9.00 WIB";
-
         $curl = curl_init();
         curl_setopt_array($curl, array(
           CURLOPT_URL => 'https://app.ruangwa.id/api/send_message',

@@ -39,13 +39,9 @@ class DispatchMessages extends Command
             // dd($TodayActivity);
             if ($TodayActivity == 0) {
                     $details = [
-                        'message' => 'Hello ' . $user->fullname . ' Kamu belum mengisi Catatan Kerja Hari ini !',
+                        'message' => 'Selamat Sore, ' . $user->fullname . ' Aduduh, Kamu belum mengisi Catatan Kerja di KHI Hari ini ! Segera isi KHI di https://padangpanjangkotabps.id/khi/public/ dengan akun username '.$user->username.' dan password yang sudah diberikan terdahulu. Jika Lupa akun atau password cukup balas pesan ini. Terimakasih dan Sehat Selalu. #sipalingingetin',
                         'no_hp' => $user->no_hp
                     ];
-
-                    // echo "There are activities for today.";
-
-                    // dd($details);
 
                     $delay = \DB::table('jobs')->count()*10;
                     $queue = new DailyReminder($details);
