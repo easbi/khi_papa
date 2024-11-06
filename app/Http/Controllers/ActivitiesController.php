@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\Storage;
@@ -35,7 +36,7 @@ class ActivitiesController extends Controller
         // Query to get the top 5 employees with the most daily activity submissions
         $topEmployees = DB::table('daily_activity')
             ->join('users', 'daily_activity.nip', '=', 'users.nip')
-            ->select('users.fullname', 'daily_activity.nip', DB::raw('COUNT(*) as jumlah_kegiatan'))            
+            ->select('users.fullname', 'daily_activity.nip', DB::raw('COUNT(*) as jumlah_kegiatan'))
             ->whereMonth('daily_activity.created_at', '=', date('m'))
             ->whereYear('daily_activity.created_at', '=', date('Y'))
             ->groupBy('daily_activity.nip', 'users.fullname')
@@ -54,7 +55,7 @@ class ActivitiesController extends Controller
         // Convert the employee data to JSON for JavaScript usage
         $topEmployeesDataJson = json_encode($topEmployeesData);
 
-        
+
 
         // Query to get the 5 employees with the least daily activity submissions for the current month
         $leastEmployees = DB::table('users')
@@ -99,7 +100,7 @@ class ActivitiesController extends Controller
         })->toArray();
 
         // Convert the employee data to JSON for JavaScript usage
-        $leastEmployeesDataJson = json_encode($leastEmployeesData); 
+        $leastEmployeesDataJson = json_encode($leastEmployeesData);
 
         // statuspenyelesaian pekerjaan
         $record_status_penyelesaian = Activity::whereDate('tgl', Carbon::today())
@@ -114,8 +115,14 @@ class ActivitiesController extends Controller
 
         $status_penyelesaian = json_encode($status_penyelesaian);
 
-        
+        // Query Siapa yang ulang tahun sekarang ini
+        $today = Carbon::now();
+        $birthdayToday = User::whereRaw('SUBSTRING(nip,5,2) = ?', [$today->format('m')])
+                                ->whereRaw('SUBSTRING(nip,7,2) = ?', [$today->format('d')])
+                                ->pluck('fullname');
 
+
+        // dd($birthdayToday);
         return view('dailyactivity.index',
             compact(
                 'activities',
@@ -124,7 +131,8 @@ class ActivitiesController extends Controller
                 'act_count_yesterday',
                 'status_penyelesaian',
                 'topEmployeesDataJson',
-                'leastEmployeesDataJson'
+                'leastEmployeesDataJson',
+                'birthdayToday'
             ))
         ->with('i');
     }

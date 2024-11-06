@@ -1,6 +1,46 @@
 @extends('layouts.template')
-
 @section('content')
+
+<link rel="stylesheet" href="{{asset('css/runningtext1.css')}}">
+<div class="running-text-container">
+    <div class="running-text" id="runningText">
+
+    </div>
+</div>
+@push('scripts')
+<script>
+    // Teks untuk ditampilkan secara bergantian
+    const texts = [
+        @if($birthdayToday->isNotEmpty())
+            "🎉🎉🎉🎂🎂🎂 Selamat Ulang tahun hari ini untuk {{ $birthdayToday->join(', ', ' dan ') }}.🎂🎂🎂🎉🎉🎉" ,
+        @else
+            "Tingkatkan Core Value Ber-AKHLAK anda dengan mengisi KHI",
+        @endif
+        "Selamat datang di KHI! Pastikan Anda telah mengisi laporan kegiatan harian Anda."
+
+    ];
+
+    let currentIndex = 0;
+
+    function updateRunningText() {
+        const runningTextElement = document.getElementById('runningText');
+        if (runningTextElement) {
+            runningTextElement.innerText = texts[currentIndex];
+            currentIndex = (currentIndex + 1) % texts.length;
+            runningTextElement.style.animation = 'none'; // Reset animasi
+            void runningTextElement.offsetWidth; // Trigger reflow untuk restart animasi
+            runningTextElement.style.animation = 'scrollText 10s linear infinite';
+        }
+    }
+
+    // Ganti teks setiap 10 detik agar sesuai dengan durasi animasi
+    setInterval(updateRunningText, 15000);
+
+    // Tampilkan teks pertama kali
+    updateRunningText();
+</script>
+@endpush
+
 
 <!-- Page Header -->
 <div class="page-header row no-gutters py-4">
@@ -101,7 +141,7 @@
 
                         });
                     </script>
-                </div>                    
+                </div>
             </div>
         </div>
     </div>
@@ -136,12 +176,12 @@
             <div class="card-header border-bottom">
                 <h6 class="m-0">Top 5 Pegawai Kurang Aktif Bulan ini</h6>
             </div>
-            <div class="card-body d-flex flex-column">  
+            <div class="card-body d-flex flex-column">
                 <div class="chart-container">
                     <div class="bar-chart-container">
                         <canvas id="bar-chart-min-5"></canvas>
                     </div>
-                </div>  
+                </div>
                 <script>
                     $(function(){
                         //get the bar chart canvas
@@ -149,7 +189,7 @@
                         var labels = cData.map(employee => employee.nama); // Nama pegawai
                         var dataValues = cData.map(employee => employee.jumlah_hari_tdk_mengisi); // Data pekerjaan yang selesai
                         var ctx = $("#bar-chart-min-5");
-                    
+
                         //bar chart data
                         var data = {
                             labels: labels, // Nama pegawai
@@ -175,7 +215,7 @@
                                 }
                             ]
                         };
-                    
+
                         //options
                         var options = {
                             responsive: true,
@@ -211,7 +251,7 @@
                                     }
                                 }]
                             }};
-                    
+
                         //create Bar Chart class object
                         var chart1 = new Chart(ctx, {
                             type: "bar",
@@ -219,7 +259,7 @@
                             options: options
                         });
                     });
-                </script>               
+                </script>
             </div>
         </div>
     </div>
@@ -228,12 +268,12 @@
             <div class="card-header border-bottom">
                 <h6 class="m-0">Top 5 Pegawai Rajin Mengisi KHI Bulan ini</h6>
             </div>
-            <div class="card-body d-flex flex-column">  
+            <div class="card-body d-flex flex-column">
                 <div class="chart-container">
                     <div class="bar-chart-container">
                         <canvas id="bar-chart-top-5"></canvas>
                     </div>
-                </div>  
+                </div>
                 <script>
                     $(function(){
                         //get the bar chart canvas
@@ -241,7 +281,7 @@
                         var labels = cData.map(employee => employee.nama); // Nama pegawai
                         var dataValues = cData.map(employee => employee.jumlah_kegiatan); // Data pekerjaan yang selesai
                         var ctx = $("#bar-chart-top-5");
-                    
+
                         //bar chart data
                         var data = {
                             labels: labels, // Nama pegawai
@@ -267,7 +307,7 @@
                                 }
                             ]
                         };
-                    
+
                         //options
                         var options = {
                             responsive: true,
@@ -303,7 +343,7 @@
                                     }
                                 }]
                             }};
-                    
+
                         //create Bar Chart class object
                         var chart1 = new Chart(ctx, {
                             type: "bar",
@@ -311,7 +351,7 @@
                             options: options
                         });
                     });
-                </script>               
+                </script>
             </div>
         </div>
     </div>
@@ -344,7 +384,7 @@
                             <th>Nama Kegiatan</th>
                             <th>Progres</th>
                             <th>Aksi</th>
-                        </tr>    
+                        </tr>
                     </thead>
                     <tbody>
                         @foreach ($activities as $act)
@@ -368,19 +408,19 @@
                                     <a class="btn btn-info btn-sm" href="{{ route('act.show',$act->id) }}">Show</a>
                                     @if ($act->nip == Auth::user()->nip )
                                     <a class="btn btn-primary btn-sm" href="{{ route('act.edit',$act->id) }}">Edit</a>
-                                    @endif 
+                                    @endif
                                 </form>
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
-                </table>                        
+                </table>
             </div>
 		</div>
 	</div>
 </div>
 <!-- End Default Light Table -->
-<!-- End of Content -->		
+<!-- End of Content -->
 @endsection
 
 @push('scripts')

@@ -1,0 +1,25 @@
+
+.running-text-container {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%; /* Pastikan kontainer mengambil lebar penuh */
+    background-color: white; /* Latar belakang putih untuk kontainer */
+    padding: 10px; /* Ruang di dalam kotak */
+    border-radius: 5px; /* Sudut melengkung (opsional) */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Bayangan untuk efek kedalaman */
+}
+
+.running-text {
+    display: inline-block;
+    position: relative;
+    animation: scrollText 10s linear infinite; /* durasi animasi */
+}
+
+@keyframes scrollText {
+    0% {
+        transform: translateX(100%); /* Mulai dari luar layar di sebelah kanan */
+    }
+    100% {
+        transform: translateX(-100%); /* Bergerak ke luar layar di sebelah kiri */
+    }
+}
