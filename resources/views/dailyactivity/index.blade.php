@@ -1,6 +1,56 @@
 @extends('layouts.template')
 @section('content')
 
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+@if($birthdayToday->isNotEmpty())
+    <script>console.log("Modal should be visible");</script>
+@endif
+
+@if($birthdayToday->isNotEmpty())
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#birthdayModal').modal('show');
+        });
+    </script>
+    <div class="modal fade" id="birthdayModal" tabindex="-1" role="dialog" aria-labelledby="birthdayModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="birthdayModalLabel">🎉 Selamat Ulang Tahun! 🎉</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Hidup adalah serangkaian bab. Hari ini, bab baru dimulai. Selamat ulang tahun untuk teman kami:</p>
+                    <ul>
+                        @foreach ($birthdayToday as $name)
+                            <li><strong>{{ $name }}</strong></li>
+                        @endforeach
+                    </ul>
+                    <p>Hari ini adalah pengingat bahwa kamu sangat berharga. Terima kasih telah menjadi dirimu yang penuh kebaikan. Semoga ceritamu tahun ini penuh dengan kebahagiaan dan kejutan indah 🎂🥳</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
+<style>
+    .modal-header {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .modal-body p, .modal-body ul {
+        font-size: 16px;
+    }
+</style>
+
+
+
 <link rel="stylesheet" href="{{asset('css/runningtext1.css')}}">
 <div class="running-text-container">
     <div class="running-text" id="runningText">
