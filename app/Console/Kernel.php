@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('app:send-birthday-reminders')->dailyAt('16:40');   
+        $schedule->command('app:send-birthday-reminders')->dailyAt('01:00');   
 
         $schedule->command('app:dispatch-messages')->dailyAt('15:00')->weekdays();
         $schedule->command('queue:work --stop-when-empty')->everyMinute();
