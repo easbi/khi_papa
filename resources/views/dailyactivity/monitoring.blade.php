@@ -1,12 +1,12 @@
 @extends('layouts.template')
 
 @section('content')
-@php $i = 0; @endphp
+
 <!-- Page Header -->
 <div class="page-header row no-gutters py-4">
 	<div class="col-12 col-sm-4 text-center text-sm-left mb-0">
 		<span class="text-uppercase page-subtitle">Dashboard</span>
-		<h3 class="page-title">Rekap Harian Ku</h3>
+		<h3 class="page-title">Monitoring</h3>
 	</div>
 </div>
 <!-- End Page Header -->
@@ -17,11 +17,11 @@
     <div class="col">
         <div class="card card-small mb-4">
             <div class="card-header border-bottom">
-                <h6 class="m-0">Filter Berdasarkan Waktu</h6>
+                <h6 class="m-0">Filter Berdasarkan Bulan/Tahun</h6>
             </div>
             <div class="card-body d-flex flex-column">
                 <div class="col-sm-12 col-md-12">
-                    <form action="{{ route('act.filterMonthYear')}}" method="GET" enctype="multipart/form-data">
+                    <form action="{{ route('act.filterMonthYear2')}}" method="GET" enctype="multipart/form-data">
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="bulan">Bulan</label>
@@ -30,7 +30,6 @@
                                     @foreach($months as $m)
                                         @if ($m['value'] == $bulan)
                                             <option value="{{$m['value']}}" selected> {{$m['name']}} </option>
-                                            {{-- <option value="{{$y->year}}">{{$y->year}}</option> --}}
                                         @else
                                             <option value="{{$m['value']}}"> {{$m['name']}} </option>
                                         @endif
@@ -69,16 +68,15 @@
 		<div class="card card-small mb-4">
 			<div class="card-header border-bottom d-flex items-align-center h-100">
                 <div class="col-sm-6">
-                    <h6 class="m-0">List Kegiatan Ku</h6>
+                    <h6 class="m-0">
+                        Ranking Per 
+                        @if(!$bulan || !$tahun || (\Carbon\Carbon::createFromDate($tahun, $bulan, 1)->isToday()))
+                            {{ \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->isoFormat('MMMM YYYY') }}
+                        @else
+                            {{ \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->timezone('Asia/Jakarta')->isoFormat('MMMM YYYY, HH:mm') }} WIB
+                        @endif                        
+                    </h6>
                 </div>
-                @if ($bulan <> "")
-                <div class="col-sm-6 d-flex justify-content-end">
-                    <div class="form-group m-0">
-                        {{-- <h1>Export User Activities</h1> --}}
-                        <a href="{{ url('export-to-excel/'. $tahun . '/' . $bulan) }}" class="btn btn-primary" id="export">Export to Excel</a>
-                    </div>
-                </div>
-                @endif
 			</div>
 			@if ($message = Session::get('success'))
             <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
@@ -95,40 +93,22 @@
                         <tr>
                             <th>No</th>
                             <th>Pegawai</th>
-                            <th>Tanggal Mulai</th>
-                            <th>Tanggal Selesai</th>
-                            <th>Jenis Kegiatan</th>
-                            <th>Nama Kegiatan</th>
-                            <th>Progres</th>
-                            <th>Aksi</th>
+                            <th>Indeks Keaktifan KHI</th>
+                            <th>Jumlah Kegiatan</th>
+                            <th>Jumlah Hari Mengisi</th>
+                            <th>Jumlah Hari Tidak Mengisi</th>
                         </tr>
                     </thead>
+                    @php $i = 0; @endphp
                     <tbody>
-                        @foreach ($activities as $act)
+                        @foreach ($rankTodayEmployees as $rankTodayEmployee)
                         <tr>
                             <td>{{ ++$i }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($act->fullname , 17) }}</td>
-                            <td>{{ Carbon\Carbon::parse($act->tgl)->format('d-M-Y')  }}</td>
-                            <td>{{ Carbon\Carbon::parse($act->tgl_selesai)->format('d-M-Y')  }}</td>
-                            <td>{{ $act->jenis_kegiatan }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($act->kegiatan , 40) }}</td>
-                            <td>
-                                @if($act->is_done == 2)
-                                    <span class="badge badge-warning">Selesai?</span>
-                                @else
-                                    <span class="badge badge-success">Selesai</span>
-                                @endif
-                            </td>
-                            <td>
-                                <form action="{{ route('act.destroy',$act->id) }}" method="POST">
-
-                                    <a class="btn btn-info btn-sm" href="{{ route('act.show',$act->id) }}">Show</a>
-                                    <a class="btn btn-primary btn-sm" href="{{ route('act.edit',$act->id) }}">Edit</a>
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
-                                </form>
-                            </td>
+                            <td>{{ \Illuminate\Support\Str::limit($rankTodayEmployee->fullname , 17) }}</td>
+                            <td>{{ number_format($rankTodayEmployee->score, 2) }}</td>   
+                            <td>{{ $rankTodayEmployee->jumlah_pengisian }}</td>
+                            <td>{{ $rankTodayEmployee->filled_days }}</td>
+                            <td>{{ $rankTodayEmployee->missed_days }}</td>   
                         </tr>
                         @endforeach
                     </tbody>

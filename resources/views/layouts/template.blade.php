@@ -64,6 +64,13 @@
                   <span>Tambahkan Aktivitas</span>
                 </a>
               </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{ Request::is('act/create')? "active":"" }}" href="{{ url('/act/monitoring')}}">
+                  <i class="material-icons">assessment</i>
+                  <span>Monitoring dan Indeks</span>
+                </a>
+              </li>
               <li class="nav-item">
                 <a class="nav-link {{ Request::is('//user/profile')? 'active':'' }}" href="{{ url('/user/profile')}}">
                   <i class="material-icons">person</i>

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 use DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -77,9 +78,9 @@ class ActivitiesController extends Controller
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
                     ->where('nip', $user->nip)
-                    ->whereMonth('created_at', date('m'))
-                    ->whereYear('created_at', date('Y'))
-                    ->distinct('created_at')
+                    ->whereMonth('tgl', date('m'))
+                    ->whereYear('tgl', date('Y'))
+                    ->distinct('tgl')
                     ->count();
 
                 // Menghitung hari kerja yang tidak diisi
@@ -191,16 +192,11 @@ class ActivitiesController extends Controller
             ['value' => 12, 'name' => 'Desember']
         ];
 
-        // dd($months);
-
         $years = DB::table('daily_activity')
             ->select(DB::raw('YEAR(tgl) year'))
             ->distinct()
             ->orderBy('year', 'desc')
             ->get();
-
-        // $users = User::all();
-        // $activities = DB::table('daily_activity')->where('daily_activity.nip', auth()->user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
 
         return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5);
     }
@@ -326,5 +322,222 @@ class ActivitiesController extends Controller
         $act = Activity::find($id);
         $act->delete();
         return redirect('/act');
+    }
+
+    public function monitoring()
+    {
+        $bulan = date('m');
+        $tahun = date('Y');
+        $months = [
+            ['value' => 1, 'name' => 'Januari'],
+            ['value' => 2, 'name' => 'Februari'],
+            ['value' => 3, 'name' => 'Maret'],
+            ['value' => 4, 'name' => 'April'],
+            ['value' => 5, 'name' => 'Mei'],
+            ['value' => 6, 'name' => 'Juni'],
+            ['value' => 7, 'name' => 'Juli'],
+            ['value' => 8, 'name' => 'Agustus'],
+            ['value' => 9, 'name' => 'September'],
+            ['value' => 10, 'name' => 'Oktober'],
+            ['value' => 11, 'name' => 'November'],
+            ['value' => 12, 'name' => 'Desember']
+        ];
+
+
+        $years = DB::table('daily_activity')
+            ->select(DB::raw('YEAR(tgl) year'))
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->get();
+        // Query to get employees with the most daily activity submissions
+        $rankTodayEmployees = DB::table('users')
+            ->leftJoin('daily_activity', function($join) {
+                $join->on('users.nip', '=', 'daily_activity.nip')
+                     ->whereMonth('daily_activity.created_at', '=', date('m'))
+                     ->whereYear('daily_activity.created_at', '=', date('Y'));
+            })
+            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001']) // Mengecualikan pegawai tertentu
+            ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
+            ->groupBy('users.nip', 'users.fullname')
+            ->orderBy('jumlah_pengisian', 'desc')
+            ->get()
+            ->map(function ($user) use ($bulan, $tahun) {
+                // Hitung hari kerja dalam bulan ini (kecuali Sabtu dan Minggu)
+                $maxWorkDaysFiltered = Carbon::createFromDate($tahun, $bulan)->startOfMonth()->diffInDaysFiltered(
+                    fn($date) => $date->isWeekday(), // Hanya menghitung hari Senin - Jumat
+                    Carbon::today()
+                );
+                $datenow = (new \DateTime())->format('Y-m-d'); 
+                // Hari Libur dalam Senin-Jumat
+                $hariLibur = count(array_filter(
+                        json_decode(file_get_contents("https://dayoffapi.vercel.app/api?month=$bulan&year=$tahun"), true),
+                        fn($holiday) => (new \DateTime($holiday['tanggal']))->format('N') <= 5 && $holiday['tanggal'] <= $datenow));
+
+                // Hitung hari yang sudah diisi oleh pengguna
+                $filledDays = DB::table('daily_activity')
+                    ->where('nip', $user->nip)
+                    ->whereMonth('tgl', date('m'))
+                    ->whereYear('tgl', date('Y'))
+                    ->select(DB::raw('DATE(tgl) as date'))
+                    ->distinct()
+                    ->get()
+                    ->count();
+
+                $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
+
+                // Menghitung hari kerja yang tidak diisi
+                $user->missed_days = $maxWorkDays-$filledDays;
+
+                // Menambahkan jumlah hari yang diisi ke objek pengguna
+                $user->filled_days = $filledDays;
+                
+
+
+                // Skala 50 untuk hari pengisian
+                $filledDaysScore = (($filledDays - $hariLibur) / $maxWorkDays) * 50;
+
+                // Hitung total kegiatan (total aktivitas yang dilakukan karyawan dalam bulan ini)
+                $totalActivities = DB::table('daily_activity')
+                    ->where('nip', $user->nip)
+                    ->whereMonth('tgl', $bulan)
+                    ->whereYear('tgl', $tahun)
+                    ->count();
+
+                // Tentukan maksimum kegiatan untuk skala kegiatan (misalnya ambil nilai tertinggi dalam database)
+                $maxActivities = DB::table('daily_activity')
+                    ->whereMonth('tgl', $bulan)
+                    ->whereYear('tgl', $tahun)
+                    ->select(DB::raw('COUNT(id) as activity_count'))
+                    ->groupBy('nip')
+                    ->orderByDesc('activity_count')
+                    ->limit(1)
+                    ->value('activity_count') ?? 1; // Beri nilai default 1 agar tidak ada pembagian nol
+
+                // Skala 50 untuk kegiatan
+                $activityScore = ($totalActivities / $maxActivities) * 50;
+
+                // Total skor dalam skala 100
+                $user->score = $filledDaysScore + $activityScore;
+
+                $user->maxWorkDays = $maxWorkDays;
+
+                return $user;
+            })
+            ->sortByDesc('score') // Mengurutkan berdasarkan score secara menurun
+            ->values();
+
+        // dd($rankTodayEmployees);
+
+        return view('dailyactivity.monitoring', compact('rankTodayEmployees', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5 );
+    }
+
+    public function filterMonthYear2(Request $request)
+    {
+        $bulan = $request->bulan ?? date('m');
+        $tahun = $request->tahun ?? date('Y');
+
+        $months = [
+            ['value' => 1, 'name' => 'Januari'],
+            ['value' => 2, 'name' => 'Februari'],
+            ['value' => 3, 'name' => 'Maret'],
+            ['value' => 4, 'name' => 'April'],
+            ['value' => 5, 'name' => 'Mei'],
+            ['value' => 6, 'name' => 'Juni'],
+            ['value' => 7, 'name' => 'Juli'],
+            ['value' => 8, 'name' => 'Agustus'],
+            ['value' => 9, 'name' => 'September'],
+            ['value' => 10, 'name' => 'Oktober'],
+            ['value' => 11, 'name' => 'November'],
+            ['value' => 12, 'name' => 'Desember']
+        ];
+
+        $years = DB::table('daily_activity')
+            ->select(DB::raw('YEAR(tgl) year'))
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->get();
+
+        // dd(date($bulan));
+
+        // Query to get employees with the most daily activity submissions
+        $rankTodayEmployees = DB::table('users')
+            ->leftJoin('daily_activity', function($join) use ($bulan, $tahun) {
+                    $join->on('users.nip', '=', 'daily_activity.nip')
+                         ->whereMonth('daily_activity.tgl', '=', $bulan)
+                         ->whereYear('daily_activity.tgl', '=', $tahun);
+                })
+            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001']) // Mengecualikan pegawai tertentu
+            ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
+            ->groupBy('users.nip', 'users.fullname')
+            ->orderBy('jumlah_pengisian', 'desc')
+            ->get()
+            ->map(function ($user) use ($bulan, $tahun) {
+                // Tentukan maksimum hari kerja dalam bulan ini untuk skala hari pengisian
+                // Hitung Hari Senin-Jumat
+                $maxWorkDaysFiltered = Carbon::createFromDate($tahun, $bulan)->startOfMonth()->diffInDaysFiltered(
+                    fn($date) => $date->isWeekday(), // Hanya menghitung hari Senin - Jumat
+                    Carbon::createFromDate($tahun, $bulan)->endOfMonth()
+                );
+
+                // Hari Libur dalam Senin-Jumat
+                $hariLibur = count(array_filter(json_decode(file_get_contents("https://dayoffapi.vercel.app/api?month=$bulan&year=$tahun"), true), fn($holiday) => (new \DateTime($holiday['tanggal']))->format('N') <= 5));
+
+                // Hitung hari yang sudah diisi oleh pengguna
+                $filledDays = DB::table('daily_activity')
+                    ->where('nip', $user->nip)
+                    ->whereMonth('tgl', $bulan)
+                    ->whereYear('tgl', $tahun)
+                    ->select(DB::raw('DATE(tgl) as date'))
+                    ->distinct()
+                    ->get()
+                    ->count();
+
+                $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
+
+                // Menghitung hari kerja yang tidak diisi
+                $user->missed_days = $maxWorkDays-$filledDays;
+
+                // Menambahkan jumlah hari yang diisi ke objek pengguna
+                $user->filled_days = $filledDays;
+                
+
+
+                // Skala 50 untuk hari pengisian
+                $filledDaysScore = (($filledDays - $hariLibur) / $maxWorkDays) * 50;
+
+                // Hitung total kegiatan (total aktivitas yang dilakukan karyawan dalam bulan ini)
+                $totalActivities = DB::table('daily_activity')
+                    ->where('nip', $user->nip)
+                    ->whereMonth('tgl', $bulan)
+                    ->whereYear('tgl', $tahun)
+                    ->count();
+
+                // Tentukan maksimum kegiatan untuk skala kegiatan (misalnya ambil nilai tertinggi dalam database)
+                $maxActivities = DB::table('daily_activity')
+                    ->whereMonth('tgl', $bulan)
+                    ->whereYear('tgl', $tahun)
+                    ->select(DB::raw('COUNT(id) as activity_count'))
+                    ->groupBy('nip')
+                    ->orderByDesc('activity_count')
+                    ->limit(1)
+                    ->value('activity_count') ?? 1; // Beri nilai default 1 agar tidak ada pembagian nol
+
+                // Skala 50 untuk kegiatan
+                $activityScore = ($totalActivities / $maxActivities) * 50;
+
+                // Total skor dalam skala 100
+                $user->score = $filledDaysScore + $activityScore;
+
+                $user->maxWorkDays = $maxWorkDays;
+
+                return $user;
+            })
+            ->sortByDesc('score') // Mengurutkan berdasarkan score secara menurun
+            ->values();
+
+        // dd($rankTodayEmployees);
+
+
+        return view('dailyactivity.monitoring', compact('rankTodayEmployees', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5);
     }
 }
