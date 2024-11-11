@@ -386,7 +386,7 @@ class ActivitiesController extends Controller
                 $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
 
                 // Menghitung hari kerja yang tidak diisi
-                $user->missed_days = $maxWorkDays-$filledDays;
+                $user->missed_days = $maxWorkDays-$filledDays+1;
 
                 // Menambahkan jumlah hari yang diisi ke objek pengguna
                 $user->filled_days = $filledDays;
