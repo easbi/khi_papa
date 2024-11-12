@@ -366,7 +366,7 @@ class ActivitiesController extends Controller
                 $maxWorkDaysFiltered = Carbon::createFromDate($tahun, $bulan)->startOfMonth()->diffInDaysFiltered(
                     fn($date) => $date->isWeekday(), // Hanya menghitung hari Senin - Jumat
                     Carbon::today()
-                );
+                ) + 1; //adjustment to the day
                 $datenow = (new \DateTime())->format('Y-m-d'); 
                 // Hari Libur dalam Senin-Jumat
                 $hariLibur = count(array_filter(
@@ -386,7 +386,7 @@ class ActivitiesController extends Controller
                 $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
 
                 // Menghitung hari kerja yang tidak diisi
-                $user->missed_days = $maxWorkDays-$filledDays+1;
+                $user->missed_days = $maxWorkDays-$filledDays;
 
                 // Menambahkan jumlah hari yang diisi ke objek pengguna
                 $user->filled_days = $filledDays;
@@ -418,7 +418,7 @@ class ActivitiesController extends Controller
 
                 // Total skor dalam skala 100
                 $user->score = $filledDaysScore + $activityScore;
-
+                $user->filledDaysScore =$filledDaysScore;///
                 $user->maxWorkDays = $maxWorkDays;
 
                 return $user;

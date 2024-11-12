@@ -1,7 +1,7 @@
 @extends('layouts.template')
 
 @section('content')
-@php $i = 0; @endphp
+
 <!-- Page Header -->
 <div class="page-header row no-gutters py-4">
 	<div class="col-12 col-sm-4 text-center text-sm-left mb-0">
