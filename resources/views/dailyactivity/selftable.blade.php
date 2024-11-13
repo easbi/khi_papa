@@ -138,6 +138,38 @@
 	</div>
 </div>
 <!-- End Default Light Table -->
+
+
+<!-- Modal Pop-up untuk Pemberitahuan -->
+<div class="modal fade" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Pemberitahuan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Pastikan Anda telah mengisi seluruh kegiatan harian Anda dengan benar sebelum melakukan export.</p>
+                 @if (!empty($missedDaysFormatted))
+                    <p>Anda pernah tidak mengisi KHI pada tanggal berikut:</p>
+                    <ul>
+                        @foreach ($missedDaysFormatted as $missedDate)
+                            <li>{{ $missedDate }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p>Anda telah mengisi KHI pada seluruh hari kerja hingga saat ini.</p>
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- End of Content -->
 @endsection
 
@@ -148,6 +180,7 @@
       "scrollX": true,
        responsive: true
     });
+    $('#notificationModal').modal('show');
   } );
 
   // Get references to the select element and the button

@@ -37,7 +37,6 @@
         </div>
     </div>
 @endif
-
 <style>
     .modal-header {
         background-color: #f8d7da;
@@ -48,8 +47,6 @@
         font-size: 16px;
     }
 </style>
-
-
 
 <link rel="stylesheet" href="{{asset('css/runningtext1.css')}}">
 <div class="running-text-container">

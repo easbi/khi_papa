@@ -57,8 +57,6 @@ class ActivitiesController extends Controller
         // Convert the employee data to JSON for JavaScript usage
         $topEmployeesDataJson = json_encode($topEmployeesData);
 
-
-
         // Query to get the 5 employees with the least daily activity submissions for the current month
         $leastEmployees = DB::table('users')
             ->leftJoin('daily_activity', function($join) {
@@ -157,8 +155,6 @@ class ActivitiesController extends Controller
         $bulan = "";
         $tahun = "";
 
-        $activities = DB::table('daily_activity')->where('daily_activity.nip', Auth::user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
-
         $months = [
             ['value' => 1, 'name' => 'Januari'],
             ['value' => 2, 'name' => 'Februari'],
@@ -181,8 +177,42 @@ class ActivitiesController extends Controller
             ->orderBy('year', 'desc')
             ->get();
 
-        // dd($years);
-        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5 );
+        //Script Menampilkan Tanggal tidak Mengisi KHI
+        $today = Carbon::today();
+        $datenow = $today->format('Y-m-d');
+
+        $allWorkingDays = [];
+        $startOfMonth = $today->copy()->startOfMonth();
+        $endOfMonth = $today->copy();
+        while ($startOfMonth <= $endOfMonth) {
+            if ($startOfMonth->isWeekday()) {
+                $allWorkingDays[] = $startOfMonth->format('Y-m-d');
+            }
+            $startOfMonth->addDay();
+        }
+        $hariLibur = array_filter(
+            json_decode(file_get_contents("https://dayoffapi.vercel.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
+            fn($holiday) => (new \DateTime($holiday['tanggal']))->format('N') <= 5 && $holiday['tanggal'] <= $datenow
+        );  
+        $holidayDates = array_map(fn($holiday) => $holiday['tanggal'], $hariLibur);
+        $workingDaysWithoutHolidays = array_diff($allWorkingDays, $holidayDates);
+        $filledDays = DB::table('daily_activity')
+            ->where('nip', Auth::user()->nip)
+            ->whereMonth('tgl', $today->format('m'))
+            ->whereYear('tgl', $today->format('Y'))
+            ->select(DB::raw('DATE(tgl) as date'))
+            ->pluck('date')
+            ->toArray(); 
+        $missedDays = array_diff($workingDaysWithoutHolidays, $filledDays);
+        $missedDaysFormatted = array_map(function ($date) {
+            $carbonDate = Carbon::parse($date);
+            return $carbonDate->isoFormat('dddd, DD MMMM YYYY'); // Format dengan hari dalam Bahasa Indonesia
+        }, $missedDays);
+        // dd($missedDaysFormatted);
+
+        $activities = DB::table('daily_activity')->where('daily_activity.nip', Auth::user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
+        
+        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted'))->with('i', (request()->input('page', 1) - 1) * 5 );
     }
 
     public function filterMonthYear(Request $request)
