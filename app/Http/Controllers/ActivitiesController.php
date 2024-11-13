@@ -26,6 +26,7 @@ class ActivitiesController extends Controller
      */
     public function index()
     {
+        $today = Carbon::now();
         $activities = DB::table('daily_activity')->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
         $act_count_today = Activity::whereDate('tgl', Carbon::today())->count();
 
@@ -71,23 +72,37 @@ class ActivitiesController extends Controller
             ->orderBy('jumlah_pengisian', 'asc')
             ->limit(5)
             ->get()
-            ->map(function ($user) {
-                // Hitung hari kerja dalam bulan ini (kecuali Sabtu dan Minggu)
-                $workDays = Carbon::now()->startOfMonth()->diffInWeekdays(Carbon::now());
+            ->map(function ($user) use ($today){
+                $maxWorkDaysFiltered = Carbon::createFromDate($today->format('Y'), $today->format('m'))->startOfMonth()->diffInDaysFiltered(
+                    fn($date) => $date->isWeekday(), // Hanya menghitung hari Senin - Jumat
+                    Carbon::today()
+                ) + 1; //adjustment to the day
+                $datenow = (new \DateTime())->format('Y-m-d'); 
+                // Hari Libur dalam Senin-Jumat
+                $hariLibur = count(array_filter(
+                    json_decode(file_get_contents("https://dayoffapi.vercel.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
+                    fn($holiday) => (new \DateTime($holiday['tanggal']))->format('N') <= 5 && $holiday['tanggal'] <= $datenow
+                ));
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
                     ->where('nip', $user->nip)
                     ->whereMonth('tgl', date('m'))
                     ->whereYear('tgl', date('Y'))
-                    ->distinct('tgl')
+                    ->select(DB::raw('DATE(tgl) as date'))
+                    ->distinct()
+                    ->get()
                     ->count();
 
+                $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
+
                 // Menghitung hari kerja yang tidak diisi
-                $user->missed_days = $workDays - $filledDays;
+                $user->missed_days = $maxWorkDays-$filledDays;
 
                 return $user;
-            });
+            })
+            ->sortByDesc('missed_days') 
+            ->values(); 
 
 
         // dd($leastEmployees);
@@ -117,7 +132,6 @@ class ActivitiesController extends Controller
         $status_penyelesaian = json_encode($status_penyelesaian);
 
         // Query Siapa yang ulang tahun sekarang ini
-        $today = Carbon::now();
         $birthdayToday = User::whereRaw('SUBSTRING(nip,5,2) = ?', [$today->format('m')])
                                 ->whereRaw('SUBSTRING(nip,7,2) = ?', [$today->format('d')])
                                 ->pluck('fullname');
