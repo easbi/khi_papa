@@ -41,9 +41,9 @@ class DispatchMessages extends Command
             // dd($TodayActivity);
             if ($TodayActivity == 0) {
                     $details = [
-                        'message' => 'Selamat Sore, ' . $user->fullname . ' Aduduh, Kamu belum mengisi Catatan Kerja di KHI Hari ini ! Segera isi KHI di https://padangpanjangkotabps.id/khi/public/ dengan akun username *'.$user->username.'* dan password yang sudah diberikan terdahulu. Jika Lupa akun atau password cukup balas pesan ini. Terimakasih dan Sehat Selalu. #sipalingingetin',
-                        'no_hp' => $user->no_hp
-                    ];
+                                'message' => '💬 Selamat Sore, ' . $user->fullname . ' Aduduh, Kamu belum mengisi Catatan Kerja di KHI Hari ini! 😱 Segera isi KHI di https://sipalink.id/khi/public/ dengan akun username *'.$user->username.'* dan password yang sudah diberikan terdahulu. KHI dan Aplikasi-aplikasi lainnya sekarang sudah bisa diakses dengan VPN melalui link 🌐 https://sipalink.id/public/ 🌐.  Jika Lupa akun atau password cukup balas pesan ini. Terimakasih dan Sehat Selalu. 💪 #sipalingingetin 📲',
+                                'no_hp' => $user->no_hp
+                            ];
                     $queue = new DailyReminder($details);
                     dispatch($queue->delay(now()->addSeconds(10)));
                 }

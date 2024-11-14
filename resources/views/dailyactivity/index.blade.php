@@ -37,6 +37,7 @@
         </div>
     </div>
 @endif
+
 <style>
     .modal-header {
         background-color: #f8d7da;
