@@ -43,8 +43,8 @@
 									<label for="tgl"><b>Tangal</b></label>
 									<input type="date" class="form-control form-control-lg mb-3" name="tgl" value="{{ $activity->tgl }}">
 								</div>
-									<div class="form-group">
-										<label for="wfo_wfh"><b>WFO/WFH:</label>
+								<div class="form-group">
+									<label for="wfo_wfh"><b>WFO/WFH:</label>
 										<select class="form-control" id="wfo_wfh" name="wfo_wfh">
 											<option value="WFO" @if($activity->wfo_wfh == "WFO") selected @endif>WFO - Work From Office</option>
 											<option value="WFH" @if($activity->wfo_wfh == "WFH") selected @endif>WFH - Work From Home</option>
@@ -54,91 +54,116 @@
 									</div>
 									<div class="form-group">
 										<label for="jenis_kegiatan"><b>Jenis Kegiatan:</label>
-										<select class="form-control" id="jenis_kegiatan" name="jenis_kegiatan">
-											<option value="UTAMA" @if($activity->jenis_kegiatan == "UTAMA") selected @endif>Utama</option>
-											<option value="TAMBAHAN" @if($activity->jenis_kegiatan == "TAMBAHAN") selected @endif>Tambahan</option>
-										</select>
-									</div>
-									<div class="form-group">
-										<label for="kegiatan"><b>Detail Kegiatan:</b></label>
-										<input type="text" class="form-control" name="kegiatan" value="{{ $activity->kegiatan }}" />
-									</div>
-									<div class="form-group">
-										<label for="kuantitas"><b>Jumlah:</b></label>
-										<input type="number" class="form-control" name="kuantitas" value="{{ $activity->kuantitas }}" />
-									</div>
-									<div class="form-group">
-										<label for="satuan"><b>Satuan:</b></label>
-										<input type="text" class="form-control" name="satuan" value="{{ $activity->satuan }}" />
-									</div>
-									<div class="form-group">
-										<label for="is_done"><b>Status Penyelesaian</b></label>
-										<select id="is_done" class="form-control" name="is_done">
-											<option value="1" @if($activity->is_done == "1") selected @endif>Sudah Selesai</option>
-											<option value="2" @if($activity->is_done == "2") selected @endif>Belum Selesai</option>
-										</select>
-									</div>
-									<div class="form-group">
-										<input type="checkbox" id="checkbox" name="checkbox">
-										<label for="checkbox">Ceklist jika selesai pada waktu yang bukan pada saat sekarang ini</label><br>
-										<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-										<script type="text/javascript">
-											$(function () {
-												$('input[name="tgl_selesai"]').hide();
-					                  //show it when the checkbox is clicked
-												$('input[name="checkbox"]').on('click', function () {
-													if ($(this).prop('checked')) {
-														$('input[name="tgl_selesai"]').fadeIn();
-													} else {
-														$('input[name="tgl_selesai"]').hide();
-													}
-												});
-											});
-										</script>
-										<input type="date" class="form-control form-control-lg mb-3" name="tgl_selesai" value="{{ $activity->tgl }}">
-									</div>
-									<div class="form-group">
-										<label for="berkas0"><b>Bukti Kegiatan:<b></label>
-											<br>
-    										<input type="checkbox" id="toggleCheckbox" onclick="toggleForm()">
-											<label for="toggleCheckbox">Ceklist Jika Ingin Menggunakan Opsi Pencantuman Link</label>
-											<div id="formContainer" class="hidden">
-												<label for="link">Link Bukti Kegiatan:</label>
-												<input type="link" class="form-control form-control-lg mb-3" name="link" value="{{ $activity->link }}">
-											</div>
-											<div id="formContainer2" class="hidden">
-												<label for="berkas">Berkas Bukti Kegiatan:</label>
-												<input type="file" name="berkas">
-											</div>
-											<script>
-												function toggleForm() {
-													var checkbox = document.getElementById("toggleCheckbox");
-													var formContainer = document.getElementById("formContainer");
-													var formContainer2 = document.getElementById("formContainer2");
-													var textLabel = document.getElementById("textLabel");
-
-													if (checkbox.checked) {
-														formContainer.classList.remove("hidden");													
-														formContainer2.classList.add("hidden");
-													} else {
-														formContainer.classList.add("hidden");
-														formContainer2.classList.remove("hidden");
-													}
-												}
-											</script>
+											<select class="form-control" id="jenis_kegiatan" name="jenis_kegiatan">
+												<option value="UTAMA" @if($activity->jenis_kegiatan == "UTAMA") selected @endif>Utama</option>
+												<option value="TAMBAHAN" @if($activity->jenis_kegiatan == "TAMBAHAN") selected @endif>Tambahan</option>
+											</select>
 										</div>
-										<br>
 										<div class="form-group">
-											<button type="submit" class="btn btn-success">Kirim</button>
+											<label for="kegiatan"><b>Nama Kegiatan:</b></label>
+											<input type="text" class="form-control" name="kegiatan" value="{{ $activity->kegiatan }}" />
 										</div>
-									</form>
+										<div class="form-group">
+											<label for="keterangan_kegiatan"><b>Keterangan Kegiatan:</b></label>
+											<div id="editor-container"></div>
+										</div>
+										<div class="form-group">
+											<label for="kuantitas"><b>Jumlah:</b></label>
+											<input type="number" class="form-control" name="kuantitas" value="{{ $activity->kuantitas }}" />
+										</div>
+										<div class="form-group">
+											<label for="satuan"><b>Satuan:</b></label>
+											<input type="text" class="form-control" name="satuan" value="{{ $activity->satuan }}" />
+										</div>
+										<div class="form-group">
+											<label for="is_done"><b>Status Penyelesaian</b></label>
+											<select id="is_done" class="form-control" name="is_done">
+												<option value="1" @if($activity->is_done == "1") selected @endif>Sudah Selesai</option>
+												<option value="2" @if($activity->is_done == "2") selected @endif>Belum Selesai</option>
+											</select>
+										</div>
+										<div class="form-group">
+											<input type="checkbox" id="checkbox" name="checkbox">
+											<label for="checkbox">Ceklist jika selesai pada waktu yang bukan pada saat sekarang ini</label><br>
+											<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+											<script type="text/javascript">
+												$(function () {
+													$('input[name="tgl_selesai"]').hide();
+													$('input[name="checkbox"]').on('click', function () {
+														if ($(this).prop('checked')) {
+															$('input[name="tgl_selesai"]').fadeIn();
+														} else {
+															$('input[name="tgl_selesai"]').hide();
+														}
+													});
+												});
+											</script>
+											<input type="date" class="form-control form-control-lg mb-3" name="tgl_selesai" value="{{ $activity->tgl }}">
+										</div>
+										<div class="form-group">
+											<label for="berkas0"><b>Bukti Kegiatan:<b></label>
+												<br>
+												<input type="checkbox" id="toggleCheckbox" onclick="toggleForm()">
+												<label for="toggleCheckbox">Ceklist Jika Ingin Menggunakan Opsi Pencantuman Link</label>
+												<div id="formContainer" class="hidden">
+													<label for="link">Link Bukti Kegiatan:</label>
+													<input type="link" class="form-control form-control-lg mb-3" name="link" value="{{ $activity->link }}">
+												</div>
+												<div id="formContainer2" class="hidden">
+													<label for="berkas">Berkas Bukti Kegiatan:</label>
+													<input type="file" name="berkas">
+												</div>
+												<script>
+													function toggleForm() {
+														var checkbox = document.getElementById("toggleCheckbox");
+														var formContainer = document.getElementById("formContainer");
+														var formContainer2 = document.getElementById("formContainer2");
+														var textLabel = document.getElementById("textLabel");
+
+														if (checkbox.checked) {
+															formContainer.classList.remove("hidden");													
+															formContainer2.classList.add("hidden");
+														} else {
+															formContainer.classList.add("hidden");
+															formContainer2.classList.remove("hidden");
+														}
+													}
+												</script>
+											</div>
+
+											<br>
+											<div class="form-group">
+												<button type="submit" class="btn btn-success">Kirim</button>
+											</div>
+										</form>
+									</div>
 								</div>
-							</div>
-						</li>
-					</ul>
+							</li>
+						</ul>
+					</div>
 				</div>
 			</div>
-		</div>
-		<!-- End of Content -->
+			<!-- End of Content -->
 
-		@endsection
+
+			<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+			<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+
+			<script>
+				// Inisialisasi Quill
+				var quill = new Quill('#editor-container', {
+					theme: 'snow',
+					placeholder: 'Masukkan keterangan kegiatan...',
+				});
+				quill.root.innerHTML = {!! json_encode($activity->keterangan) !!};
+				$('form').on('submit', function () {
+					var content = quill.root.innerHTML;
+					$('<input>').attr({
+						type: 'hidden',
+						name: 'keterangan_kegiatan',
+						value: content
+					}).appendTo(this);
+				});
+			</script>
+
+			@endsection

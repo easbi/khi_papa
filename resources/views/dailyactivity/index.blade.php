@@ -429,7 +429,7 @@
                             <th>Tanggal</th>
                             <th>Status</th>
                             <th>Jenis Kegiatan</th>
-                            <th>Nama Kegiatan</th>
+                            <th>Kegiatan</th>
                             <th>Progres</th>
                             <th>Aksi</th>
                         </tr>
@@ -442,7 +442,7 @@
                             <td>{{ Carbon\Carbon::parse($act->tgl)->format('d-M-Y')  }}</td>
                             <td>{{ $act->wfo_wfh }}</td>
                             <td>{{ $act->jenis_kegiatan }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($act->kegiatan , 40) }}</td>
+                            <td>{{ \Illuminate\Support\Str::limit($act->kegiatan , 65) }}</td>
                             <td>
                                 @if($act->is_done == 2)
                                     <span class="badge badge-warning">Selesai?</span>
@@ -457,7 +457,7 @@
                                     @if ($act->nip == Auth::user()->nip )
                                     <a class="btn btn-primary btn-sm" href="{{ route('act.edit',$act->id) }}">Edit</a>
                                     @endif
-                                </form>
+                                </form>                                 
                             </td>
                         </tr>
                         @endforeach

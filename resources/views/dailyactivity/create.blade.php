@@ -52,7 +52,7 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="kegiatan">Detail Kegiatan:</label>
+                                    <label for="kegiatan">Nama Kegiatan:</label>
                                     <input list="kegiatan-options" class="form-control" name="kegiatan" id="kegiatan" autocomplete="off" required/>
                                     <datalist id="kegiatan-options">
                                         <!-- Options will be populated via JavaScript -->
@@ -65,6 +65,10 @@
                                 <div class="form-group">
                                     <label for="satuan">Satuan:</label>
                                     <input type="text" class="form-control" name="satuan" required/>
+                                </div>
+                                <div class="form-group">
+                                    <label for="keterangan_kegiatan">Keterangan Kegiatan:</label>
+                                    <div id="keterangan_kegiatan" style="height: 200px;"></div>
                                 </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-success">Kirim</button>
@@ -102,6 +106,38 @@
                 $('#kegiatan-options').html('');
             }
         });
+    });
+</script>
+<!-- Add Quill CSS and JS -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+<script>
+    // Initialize Quill editor for the "Keterangan Kegiatan" field
+    var quill = new Quill('#keterangan_kegiatan', {
+        theme: 'snow', // Theme for the editor
+        placeholder: 'Masukkan keterangan kegiatan berupa nama proses detail atau rincian tahapan kegiatan, field input ini bisa juga diabaian jika nama kegiatan sudah unik dan tidak perlu pemisahan', // Placeholder text
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link'],
+                [{ 'align': [] }],
+                ['clean']
+            ]
+        }
+    });
+
+    // Optional: If you need to capture the content of the editor to save it in a hidden field
+    $('form').submit(function() {
+        // Assign Quill editor content to a hidden input field before form submission
+        var keterangan = quill.root.innerHTML;
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'keterangan_kegiatan',
+            value: keterangan
+        }).appendTo('form');
     });
 </script>
 

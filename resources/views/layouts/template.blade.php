@@ -105,6 +105,22 @@
                 </div>
               </form>
               <ul class="navbar-nav border-left flex-row align-items-center">
+                <!-- <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-nowrap px-3" id="notificationsDropdown" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                        <i class="material-icons">notifications</i>
+                        <span class="badge badge-pill badge-danger" id="notification-badge">3</span> 
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-small" aria-labelledby="notificationsDropdown">
+                        <h6 class="dropdown-header">Notifikasi</h6>
+                        <div id="notification-list">
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="{{ url('/notifications') }}">
+                            <i class="material-icons text-danger">&#xE879;</i> Lihat Semua
+                        </a>
+                    </div>
+                </li> -->
+
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle text-nowrap px-3" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
                     <img class="user-avatar rounded-circle mr-2" src="{{asset('template/images/avatars/bps.png')}}" alt="User Avatar">

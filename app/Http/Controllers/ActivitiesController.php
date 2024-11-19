@@ -277,6 +277,7 @@ class ActivitiesController extends Controller
                 'wfo_wfh' => $request->wfo_wfh,
                 'jenis_kegiatan' => $request->jenis_kegiatan,
                 'kegiatan'=> $request->kegiatan,
+                'keterangan'=> $request->keterangan_kegiatan,
                 'satuan'=> $request->satuan,
                 'kuantitas'=> $request->kuantitas,
                 'tgl'=> $request->tgl,
@@ -340,6 +341,7 @@ class ActivitiesController extends Controller
             $activity->nip = Auth::user()->nip;
             $activity->wfo_wfh = $request->wfo_wfh;
             $activity->kegiatan = $request->kegiatan;
+            $activity->keterangan = $request->keterangan_kegiatan;
             $activity->jenis_kegiatan = $request->jenis_kegiatan;
             $activity->satuan = $request->satuan;
             $activity->kuantitas = $request->kuantitas;

@@ -47,7 +47,14 @@
                   <i class="material-icons mr-1">score</i>
                   <strong class="mr-1">Kuantitas dan Satuan:</strong>
                   <strong class="text-warning">{{ $activity->kuantitas }} {{ $activity->satuan }}</strong>
-              </span>              
+              </span>   
+              <span class="d-flex mb-2">
+                  <i class="material-icons mr-1">description</i>
+                  <strong class="mr-1">Keterangan Kegiatan:</strong>
+                  <div class="keterangan-kegiatan-content">
+                      {!! $activity->keterangan !!} <!-- Menampilkan konten HTML dari Quill -->
+                  </div>
+              </span>           
               <span class="d-flex">
                   <i class="material-icons mr-1">score</i>
                   <strong class="mr-1">Berkas/Bukti Kegiatan:</strong>
