@@ -35,7 +35,7 @@ class SendBirthdayReminderJob implements ShouldQueue
      */
     public function handle()
     {
-        $token = "6y9HFiTodpFEUJnN64rK5bKHtGhhNbnvBNGEF5Uabobe6LxnAN";
+        $token = env('API_WA_TOKEN');
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'https://app.ruangwa.id/api/send_message',
