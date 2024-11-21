@@ -14,8 +14,6 @@
 
 <!-- Default Light Table -->
 
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-
 <div class="row">
     <div class="col">
         <div class="card card-small mb-4">
@@ -32,7 +30,7 @@
               </div>
             @endif
             <div class="card-body d-flex flex-column">
-                <table id="example"  class="display responsive nowrap" width="100%">
+                <table id="example" class="display responsive nowrap" width="100%">
                     <thead>
                         <tr>
                             <th>No</th>
@@ -50,7 +48,7 @@
                         <tr>
                             <td>{{ ++$i }}</td>
                             <td>{{ $lap->nama_aplikasi }}</td>
-                            <td>{!! $lap->keterangan !!}</td>
+                            <td class="wrap-text">{!! $lap->keterangan !!}</td>
                             <td>{{ \Carbon\Carbon::parse($lap->awal_lisensi)->format('d-F-Y') }}</td>  
                             <td>{{ \Carbon\Carbon::parse($lap->akhir_lisensi)->format('d-F-Y') }}</td>  
                             <td>{{ $lap->username }}</td>
@@ -88,6 +86,13 @@
       "ordering": true,    // Mengaktifkan pengurutan
       "paging": true,      // Mengaktifkan pagination
       "pageLength": 10,    // Membatasi jumlah per halaman
+      autoWidth: false,
+      columnDefs: [
+        {
+            targets: 2, // Kolom 'keterangan' berada di index 2
+            width: '20%' // Atur lebar kolom jika diperlukan
+        }
+      ]
     });
   });
 </script>
