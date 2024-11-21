@@ -17,6 +17,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
     <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
 
+
   </head>
   <body class="h-100">
     <div class="container-fluid">
@@ -67,11 +68,33 @@
               </li>
 
               <li class="nav-item">
-                <a class="nav-link {{ Request::is('act/create')? "active":"" }}" href="{{ url('/act/monitoring')}}">
+                <a class="nav-link {{ Request::is('act/monitoring')? "active":"" }}" href="{{ url('/act/monitoring')}}">
                   <i class="material-icons">assessment</i>
                   <span>Monitoring dan Indeks</span>
                 </a>
               </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{ Request::is('licensedapp/index')? 'active':'' }}" href="{{ url('/licensedapp/index') }}">
+                  <i class="material-icons">verified_user</i>
+                  <span>Lisensi Aplikasi</span>
+                  <span class="new-badge">Baru</span>
+                </a>
+              </li>
+              <style type="text/css">
+                .new-badge {
+                  background-color: red;
+                  color: white;
+                  font-size: 10px;
+                  font-weight: bold;
+                  padding: 2px 6px;
+                  border-radius: 12px;
+                  margin-left: 8px;
+                  text-transform: uppercase;
+                }
+
+              </style>
+
               <li class="nav-item">
                 <a class="nav-link {{ Request::is('//user/profile')? 'active':'' }}" href="{{ url('/user/profile')}}">
                   <i class="material-icons">person</i>

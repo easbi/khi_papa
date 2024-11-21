@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DailyactivityController;
 use App\Http\Controllers\ActivitiesController;
+use App\Http\Controllers\LicensedappController;
 use App\Http\Controllers\Exports_CKP;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\test;
@@ -38,6 +39,8 @@ Route::get('generateDocx', [ActivitiesController::class, 'generateDocx'])->name(
 Route::get('export-to-excel/{tahun}/{bulan}', [Exports_CKP::class, 'exportToExcel'])->name('export.activities');
 
 // Route::get('test', [test::class,'index']);
+
+Route::resource('licensedapp', LicensedappController::class);
 
 //Suggestion
 Route::get('/autocomplete/search', [SuggestController::class, 'search'])->name('autocomplete.search');
