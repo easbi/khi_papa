@@ -78,7 +78,7 @@
                 <a class="nav-link {{ Request::is('licensedapp/')? 'active':'' }}" href="{{ url('/licensedapp/') }}">
                   <i class="material-icons">verified_user</i>
                   <span>Lisensi Aplikasi</span>
-                  <span class="new-badge">Terbaru</span>
+                  <span class="new-badge">New</span>
                 </a>
               </li>
               <style type="text/css">
