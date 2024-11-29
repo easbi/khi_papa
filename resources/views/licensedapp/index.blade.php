@@ -46,7 +46,7 @@
 <div class="row mb-4">
     <div class="col text-right">
         <a href="{{ route('licensedapp.create') }}" class="btn btn-primary btn-sm">
-            Tambahkan Lisensis 
+            Tambahkan Lisensi + 
         </a>
     </div>
 </div>
