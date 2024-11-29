@@ -29,6 +29,7 @@ class Exports_CKP extends Controller
             ->whereMonth('tgl', '=', $bulan) // Filter by month
             ->where('daily_activity.nip', auth()->user()->nip) // Filter by the authenticated user's nip
             ->where('daily_activity.jenis_kegiatan', 'UTAMA') // Filter by kind of Activities
+            ->where('daily_activity.wfo_wfh', '!=', 'Lainnya') // Filter by WFH or WFO
             ->join('users', 'daily_activity.nip', '=', 'users.nip') // Join with the users table
             ->select('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname', DB::raw('SUM(daily_activity.kuantitas) as total_kuantitas'), DB::raw('MIN(daily_activity.id) as min_id')) // Select the required fields
             ->groupBy('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname') // Group by kegiatan, satuan, and fullname
@@ -40,6 +41,7 @@ class Exports_CKP extends Controller
             ->whereMonth('tgl', '=', $bulan) // Filter by month
             ->where('daily_activity.nip', auth()->user()->nip) // Filter by the authenticated user's nip
             ->where('daily_activity.jenis_kegiatan', 'TAMBAHAN') // Filter by kind of Activities
+            ->where('daily_activity.wfo_wfh', '!=', 'Lainnya') // Filter by WFH or WFO
             ->join('users', 'daily_activity.nip', '=', 'users.nip') // Join with the users table
             ->select('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname', DB::raw('SUM(daily_activity.kuantitas) as total_kuantitas'), DB::raw('MIN(daily_activity.id) as min_id')) // Select the required fields
             ->groupBy('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname') // Group by kegiatan, satuan, and fullname
