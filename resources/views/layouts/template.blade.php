@@ -66,11 +66,45 @@
                   <span>Tambahkan Aktivitas</span>
                 </a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link {{ Request::is('temp/create')? "active":"" }}" href="{{ url('/temp/create')}}">
+                  <i class="material-icons">edit</i>
+                  <span>Tambahkan Aktivitas (Temp)</span>
+                </a>
+              </li>
 
               <li class="nav-item">
                 <a class="nav-link {{ Request::is('act/monitoring')? "active":"" }}" href="{{ url('/act/monitoring')}}">
                   <i class="material-icons">assessment</i>
                   <span>Monitoring dan Indeks</span>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{ Request::is('timkerja')? "active":"" }}" href="{{ url('/timkerja')}}">
+                  <i class="material-icons">assessment</i>
+                  <span>Tim Kerja</span>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{ Request::is('project')? "active":"" }}" href="{{ url('/project')}}">
+                  <i class="material-icons">assessment</i>
+                  <span>Proyek</span>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{ Request::is('kegiatanutama')? "active":"" }}" href="{{ url('/kegiatanutama')}}">
+                  <i class="material-icons">assessment</i>
+                  <span>Kegiatan Utama</span>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/assigntim')}}">
+                  <i class="material-icons">assessment</i>
+                  <span>Alokasi Tim - Kegiatan Utama</span>
                 </a>
               </li>
 

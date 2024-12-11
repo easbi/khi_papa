@@ -8,6 +8,11 @@ use App\Http\Controllers\Exports_CKP;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\test;
 use App\Http\Controllers\SuggestController;
+use App\Http\Controllers\TempController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\KegiatanutamaController;
+use App\Http\Controllers\AssigntimController;
+use App\Http\Controllers\TimkerjaController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -27,8 +32,21 @@ Route::get('act/filterMonthYear', [ActivitiesController::class, 'filterMonthYear
 Route::get('act/selftable', [ActivitiesController::class, 'selftable'])->name('act.selftable');
 Route::get('act/monitoring', [ActivitiesController::class, 'monitoring'])->name('act.monitoring');
 Route::get('act/filterMonthYear2', [ActivitiesController::class, 'filterMonthYear2'])->name('act.filterMonthYear2');
-
 Route::resource('act', ActivitiesController::class);
+
+Route::get('temp/getKegiatanutama/{project_id}', [TempController::class, 'getKegiatanutama'])->name('temp.getKegiatanutama');
+Route::get('temp/getProject/{tim_kerja_id}', [TempController::class, 'getProject'])->name('temp.getProject');
+Route::resource('temp', TempController::class);
+
+Route::resource('timkerja', TimkerjaController::class);
+
+Route::get('assigntim/getKegiatanutama/{project_id}', [AssigntimController::class, 'getKegiatanutama'])->name('kegiatanutama.getKegiatanutama');
+Route::resource('assigntim', AssigntimController::class);
+
+Route::resource('project', ProjectController::class);
+
+Route::get('kegiatanutama/getProject/{tim_kerja_id}', [KegiatanutamaController::class, 'getProject'])->name('kegiatanutama.getProject');
+Route::resource('kegiatanutama', KegiatanutamaController::class);
 
 Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
     return view('dashboard');
