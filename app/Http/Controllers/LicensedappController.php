@@ -26,8 +26,7 @@ class LicensedappController extends Controller
      */
     public function index()
     {
-        $licensedApps =  DB::table('licensedapp')->get();
-        // dd($licensedApps);
+        $licensedApps =  DB::table('licensedapp')->where('akhir_lisensi', '>=', today())->get();
         return view('licensedapp.index', compact('licensedApps'))->with('i');
     }
 
