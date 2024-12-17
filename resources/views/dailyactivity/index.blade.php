@@ -454,7 +454,7 @@
                                 <form action="{{ route('act.destroy',$act->id) }}" method="POST">
 
                                     <a class="btn btn-info btn-sm" href="{{ route('act.show',$act->id) }}">Show</a>
-                                    @if ($act->nip == Auth::user()->nip )
+                                    @if ($act->nip == Auth::user()->nip ||  $act->created_by == Auth::user()->nip)
                                     <a class="btn btn-primary btn-sm" href="{{ route('act.edit',$act->id) }}">Edit</a>
                                     @endif
                                 </form>                                 

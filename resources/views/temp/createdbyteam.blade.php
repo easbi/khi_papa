@@ -5,17 +5,13 @@
 <div class="page-header row no-gutters py-4">
     <div class="col-12 col-sm-4 text-center text-sm-left mb-0">
         <span class="text-uppercase page-subtitle">KHI</span>
-        <h3 class="page-title">Entri Kegiatan</h3>
+        <h3 class="page-title">Penugasan oleh Ketua Tim</h3>
     </div>
+    
 </div>
 
 <!-- Content -->
 <div class="row">
-    <div class="col-lg-12 col-md-12 text-right">        
-        <a href="{{ route('temp.createdbyteam') }}" class="btn btn-primary">
-            <i class="fa fa-plus"></i> Penugasan Anggota
-        </a>
-    </div>
     <div class="col-lg-12 col-md-12">
         <div class="card card-small mb-4">
             <div class="card-header border-bottom">
@@ -35,8 +31,17 @@
                     @endif
                     <div class="row">
                         <div class="col-sm-12 col-md-12">
-                            <form action="{{ route('temp.store') }}" method="POST" enctype="multipart/form-data">
-                                @csrf
+                            <form action="{{ route('temp.storebyteam') }}" method="POST" enctype="multipart/form-data">
+                                @csrf                                
+                                <div class="form-group">
+                                    <label for="">Anggota Tim Kerja</label>                                    
+                                    <select class="form-control" id="anggota_nip" name="anggota_nip" required>
+                                        <option value="" selected disabled>Pilih</option>
+                                        @foreach($teammember as $item)
+                                            <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <div class="form-group">
                                     <label for="tgl">Tanggal</label>
                                     <input type="date" class="form-control form-control-lg mb-3" name="tgl" required>
@@ -60,8 +65,8 @@
                                     <label for="">Tim Kerja</label>                                    
                                     <select class="form-control" id="tim_kerja_id" name="tim_kerja_id">
                                         <option value="" selected disabled>Pilih</option>
-                                        @foreach($TimKerja as $nama_tim_kerja => $tim_kerja_id)
-                                            <option value="{{ $tim_kerja_id }}">{{ $nama_tim_kerja }}</option>
+                                        @foreach($TimKerja as $TimKerja)
+                                            <option value="{{ $TimKerja->tim_kerja_id }}">{{ $TimKerja->nama_tim_kerja }}</option>
                                         @endforeach
                                     </select>
                                 </div>                                

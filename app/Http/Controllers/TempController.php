@@ -46,10 +46,32 @@ class TempController extends Controller
                 'master_assign_anggota.*')
             ->get();
 
-        $TimKerja = $assigntim->unique('nama_tim_kerja', 'tim_kerja_id')->pluck('tim_kerja_id', 'nama_tim_kerja');
-        // dd($TimKerja);
+        $isKetuaTimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
 
-        return view('temp.create', compact('assigntim', 'TimKerja'));
+        $TimKerja = $assigntim->unique('nama_tim_kerja', 'tim_kerja_id')->pluck('tim_kerja_id', 'nama_tim_kerja', 'isKetuaTimKerja');
+
+        return view('temp.create', compact('TimKerja'));
+    }
+
+    public function createdbyteam()
+    {
+        $teammember=  DB::table('master_assign_anggota')
+            ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
+            ->where('master_tim_kerja.nip_ketua_tim', '=', Auth::user()->nip)
+            ->join('users', 'users.nip', '=', 'master_assign_anggota.anggota_nip')
+            ->select( 
+                'users.fullname',
+                'users.nip')
+            ->get()            
+            ->unique('nip');
+
+        $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 10, 14])->get();
+
+        $TimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
+
+
+
+        return view('temp.createdbyteam', compact('TimKerja', 'teammember'));
     }
 
     public function getProject(Request $request)
@@ -97,6 +119,37 @@ class TempController extends Controller
 
         $result = Temp::create([
                 'nip' => Auth::user()->nip,
+                'wfo_wfh' => $request->wfo_wfh,
+                'jenis_kegiatan' => $request->jenis_kegiatan,
+                'tim_kerja_id' => $request->tim_kerja_id,
+                'project_id' => $request->project_id,
+                'kegiatan_utama_id' => $request->kegiatan_utama_id,
+                'kegiatan'=> $request->kegiatan,
+                'keterangan'=> $request->keterangan_kegiatan,
+                'satuan'=> $request->satuan,
+                'kuantitas'=> $request->kuantitas,
+                'tgl'=> $request->tgl,
+                'created_by' => Auth::user()->nip,
+            ]);
+
+         return redirect()->route('act.index')
+                        ->with('success','Kegiatan Sukses Ditambahkan!');
+    }
+
+    public function storebyteam(Request $request)
+    {
+        $request->validate([
+            'anggota_nip' => 'required',
+            'wfo_wfh' => 'required',
+            'jenis_kegiatan' => 'required',
+            'kegiatan'=> 'required',
+            'satuan'=> 'required',
+            'kuantitas'=> 'required',
+            'tgl'=> 'required',
+        ]);
+
+        $result = Temp::create([
+                'nip' => $request->anggota_nip,
                 'wfo_wfh' => $request->wfo_wfh,
                 'jenis_kegiatan' => $request->jenis_kegiatan,
                 'tim_kerja_id' => $request->tim_kerja_id,

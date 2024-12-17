@@ -28,6 +28,7 @@ class AssigntimController extends Controller
         ->select(
             'master_tim_kerja.nama_tim_kerja', 
             'ketua_tim.fullname as nama_ketua_tim', 
+            'ketua_tim.nip as nip_ketua_tim',
             'master_tim_kerja.tahun_kerja', 
             'master_project.nama_project', 
             'master_kegiatan_utama.nama_kegiatan_utama',
@@ -51,7 +52,7 @@ class AssigntimController extends Controller
         } else {
             $timkerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id', 'nama_tim_kerja')->get();
         }
-        $candidate=  DB::table('users')->select('nip', 'fullname')->where('id', '!=', 2)->get();
+        $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 10, 14])->get();
         return view('assignteam.create', compact('timkerja', 'candidate'));
     }
 

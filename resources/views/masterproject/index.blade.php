@@ -10,7 +10,6 @@
 </div>
 <!-- End Page Header -->
 
-@if (Auth::user()->id == 1 || Auth::user()->id == 17 || Auth::user()->id == 20)
 <div class="row mb-4">
     <div class="col text-right">
         <a href="{{ route('project.create') }}" class="btn btn-primary btn-sm">
@@ -18,7 +17,6 @@
         </a>
     </div>
 </div>
-@endif
 
 <!-- Default Light Table -->
 <div class="row">
@@ -64,6 +62,9 @@
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
                                     @endif
+                                    @if (Auth::user()->nip == $tk->nip_ketua_tim)
+                                    <a class="btn btn-primary btn-sm" href="{{ route('project.edit',$tk->id) }}">Edit</a>
+                                    @endif
                                 </form>                                 
                             </td>
                         </tr>
@@ -85,10 +86,8 @@ $(document).ready(function() {
     $('#example').DataTable({
         scrollX: true,
         responsive: true,
-        searching: false,
+        searching: true,
         ordering: true,
-        paging: true,
-        pageLength: 10,
         autoWidth: false
     });    
 });

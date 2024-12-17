@@ -56,11 +56,14 @@
                             <td>{{ $tk->tahun_kerja }}</td>
                             <td>
                                 <form action="{{ route('timkerja.destroy',$tk->id) }}" method="POST">
-                                    @if (Auth::user()->id == 1 || Auth::user()->id == 17 || Auth::user()->id == 20)
-                                    <a class="btn btn-primary btn-sm" href="{{ route('timkerja.edit',$tk->id) }}">Edit</a>
+                                    @if (Auth::user()->id == 1 || Auth::user()->id == 2 ||Auth::user()->id == 16 || Auth::user()->id == 20)
+                                        <a class="btn btn-primary btn-sm" href="{{ route('timkerja.edit',$tk->id) }}">Edit</a>
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
+                                    @endif
+                                    @if (Auth::user()->nip == $tk->nip_ketua_tim)
+                                        <a class="btn btn-primary btn-sm" href="{{ route('timkerja.edit',$tk->id) }}">Edit</a>
                                     @endif
                                 </form>                                 
                             </td>

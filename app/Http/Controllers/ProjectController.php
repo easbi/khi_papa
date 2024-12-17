@@ -24,7 +24,7 @@ class ProjectController extends Controller
         $project =  DB::table('master_project')
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_project.tim_kerja_id')
             ->join('users', 'master_tim_kerja.nip_ketua_tim', '=', 'users.nip')
-            ->select('master_tim_kerja.nama_tim_kerja', 'users.fullname as nama_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.*')
+            ->select('master_tim_kerja.nama_tim_kerja', 'users.fullname as nama_ketua_tim', 'users.nip as nip_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.*')
             ->get();
         return view('masterproject.index', compact('project'))->with('i');
     }

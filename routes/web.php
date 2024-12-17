@@ -34,6 +34,9 @@ Route::get('act/monitoring', [ActivitiesController::class, 'monitoring'])->name(
 Route::get('act/filterMonthYear2', [ActivitiesController::class, 'filterMonthYear2'])->name('act.filterMonthYear2');
 Route::resource('act', ActivitiesController::class);
 
+
+Route::post('temp/storebyteam', [TempController::class, 'storebyteam'])->name('temp.storebyteam');
+Route::get('temp/createdbyteam', [TempController::class, 'createdbyteam'])->name('temp.createdbyteam');
 Route::get('temp/getKegiatanutama/{project_id}', [TempController::class, 'getKegiatanutama'])->name('temp.getKegiatanutama');
 Route::get('temp/getProject/{tim_kerja_id}', [TempController::class, 'getProject'])->name('temp.getProject');
 Route::resource('temp', TempController::class);
