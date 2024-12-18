@@ -67,9 +67,10 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link {{ Request::is('temp/create')? "active":"" }}" href="{{ url('/temp/create')}}">
+                <a class="nav-link {{ Request::is('temp/create') ? 'active' : '' }} disabled" href="#" onclick="return false;" style="pointer-events: none; color: #ccc;">
                   <i class="material-icons">edit</i>
-                  <span>Tambahkan Aktivitas (Temp)</span>
+                  <span>Tambahkan Aktivitas</span>
+                  <span class="new-badge">2025</span>
                 </a>
               </li>
 
