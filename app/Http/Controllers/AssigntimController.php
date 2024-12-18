@@ -86,6 +86,7 @@ class AssigntimController extends Controller
      */
     public function store(Request $request)
     {
+
         $isDuplicate = DB::table('master_assign_anggota')
             ->where('anggota_nip', $request->anggota_nip)
             ->where('kegiatan_utama_id', '=', $request->kegiatan_utama_id)
@@ -102,16 +103,26 @@ class AssigntimController extends Controller
             'tim_kerja_id' => 'required',
             'project_id' => 'required',
             'kegiatan_utama_id' => 'required',
-            'anggota_nip' => 'required',
+            'anggota_nip.*' => 'required',
         ]);
 
-        $result = Assigntim::create([
-            'tim_kerja_id' => $request->tim_kerja_id,
-            'project_id' => $request->project_id,
-            'kegiatan_utama_id' => $request->kegiatan_utama_id,
-            'anggota_nip' => $request->anggota_nip,
-            'created_by' => Auth::user()->id,
-        ]);
+        // $result = Assigntim::create([
+        //     'tim_kerja_id' => $request->tim_kerja_id,
+        //     'project_id' => $request->project_id,
+        //     'kegiatan_utama_id' => $request->kegiatan_utama_id,
+        //     'anggota_nip' => $request->anggota_nip,
+        //     'created_by' => Auth::user()->id,
+        // ]);
+
+        foreach ($request->anggota_nip as $nip) {
+            AssignTim::create([
+                'tim_kerja_id' => $request->tim_kerja_id,
+                'project_id' => $request->project_id,
+                'kegiatan_utama_id' => $request->kegiatan_utama_id,
+                'anggota_nip' => $nip,
+                'created_by' => Auth::user()->id,
+            ]);
+        }
 
         return redirect()->route('assigntim.index')
                         ->with('success','Alokasi Anggota Sukses Ditambahkan!');

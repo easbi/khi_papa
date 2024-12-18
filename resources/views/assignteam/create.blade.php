@@ -53,15 +53,31 @@
                                         <option value="">Pilih Kegiatan Utama</option>
                                     </select>                                        
                                 </div>
-                                <div class="form-group">
+                                <!-- <div class="form-group">
                                     <label for="">Anggota Tim Kerja</label>                                    
                                     <select class="form-control" id="anggota_nip" name="anggota_nip" required>
                                         <option value="" selected disabled>Pilih</option>
                                         @foreach($candidate as $item)
-                                            <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
+                                        <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
                                         @endforeach
                                     </select>
+                                </div> -->
+                                <div class="form-group">
+                                    <label for="">Anggota Tim Kerja</label>                                  
+                                    <div id="dynamic-input">
+                                        <div class="input-group mb-2">
+                                            <select class="form-control" name="anggota_nip[]" required>
+                                                <option value="" selected disabled>Pilih</option>
+                                                @foreach($candidate as $item)
+                                                <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="button" class="btn btn-danger remove-field">Remove</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="add-field" class="btn btn-primary">Tambah Anggota</button>
                                 </div>
+
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-success">Kirim</button>
                                 </div>
@@ -137,6 +153,31 @@
             } else {
                 $('#kegiatan_utama').empty().append('<option value="" selected disabled>Pilih kegiatan utama</option>');
             }
+        });
+    });
+
+</script>
+<script type="text/javascript">
+    $(document).ready(function() {
+    // Menambahkan input anggota tim kerja
+        $('#add-field').click(function() {
+            var inputField = `
+            <div class="input-group mb-2">
+            <select class="form-control" name="anggota_nip[]" required>
+            <option value="" selected disabled>Pilih</option>
+            @foreach($candidate as $item)
+            <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
+            @endforeach
+            </select>
+            <button type="button" class="btn btn-danger remove-field">Remove</button>
+            </div>
+            `;
+            $('#dynamic-input').append(inputField);
+        });
+
+    // Menghapus input anggota tim kerja
+        $(document).on('click', '.remove-field', function() {
+            $(this).closest('.input-group').remove();
         });
     });
 
