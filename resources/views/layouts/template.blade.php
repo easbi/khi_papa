@@ -84,6 +84,7 @@
                 <a class="nav-link {{ Request::is('timkerja')? "active":"" }}" href="{{ url('/timkerja')}}">
                   <i class="material-icons">assessment</i>
                   <span>Tim Kerja</span>
+                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -91,6 +92,7 @@
                 <a class="nav-link {{ Request::is('project')? "active":"" }}" href="{{ url('/project')}}">
                   <i class="material-icons">assessment</i>
                   <span>Proyek</span>
+                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -98,6 +100,7 @@
                 <a class="nav-link {{ Request::is('kegiatanutama')? "active":"" }}" href="{{ url('/kegiatanutama')}}">
                   <i class="material-icons">assessment</i>
                   <span>Kegiatan Utama</span>
+                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -105,6 +108,7 @@
                 <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/assigntim')}}">
                   <i class="material-icons">assessment</i>
                   <span>Alokasi Tim - Kegiatan Utama</span>
+                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -112,7 +116,6 @@
                 <a class="nav-link {{ Request::is('licensedapp/')? 'active':'' }}" href="{{ url('/licensedapp/') }}">
                   <i class="material-icons">verified_user</i>
                   <span>Lisensi Aplikasi</span>
-                  <span class="new-badge">New</span>
                 </a>
               </li>
               <style type="text/css">
