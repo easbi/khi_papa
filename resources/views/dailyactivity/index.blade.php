@@ -49,12 +49,48 @@
     }
 </style>
 
+
+<!-- Pengumuman Modal -->
+<div class="modal fade" id="announcementModal" tabindex="-1" role="dialog" aria-labelledby="announcementModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="announcementModalLabel">📢 Pengumuman 📢</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Berkaitan dengan persiapan perencanaan kerja tim untuk tahun 2025 serta pembuatan SKP Penetapan Tahunan. Kami mohon kepada setiap Ketua Tim untuk mempersiapkan Matriks Rencana Kerja 2025 sesuai dengan template yang telah disediakan.</p>
+                <p>Matriks yang sudah disusun sesuai template di upload ke link berikut: </p>
+                <a href="https://onedrive.live.com/?id=E21CA3EE2142A898%21577750&cid=E21CA3EE2142A898&mid=2C963C175E70D39B%219810&mcid=2C963C175E70D39B&sd=1">Upload Disini</a>
+                <p>Selanjutnya, dipersilahkan kepada ketua tim untuk mendefinisikan Proyek-Kegiatan Utama - Assign Anggota berdasarkan matrik rencana kerja yang sudah disusun Pada menu KHI di sebelah kanan (Navigation Bar). Paling lambat <b>31 Desember 2025</b></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Mengerti</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <link rel="stylesheet" href="{{asset('css/runningtext1.css')}}">
 <div class="running-text-container">
     <div class="running-text" id="runningText">
 
     </div>
 </div>
+
+@push('scripts')
+<!-- Script untuk memunculkan modal pengumuman -->
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#announcementModal').modal('show');
+    });
+</script>
+@endpush
+
+
+
 @push('scripts')
 <script>
     // Teks untuk ditampilkan secara bergantian
