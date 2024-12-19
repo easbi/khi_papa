@@ -108,7 +108,7 @@
               <li class="nav-item">
                 <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/assigntim')}}">
                   <i class="material-icons">assessment</i>
-                  <span>Alokasi Tim - Kegiatan Utama</span>
+                  <span>Alokasi Tim</span>
                   <span class="new-badge">To-do</span>
                 </a>
               </li>
