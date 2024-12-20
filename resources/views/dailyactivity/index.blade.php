@@ -64,7 +64,7 @@
                 <p>Berkaitan dengan persiapan perencanaan kerja tim untuk tahun 2025 serta pembuatan SKP Penetapan Tahunan. Kami mohon kepada setiap Ketua Tim untuk mempersiapkan Matriks Rencana Kerja 2025 sesuai dengan template yang telah disediakan.</p>
                 <p>Matriks yang sudah disusun sesuai template di upload ke link berikut: </p>
                 <a href="https://onedrive.live.com/?id=E21CA3EE2142A898%21577750&cid=E21CA3EE2142A898&mid=2C963C175E70D39B%219810&mcid=2C963C175E70D39B&sd=1">Upload Disini</a>
-                <p>Selanjutnya, dipersilahkan kepada ketua tim untuk mendefinisikan Proyek-Kegiatan Utama - Assign Anggota berdasarkan matrik rencana kerja yang sudah disusun Pada menu KHI di sebelah kanan (Navigation Bar). Paling lambat <b>31 Desember 2024.</b></p>
+                <p>Selanjutnya, dipersilahkan kepada ketua tim untuk mendefinisikan Proyek-Kegiatan Utama - Assign Anggota berdasarkan matrik rencana kerja yang sudah disusun Pada menu KHI di sebelah kanan (Navigation Bar). Panduan Penggunaan Entri ALokasi Tim dapat dilihat di </p><a href="https://onedrive.live.com/?id=E21CA3EE2142A898%21577750&cid=E21CA3EE2142A898&mid=2C963C175E70D39B%219810&mcid=2C963C175E70D39B&sd=1">Lihat Disini</a> <p> Paling lambat <b>31 Desember 2024.</b></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-success" data-dismiss="modal">Mengerti</button>
