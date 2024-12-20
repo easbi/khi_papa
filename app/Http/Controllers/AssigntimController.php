@@ -152,7 +152,7 @@ class AssigntimController extends Controller
 
         $kegiatanutama = DB::table('master_kegiatan_utama')->get();
 
-        $candidate=  DB::table('users')->select('nip', 'fullname')->where('id', '!=', 2)->get();
+        $candidate=  DB::table('users')->select('nip', 'fullname')->where('id', '!=', 2)->get(); //gass
         return view('assignteam.edit', compact('candidate', 'assigntim', 'timkerja', 'projects', 'kegiatanutama'));
     }
 
