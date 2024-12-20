@@ -67,9 +67,10 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link {{ Request::is('temp/create')? "active":"" }}" href="{{ url('/temp/create')}}">
+                <a class="nav-link {{ Request::is('temp/create') ? 'active' : '' }} disabled" href="#" onclick="return false;" style="pointer-events: none; color: #ccc;">
                   <i class="material-icons">edit</i>
-                  <span>Tambahkan Aktivitas (Temp)</span>
+                  <span>Tambahkan Aktivitas</span>
+                  <span class="new-badge">2025</span>
                 </a>
               </li>
 
@@ -84,6 +85,7 @@
                 <a class="nav-link {{ Request::is('timkerja')? "active":"" }}" href="{{ url('/timkerja')}}">
                   <i class="material-icons">assessment</i>
                   <span>Tim Kerja</span>
+                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -91,6 +93,7 @@
                 <a class="nav-link {{ Request::is('project')? "active":"" }}" href="{{ url('/project')}}">
                   <i class="material-icons">assessment</i>
                   <span>Proyek</span>
+                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -98,13 +101,15 @@
                 <a class="nav-link {{ Request::is('kegiatanutama')? "active":"" }}" href="{{ url('/kegiatanutama')}}">
                   <i class="material-icons">assessment</i>
                   <span>Kegiatan Utama</span>
+                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
               <li class="nav-item">
                 <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/assigntim')}}">
                   <i class="material-icons">assessment</i>
-                  <span>Alokasi Tim - Kegiatan Utama</span>
+                  <span>Alokasi Tim</span>
+                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -112,7 +117,6 @@
                 <a class="nav-link {{ Request::is('licensedapp/')? 'active':'' }}" href="{{ url('/licensedapp/') }}">
                   <i class="material-icons">verified_user</i>
                   <span>Lisensi Aplikasi</span>
-                  <span class="new-badge">New</span>
                 </a>
               </li>
               <style type="text/css">
