@@ -146,7 +146,7 @@ class AssigntimController extends Controller
                 ->join('users', 'master_tim_kerja.nip_ketua_tim', '=', 'users.nip')
                 ->select('master_tim_kerja.nama_tim_kerja', 'master_tim_kerja.nip_ketua_tim', 'users.fullname as nama_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.nama_project', 'master_kegiatan_utama.*')                
                 ->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)
-                ->select('id', 'nama_project', 'tim_kerja_id')
+                ->select('master_project.id', 'master_project.nama_project', 'tim_kerja_id')
                 ->get();
         }
 
