@@ -58,14 +58,11 @@
                             <td>{{ $tk->tahun_kerja }}</td>
                             <td>
                                 <form action="{{ route('kegiatanutama.destroy',$tk->id) }}" method="POST">
-                                    @if (Auth::user()->id == 1 || Auth::user()->id == 17 || Auth::user()->id == 20)
+                                    @if (Auth::user()->id == 1 || Auth::user()->id == 17 || Auth::user()->id == 20 ||Auth::user()->nip == $tk->nip_ketua_tim)
                                     <a class="btn btn-primary btn-sm" href="{{ route('kegiatanutama.edit',$tk->id) }}">Edit</a>
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
-                                    @endif                                    
-                                    @if (Auth::user()->nip == $tk->nip_ketua_tim)
-                                    <a class="btn btn-primary btn-sm" href="{{ route('kegiatanutama.edit',$tk->id) }}">Edit</a>
                                     @endif
                                 </form>                                 
                             </td>
