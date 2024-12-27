@@ -56,7 +56,7 @@
                             <td>{{ $tk->tahun_kerja }}</td>
                             <td>
                                 <form action="{{ route('project.destroy',$tk->id) }}" method="POST">
-                                    @if (Auth::user()->id == 1 || Auth::user()->id == 17 || Auth::user()->id == 20)
+                                    @if (Auth::user()->id == 1 || Auth::user()->id == 17 || Auth::user()->id == 20 ||Auth::user()->nip == $tk->nip_ketua_tim)
                                     <a class="btn btn-primary btn-sm" href="{{ route('project.edit',$tk->id) }}">Edit</a>
                                     @csrf
                                     @method('DELETE')

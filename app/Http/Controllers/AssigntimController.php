@@ -106,14 +106,6 @@ class AssigntimController extends Controller
             'anggota_nip.*' => 'required',
         ]);
 
-        // $result = Assigntim::create([
-        //     'tim_kerja_id' => $request->tim_kerja_id,
-        //     'project_id' => $request->project_id,
-        //     'kegiatan_utama_id' => $request->kegiatan_utama_id,
-        //     'anggota_nip' => $request->anggota_nip,
-        //     'created_by' => Auth::user()->id,
-        // ]);
-
         foreach ($request->anggota_nip as $nip) {
             AssignTim::create([
                 'tim_kerja_id' => $request->tim_kerja_id,

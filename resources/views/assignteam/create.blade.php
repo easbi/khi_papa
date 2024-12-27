@@ -53,15 +53,6 @@
                                         <option value="">Pilih Kegiatan Utama</option>
                                     </select>                                        
                                 </div>
-                                <!-- <div class="form-group">
-                                    <label for="">Anggota Tim Kerja</label>                                    
-                                    <select class="form-control" id="anggota_nip" name="anggota_nip" required>
-                                        <option value="" selected disabled>Pilih</option>
-                                        @foreach($candidate as $item)
-                                        <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
-                                        @endforeach
-                                    </select>
-                                </div> -->
                                 <div class="form-group">
                                     <label for="">Anggota Tim Kerja</label>                                  
                                     <div id="dynamic-input">
