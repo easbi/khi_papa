@@ -40,7 +40,7 @@
 								@csrf
 								@method('PUT')
 								<div class="form-group">
-									<label for="tgl"><b>Tangal</b></label>
+									<label for="tgl"><b>Tanggal</b></label>
 									<input type="date" class="form-control form-control-lg mb-3" name="tgl" value="{{ $activity->tgl }}">
 								</div>
 								<div class="form-group">
@@ -52,12 +52,32 @@
 											<option value="Lainnya" @if($activity->wfo_wfh == "Lainnya") selected @endif>Lainnya (Cuti, Sakit, Izin)</option>
 										</select>
 									</div>
-									<div class="form-group">
-										<label for="jenis_kegiatan"><b>Jenis Kegiatan:</label>
+										<div class="form-group">
+											<label for="jenis_kegiatan"><b>Jenis Kegiatan:</label>
 											<select class="form-control" id="jenis_kegiatan" name="jenis_kegiatan">
 												<option value="UTAMA" @if($activity->jenis_kegiatan == "UTAMA") selected @endif>Utama</option>
 												<option value="TAMBAHAN" @if($activity->jenis_kegiatan == "TAMBAHAN") selected @endif>Tambahan</option>
 											</select>
+										</div>
+										<div class="form-group" id="tim_kerja_field">
+											<label for="">Tim Kerja</label>                                    
+											<select class="form-control" id="tim_kerja_id" name="tim_kerja_id" disabled>
+										        <option value="{{ $activity->tim_kerja_id }}" selected>
+										            {{ $activity->nama_tim_kerja }}
+										        </option>
+											</select>
+										</div>                                
+										<div class="form-group" id="project_field">
+											<label for="">Project</label>                                    
+											<select class="form-control" id="project" name="project_id" disabled>
+												<option value="{{$activity->project_id}}">{{$activity->nama_project}}</option>
+											</select>                                        
+										</div>
+										<div class="form-group" id="kegiatan_utama_field">
+											<label for="">Kegiatan Utama</label>                                    
+											<select class="form-control" id="kegiatan_utama" name="kegiatan_utama_id" disabled>
+												<option value="{{$activity->kegiatan_utama_id}}">{{$activity->nama_kegiatan_utama}}</option>
+											</select>                                        
 										</div>
 										<div class="form-group">
 											<label for="kegiatan"><b>Nama Kegiatan:</b></label>
@@ -145,7 +165,6 @@
 			</div>
 			<!-- End of Content -->
 
-
 			<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 			<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
 
@@ -166,4 +185,90 @@
 				});
 			</script>
 
-			@endsection
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#jenis_kegiatan').change(function() {
+            var jenis_kegiatan = $(this).val();
+            if(jenis_kegiatan == 'TAMBAHAN') {
+                // Hide fields when 'TAMBAHAN' is selected
+                $('#tim_kerja_field').hide();
+                $('#project_field').hide();
+                $('#kegiatan_utama_field').hide();
+            } else {
+                // Show fields when 'UTAMA' is selected
+                $('#tim_kerja_field').show();
+                $('#project_field').show();
+                $('#kegiatan_utama_field').show();
+            }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        $('#tim_kerja_id').change(function() {
+            var tim_kerja_id = $(this).val();
+            $("#project").html('');
+            if (tim_kerja_id) {
+                // var url = '{{ url("kegiatanutama/getProject") }}/' + tim_kerja_id;
+                // console.log('Project:', url);
+                $.ajax({
+                    url: '{{ url("temp/getProject") }}/' + tim_kerja_id,                    
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        // console.log("Respons JSON:", data); // Debugging respons
+                        $('#project').empty().append('<option value="" selected disabled>Pilih Project</option>');
+                        if ($.isEmptyObject(data)) {
+                            alert('Tidak ada project untuk Tim Kerja yang dipilih.');
+                        } else {
+                            $.each(data, function(key, value) {
+                                $('#project').append('<option value="'+ key +'">'+ value +'</option>');
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", xhr.responseText); // Debugging error
+                        alert('Gagal mengambil data. Silakan coba lagi.');
+                    }
+                });
+            } else {
+                $('#project').empty().append('<option value="" selected disabled>Pilih Project</option>');
+            }
+        });
+
+
+        $('#project').change(function() {
+            var project_id = $(this).val();
+            $("#kegiatanutama").html('');
+            if (project_id) {
+                $.ajax({
+                    url: '{{ url("temp/getKegiatanutama") }}/' + project_id,                    
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        // console.log("Respons JSON:", data); // Debugging respons
+                        $('#kegiatan_utama').empty().append('<option value="" selected disabled>Pilih Project</option>');
+                        if ($.isEmptyObject(data)) {
+                            alert('Tidak ada kegiatan_utama untuk Tim Kerja yang dipilih.');
+                        } else {
+                            $.each(data, function(key, value) {
+                                $('#kegiatan_utama').append('<option value="'+ key +'">'+ value +'</option>');
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", xhr.responseText); // Debugging error
+                        alert('Gagal mengambil data. Silakan coba lagi.');
+                    }
+                });
+            } else {
+                $('#kegiatan_utama').empty().append('<option value="" selected disabled>Pilih kegiatan utama</option>');
+            }
+        });
+    });
+
+</script>
+
+
+@endsection

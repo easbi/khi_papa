@@ -258,7 +258,46 @@ class ActivitiesController extends Controller
      */
     public function create()
     {
-        return view('dailyactivity.create');
+        $assigntim=  DB::table('master_assign_anggota')
+            ->where('anggota_nip','=', Auth::user()->nip)
+            ->join('master_kegiatan_utama', 'master_assign_anggota.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
+            ->join('master_project', 'master_project.id', '=', 'master_assign_anggota.project_id')
+            ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
+            ->join('users as ketua_tim', 'master_tim_kerja.nip_ketua_tim', '=', 'ketua_tim.nip')
+            ->select(
+                'master_tim_kerja.nama_tim_kerja', 
+                'ketua_tim.fullname as nama_ketua_tim',
+                'master_project.nama_project', 
+                'master_kegiatan_utama.nama_kegiatan_utama',
+                'master_assign_anggota.*')
+            ->get();
+
+        $isKetuaTimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
+
+        $TimKerja = $assigntim->unique('nama_tim_kerja', 'tim_kerja_id')->pluck('tim_kerja_id', 'nama_tim_kerja', 'isKetuaTimKerja');
+
+        return view('dailyactivity.create', compact('TimKerja'));
+    }
+
+    public function createdbyteam()
+    {
+        $teammember=  DB::table('master_assign_anggota')
+            ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
+            ->where('master_tim_kerja.nip_ketua_tim', '=', Auth::user()->nip)
+            ->join('users', 'users.nip', '=', 'master_assign_anggota.anggota_nip')
+            ->select( 
+                'users.fullname',
+                'users.nip')
+            ->get()            
+            ->unique('nip');
+
+        $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 10, 14])->get();
+
+        $TimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
+
+
+
+        return view('dailyactivity.createdbyteam', compact('TimKerja', 'teammember'));
     }
 
     /**
@@ -282,6 +321,40 @@ class ActivitiesController extends Controller
                 'nip' => Auth::user()->nip,
                 'wfo_wfh' => $request->wfo_wfh,
                 'jenis_kegiatan' => $request->jenis_kegiatan,
+                'tim_kerja_id' => $request->tim_kerja_id,
+                'project_id' => $request->project_id,
+                'kegiatan_utama_id' => $request->kegiatan_utama_id,
+                'kegiatan'=> $request->kegiatan,
+                'keterangan'=> $request->keterangan_kegiatan,
+                'satuan'=> $request->satuan,
+                'kuantitas'=> $request->kuantitas,
+                'tgl'=> $request->tgl,
+                'created_by' => Auth::user()->nip,
+            ]);
+
+         return redirect()->route('act.index')
+                        ->with('success','Kegiatan Sukses Ditambahkan!');
+    }
+
+    public function storebyteam(Request $request)
+    {
+        $request->validate([
+            'anggota_nip' => 'required',
+            'wfo_wfh' => 'required',
+            'jenis_kegiatan' => 'required',
+            'kegiatan'=> 'required',
+            'satuan'=> 'required',
+            'kuantitas'=> 'required',
+            'tgl'=> 'required',
+        ]);
+
+        $result = Activity::create([
+                'nip' => $request->anggota_nip,
+                'wfo_wfh' => $request->wfo_wfh,
+                'jenis_kegiatan' => $request->jenis_kegiatan,
+                'tim_kerja_id' => $request->tim_kerja_id,
+                'project_id' => $request->project_id,
+                'kegiatan_utama_id' => $request->kegiatan_utama_id,
                 'kegiatan'=> $request->kegiatan,
                 'keterangan'=> $request->keterangan_kegiatan,
                 'satuan'=> $request->satuan,
@@ -302,7 +375,17 @@ class ActivitiesController extends Controller
      */
     public function show($id)
     {
-        $activity = DB::table('daily_activity')->where('id', $id)->first();
+        $activity=  DB::table('daily_activity')
+            ->where('daily_activity.id', $id)
+            ->leftJoin('master_kegiatan_utama', 'daily_activity.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
+            ->leftJoin('master_project', 'master_project.id', '=', 'daily_activity.project_id')
+            ->leftJoin('master_tim_kerja', 'master_tim_kerja.id', '=', 'daily_activity.tim_kerja_id')
+            ->select(
+                'master_tim_kerja.nama_tim_kerja', 
+                'master_project.nama_project', 
+                'master_kegiatan_utama.nama_kegiatan_utama',
+                'daily_activity.*')
+            ->first();
         return view('dailyactivity.show',compact('activity'));
     }
 
@@ -314,7 +397,18 @@ class ActivitiesController extends Controller
      */
     public function edit($id)
     {
-        $activity = DB::table('daily_activity')->where('id', $id)->first();
+        $activity=  DB::table('daily_activity')
+            ->where('daily_activity.id', $id)
+            ->leftJoin('master_kegiatan_utama', 'daily_activity.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
+            ->leftJoin('master_project', 'master_project.id', '=', 'daily_activity.project_id')
+            ->leftJoin('master_tim_kerja', 'master_tim_kerja.id', '=', 'daily_activity.tim_kerja_id')
+            ->select(
+                'master_tim_kerja.nama_tim_kerja', 
+                'master_project.nama_project', 
+                'master_kegiatan_utama.nama_kegiatan_utama',
+                'daily_activity.*')
+            ->first();
+        // dd($activity);
         return view('dailyactivity.edit',compact('activity'));
     }
 
@@ -360,7 +454,7 @@ class ActivitiesController extends Controller
             $activity->updated_at = now();
             $activity->save();
         }
-        return redirect()->route('act.selftable')->with('success', 'The activity updated successfully');
+        return redirect()->route('act.index')->with('success', 'The activity updated successfully');
     }
 
     /**

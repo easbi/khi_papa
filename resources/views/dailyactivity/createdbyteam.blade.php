@@ -5,17 +5,13 @@
 <div class="page-header row no-gutters py-4">
     <div class="col-12 col-sm-4 text-center text-sm-left mb-0">
         <span class="text-uppercase page-subtitle">KHI</span>
-        <h3 class="page-title">Entri Kegiatan</h3>
+        <h3 class="page-title">Penugasan oleh Ketua Tim</h3>
     </div>
+    
 </div>
 
 <!-- Content -->
 <div class="row">
-    <div class="col-lg-12 col-md-12 text-right">        
-        <a href="{{ route('act.createdbyteam') }}" class="btn btn-primary">
-            <i class="fa fa-plus"></i> Penugasan Anggota
-        </a>
-    </div>
     <div class="col-lg-12 col-md-12">
         <div class="card card-small mb-4">
             <div class="card-header border-bottom">
@@ -35,8 +31,17 @@
                     @endif
                     <div class="row">
                         <div class="col-sm-12 col-md-12">
-                            <form action="{{ route('act.store') }}" method="POST" enctype="multipart/form-data">
-                                @csrf
+                            <form action="{{ route('act.storebyteam') }}" method="POST" enctype="multipart/form-data">
+                                @csrf                                
+                                <div class="form-group">
+                                    <label for="">Anggota Tim Kerja</label>                                    
+                                    <select class="form-control" id="anggota_nip" name="anggota_nip" required>
+                                        <option value="" selected disabled>Pilih</option>
+                                        @foreach($teammember as $item)
+                                            <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <div class="form-group">
                                     <label for="tgl">Tanggal</label>
                                     <input type="date" class="form-control form-control-lg mb-3" name="tgl" required>
@@ -60,8 +65,8 @@
                                     <label for="">Tim Kerja</label>                                    
                                     <select class="form-control" id="tim_kerja_id" name="tim_kerja_id">
                                         <option value="" selected disabled>Pilih</option>
-                                        @foreach($TimKerja as $nama_tim_kerja => $tim_kerja_id)
-                                            <option value="{{ $tim_kerja_id }}">{{ $nama_tim_kerja }}</option>
+                                        @foreach($TimKerja as $TimKerja)
+                                            <option value="{{ $TimKerja->tim_kerja_id }}">{{ $TimKerja->nama_tim_kerja }}</option>
                                         @endforeach
                                     </select>
                                 </div>                                
@@ -169,7 +174,7 @@
 
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- <script>
+<script>
     $(document).ready(function(){
         $('#jenis_kegiatan').change(function() {
             var jenis_kegiatan = $(this).val();
@@ -186,64 +191,7 @@
             }
         });
     });
-</script> -->
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const jenisKegiatan = document.getElementById('jenis_kegiatan');
-        const timKerjaField = document.getElementById('tim_kerja_field');
-        const projectField = document.getElementById('project_field');
-        const kegiatanUtamaField = document.getElementById('kegiatan_utama_field');
-
-        // Fungsi untuk validasi sebelum submit form
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function (e) {
-            const selectedJenisKegiatan = jenisKegiatan.value;
-
-            // Validasi jika "Pekerjaan Utama" dipilih
-            if (selectedJenisKegiatan === 'UTAMA') {
-                const timKerja = document.getElementById('tim_kerja_id').value;
-                const project = document.getElementById('project').value;
-                const kegiatanUtama = document.getElementById('kegiatan_utama').value;
-
-                if (!timKerja || !project || !kegiatanUtama) {
-                    e.preventDefault(); // Mencegah pengiriman form
-                    alert('Untuk Pekerjaan Utama, Anda harus mengisi semua kolom: Tim Kerja, Project, dan Kegiatan Utama.');
-                    return;
-                }
-            }
-        });
-
-        // Fungsi untuk menampilkan atau menyembunyikan field berdasarkan pilihan "Jenis Kegiatan"
-        jenisKegiatan.addEventListener('change', function () {
-            if (jenisKegiatan.value === 'UTAMA') {
-                // Wajib diisi
-                timKerjaField.style.display = 'block';
-                projectField.style.display = 'block';
-                kegiatanUtamaField.style.display = 'block';
-
-                // Tambahkan atribut required
-                document.getElementById('tim_kerja_id').setAttribute('required', 'required');
-                document.getElementById('project').setAttribute('required', 'required');
-                document.getElementById('kegiatan_utama').setAttribute('required', 'required');
-            } else if (jenisKegiatan.value === 'TAMBAHAN') {
-                // Tidak wajib diisi
-                timKerjaField.style.display = 'none';
-                projectField.style.display = 'none';
-                kegiatanUtamaField.style.display = 'none';
-
-                // Hapus atribut required
-                document.getElementById('tim_kerja_id').removeAttribute('required');
-                document.getElementById('project').removeAttribute('required');
-                document.getElementById('kegiatan_utama').removeAttribute('required');
-            }
-        });
-
-        // Trigger initial state
-        jenisKegiatan.dispatchEvent(new Event('change'));
-    });
 </script>
-
 <script>
     $(document).ready(function() {
         $('#tim_kerja_id').change(function() {

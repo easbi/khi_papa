@@ -4,10 +4,10 @@
 
 <!-- Page Header -->
 <div class="page-header row no-gutters py-4">
-	<div class="col-12 col-sm-4 text-center text-sm-left mb-0">
-		<span class="text-uppercase page-subtitle">Kegiatan-ku Hari Ini (KHI)</span>
-		<h3 class="page-title">Detail Kegiatan</h3>
-	</div>
+  <div class="col-12 col-sm-4 text-center text-sm-left mb-0">
+    <span class="text-uppercase page-subtitle">Kegiatan-ku Hari Ini (KHI)</span>
+    <h3 class="page-title">Detail Kegiatan</h3>
+  </div>
 </div>
 <!-- End Page Header -->
 
@@ -15,7 +15,7 @@
 
 <!-- Default Light Table -->
 <div class="row">
-	<div class="col">
+  <div class="col">
         <!-- Post Overview -->
         <div class='card card-small mb-3'>
           <div class="card-header border-bottom">
@@ -41,7 +41,19 @@
               </span>
               <span class="d-flex mb-2">
                   <i class="material-icons mr-1">flag</i>                  
-                  <strong class="mr-1">Kegiatan:</strong> {{ $activity->kegiatan }}
+                  <strong class="mr-1">Tim Kerja:</strong> {{ $activity->nama_tim_kerja }}
+              </span>
+              <span class="d-flex mb-2">
+                  <i class="material-icons mr-1">flag</i>                  
+                  <strong class="mr-1">Proyek:</strong> {{ $activity->nama_project }}
+              </span>
+              <span class="d-flex mb-2">
+                  <i class="material-icons mr-1">flag</i>                  
+                  <strong class="mr-1">Kegiatan Utama Tim:</strong> {{ $activity->nama_kegiatan_utama }}
+              </span>
+              <span class="d-flex mb-2">
+                  <i class="material-icons mr-1">flag</i>                  
+                  <strong class="mr-1">Kegiatan Individu:</strong> {{ $activity->kegiatan }}
               </span>
               <span class="d-flex">
                   <i class="material-icons mr-1">score</i>
@@ -87,7 +99,7 @@
 </div>
 </div>
 <!-- End Default Light Table -->
-<!-- End of Content -->		
+<!-- End of Content -->   
 @endsection
 
 @push('scripts')
