@@ -62,7 +62,7 @@
             </div>
             <div class="modal-body">
                 <p>Terimakasih kepada <b>Ketua Tim Kerja</b> yang sudah menyelesaikan rancangan Matriks Rencana Kerja 2025 sesuai dengan template yang telah disediakan dan disetting di KHI. </p> 
-                <p>Selanjutnya, Mulai dari 2025 semua pegawai sudah bisa menggunakan pencatatan aktivitas (Tambahkan Aktivitas -versi 2025) di <b> 1 Januari 2024 </b>. Konsekuensi dari penggunaan ini adalah para pegawai hanya bisa menyatatkan aktivitas yang sudah dialokasikan oleh ketua timnya. Terimakasih</p>
+                <p>Selanjutnya, Mulai dari 2025 semua pegawai sudah bisa menggunakan pencatatan aktivitas (Tambahkan Aktivitas -versi 2025) di <b> 1 Januari 2024 </b>. Konsekuensi dari penggunaan ini adalah para pegawai hanya bisa menyatatkan aktivitas yang sudah dialokasikan oleh ketua timnya, sehingga jika tidak ada alokasi maka akan dianggap kegiatan tambahan saja. Mohon tetap selalu berkoordinasi mengenai alokasi tugas ke ketua tim masing-masing. Terimakasih.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-success" data-dismiss="modal">Oke</button>
