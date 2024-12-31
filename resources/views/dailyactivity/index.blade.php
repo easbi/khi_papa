@@ -509,6 +509,11 @@
 <script type="text/javascript">
   $(document).ready(function() {
     $('#example').DataTable({
+        layout: {
+            topStart: {
+                buttons: ['excel']
+            }
+        }
       "scrollX": true,
        responsive: true
     });
