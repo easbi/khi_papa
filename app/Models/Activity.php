@@ -14,6 +14,9 @@ class Activity extends Model
     protected $fillable=[
         'nip',
         'wfo_wfh',
+        'tim_kerja_id',
+        'project_id',
+        'kegiatan_utama_id',
         'kegiatan',
         'keterangan',
         'jenis_kegiatan',
