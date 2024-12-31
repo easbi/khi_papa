@@ -28,6 +28,8 @@ Route::get('/', [ActivitiesController::class, 'index']);
 
 Route::get('/logout', [AuthenticatedSessionController::class, 'destroy']);
 
+
+Route::get('act/indexkhi/export-to-excel/{bulan}/{tahun}', [ActivitiesController::class, 'indexkhiexportToExcel'])->name('indeks.khi.export.excel');
 Route::get('act/filterMonthYear', [ActivitiesController::class, 'filterMonthYear'])->name('act.filterMonthYear');
 Route::get('act/selftable', [ActivitiesController::class, 'selftable'])->name('act.selftable');
 Route::get('act/monitoring', [ActivitiesController::class, 'monitoring'])->name('act.monitoring');
@@ -43,6 +45,8 @@ Route::resource('temp', TempController::class);
 
 Route::resource('timkerja', TimkerjaController::class);
 
+
+Route::get('assigntim/export-alokasi-tim', [AssigntimController::class, 'exportToExcel'])->name('assigntim.export.excel');
 Route::get('assigntim/getKegiatanutama/{project_id}', [AssigntimController::class, 'getKegiatanutama'])->name('kegiatanutama.getKegiatanutama');
 Route::resource('assigntim', AssigntimController::class);
 
@@ -65,3 +69,4 @@ Route::resource('licensedapp', LicensedappController::class);
 
 //Suggestion
 Route::get('/autocomplete/search', [SuggestController::class, 'search'])->name('autocomplete.search');
+

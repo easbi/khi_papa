@@ -77,6 +77,13 @@
                         @endif                        
                     </h6>
                 </div>
+                @if ($bulan != "")
+                <div class="col-sm-6 d-flex justify-content-end">
+                    <div class="form-group m-0">
+                        <a href="{{ route('indeks.khi.export.excel', ['bulan' => $bulan, 'tahun' => $tahun]) }}" class="btn btn-primary" id="export">Export to Excel</a>
+                    </div>
+                </div>
+                @endif
 			</div>
 			@if ($message = Session::get('success'))
             <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">

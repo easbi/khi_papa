@@ -12,6 +12,12 @@ use DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
 class ActivitiesController extends Controller
 {
     public function __construct()
@@ -586,4 +592,155 @@ class ActivitiesController extends Controller
 
         return view('dailyactivity.monitoring', compact('rankTodayEmployees', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5);
     }
+
+    public function indexkhiexportToExcel($bulan, $tahun)
+    {
+        $bulan = $bulan ?? date('m');
+        $tahun = $tahun ?? date('Y');
+
+        $months = [
+            ['value' => 1, 'name' => 'Januari'],
+            ['value' => 2, 'name' => 'Februari'],
+            ['value' => 3, 'name' => 'Maret'],
+            ['value' => 4, 'name' => 'April'],
+            ['value' => 5, 'name' => 'Mei'],
+            ['value' => 6, 'name' => 'Juni'],
+            ['value' => 7, 'name' => 'Juli'],
+            ['value' => 8, 'name' => 'Agustus'],
+            ['value' => 9, 'name' => 'September'],
+            ['value' => 10, 'name' => 'Oktober'],
+            ['value' => 11, 'name' => 'November'],
+            ['value' => 12, 'name' => 'Desember']
+        ];
+
+        $years = DB::table('daily_activity')
+            ->select(DB::raw('YEAR(tgl) year'))
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->get();
+
+        // dd(date($bulan));
+
+        // Query to get employees with the most daily activity submissions
+        $rankTodayEmployees = DB::table('users')
+            ->leftJoin('daily_activity', function($join) use ($bulan, $tahun) {
+                    $join->on('users.nip', '=', 'daily_activity.nip')
+                         ->whereMonth('daily_activity.tgl', '=', $bulan)
+                         ->whereYear('daily_activity.tgl', '=', $tahun);
+                })
+            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001']) // Mengecualikan pegawai tertentu
+            ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
+            ->groupBy('users.nip', 'users.fullname')
+            ->orderBy('jumlah_pengisian', 'desc')
+            ->get()
+            ->map(function ($user) use ($bulan, $tahun) {
+                // Tentukan maksimum hari kerja dalam bulan ini untuk skala hari pengisian
+                // Hitung Hari Senin-Jumat
+                $maxWorkDaysFiltered = Carbon::createFromDate($tahun, $bulan)->startOfMonth()->diffInDaysFiltered(
+                    fn($date) => $date->isWeekday(), // Hanya menghitung hari Senin - Jumat
+                    Carbon::createFromDate($tahun, $bulan)->endOfMonth()
+                );
+
+                // Hari Libur dalam Senin-Jumat
+                $hariLibur = count(array_filter(json_decode(file_get_contents("https://dayoffapi.vercel.app/api?month=$bulan&year=$tahun"), true), fn($holiday) => (new \DateTime($holiday['tanggal']))->format('N') <= 5));
+
+                // Hitung hari yang sudah diisi oleh pengguna
+                $filledDays = DB::table('daily_activity')
+                    ->where('nip', $user->nip)
+                    ->whereMonth('tgl', $bulan)
+                    ->whereYear('tgl', $tahun)
+                    ->select(DB::raw('DATE(tgl) as date'))
+                    ->distinct()
+                    ->get()
+                    ->count();
+
+                $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
+
+                // Menghitung hari kerja yang tidak diisi
+                $user->missed_days = $maxWorkDays-$filledDays;
+
+                // Menambahkan jumlah hari yang diisi ke objek pengguna
+                $user->filled_days = $filledDays;
+                
+
+
+                // Skala 50 untuk hari pengisian
+                $filledDaysScore = (($filledDays - $hariLibur) / $maxWorkDays) * 50;
+
+                // Hitung total kegiatan (total aktivitas yang dilakukan karyawan dalam bulan ini)
+                $totalActivities = DB::table('daily_activity')
+                    ->where('nip', $user->nip)
+                    ->whereMonth('tgl', $bulan)
+                    ->whereYear('tgl', $tahun)
+                    ->count();
+
+                // Tentukan maksimum kegiatan untuk skala kegiatan (misalnya ambil nilai tertinggi dalam database)
+                $maxActivities = DB::table('daily_activity')
+                    ->whereMonth('tgl', $bulan)
+                    ->whereYear('tgl', $tahun)
+                    ->select(DB::raw('COUNT(id) as activity_count'))
+                    ->groupBy('nip')
+                    ->orderByDesc('activity_count')
+                    ->limit(1)
+                    ->value('activity_count') ?? 1; // Beri nilai default 1 agar tidak ada pembagian nol
+
+                // Skala 50 untuk kegiatan
+                $activityScore = ($totalActivities / $maxActivities) * 50;
+
+                // Total skor dalam skala 100
+                $user->score = $filledDaysScore + $activityScore;
+
+                $user->maxWorkDays = $maxWorkDays;
+
+                return $user;
+            })
+            ->sortByDesc('score') // Mengurutkan berdasarkan score secara menurun
+            ->values();
+
+        // dd($rankTodayEmployees);
+        // Buat Spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header
+        $sheet->setCellValue('A1', 'Nama Pegawai');
+        $sheet->setCellValue('B1', 'Indeks Keaktifan KHI');
+        $sheet->setCellValue('C1', 'Jumlah Kegiatan');
+        $sheet->setCellValue('D1', 'Jumlah Hari Mengisi');
+        $sheet->setCellValue('E1', 'Jumlah Hari Tidak Mengisi');
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '4CAF50']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]],
+        ];
+        $sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
+
+        // Isi Data
+        $row = 2;
+        foreach ($rankTodayEmployees as $employee) {
+            $sheet->setCellValue("A{$row}", $employee->fullname);
+            $sheet->setCellValue("B{$row}", number_format($employee->score, 2));
+            $sheet->setCellValue("C{$row}", $employee->jumlah_pengisian);
+            $sheet->setCellValue("D{$row}", $employee->filled_days);
+            $sheet->setCellValue("E{$row}", $employee->missed_days);
+            $row++;
+        }
+
+        // Otomatisasi Lebar Kolom
+        foreach (range('A', 'E') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        // Unduh File
+        $fileName = "laporan_pengisian_{$bulan}_{$tahun}.xlsx";
+        $writer = new Xlsx($spreadsheet);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Content-Disposition: attachment; filename=\"{$fileName}\"");
+        $writer->save('php://output');
+        exit;
+    }
 }
+

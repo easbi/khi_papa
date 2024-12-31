@@ -11,9 +11,12 @@
 <!-- End Page Header -->
 
 <div class="row mb-4">
-    <div class="col text-right">
-        <a href="{{ route('assigntim.create') }}" class="btn btn-primary btn-sm">
+    <div class="col text-right d-flex justify-content-end">
+        <a href="{{ route('assigntim.create') }}" class="btn btn-primary btn-sm mr-2">
             Alokasikan Anggota Tim
+        </a>
+        <a href="{{ route('assigntim.export.excel') }}" class="btn btn-warning btn-sm">
+            Unduh Data
         </a>
     </div>
 </div>

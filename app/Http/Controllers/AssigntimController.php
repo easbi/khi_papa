@@ -10,6 +10,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use DB;
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
 class AssigntimController extends Controller
 {
     /**
@@ -204,5 +210,89 @@ class AssigntimController extends Controller
     {
         $assigntim->delete();
         return redirect()->route('assigntim.index')->with('success', 'Anggota berhasil dihapus!');
+    }
+
+    public function exportToExcel()
+    {
+        // Ambil data dari tabel 
+        $assigntim =  DB::table('master_assign_anggota')
+        ->join('master_kegiatan_utama', 'master_assign_anggota.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
+        ->join('master_project', 'master_project.id', '=', 'master_assign_anggota.project_id')
+        ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
+        ->join('users as ketua_tim', 'master_tim_kerja.nip_ketua_tim', '=', 'ketua_tim.nip')
+        ->join('users as anggota_tim', 'master_assign_anggota.anggota_nip', '=', 'anggota_tim.nip')
+        ->select(
+            'master_tim_kerja.nama_tim_kerja', 
+            'ketua_tim.fullname as nama_ketua_tim', 
+            'ketua_tim.nip as nip_ketua_tim',
+            'master_tim_kerja.tahun_kerja', 
+            'master_project.nama_project', 
+            'master_kegiatan_utama.nama_kegiatan_utama',
+            'anggota_tim.fullname as nama_anggota_tim',
+            'master_assign_anggota.*')
+        ->get();
+
+        // Buat Spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Atur header kolom
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Nama Tim Kerja');
+        $sheet->setCellValue('C1', 'Project');
+        $sheet->setCellValue('D1', 'Kegiatan Utama');
+        $sheet->setCellValue('E1', 'Anggota Tim Kerja');
+
+        // Gaya untuk header
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '4CAF50'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ];
+
+        $sheet->getStyle('A1:E1')->applyFromArray($headerStyle);
+
+        // Masukkan data ke baris berikutnya
+        $row = 2;
+        $i = 1; 
+        foreach ($assigntim as $assigntim) {
+            $sheet->setCellValue("A{$row}", $i);
+            $sheet->setCellValue("B{$row}", $assigntim->nama_tim_kerja);
+            $sheet->setCellValue("C{$row}", $assigntim->nama_project);
+            $sheet->setCellValue("D{$row}", $assigntim->nama_kegiatan_utama);
+            $sheet->setCellValue("E{$row}", $assigntim->nama_anggota_tim);
+            $row++;
+            $i++;
+        }
+
+        // Atur ukuran kolom otomatis
+        foreach (range('A', 'E') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        // Berikan nama file dan download
+        $fileName = 'alokasitim2025.xlsx';
+        $writer = new Xlsx($spreadsheet);
+
+        // Set response untuk download
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Content-Disposition: attachment; filename=\"{$fileName}\"");
+        $writer->save('php://output');
+        exit;
     }
 }
