@@ -55,7 +55,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="announcementModalLabel">📢 Pengumuman 📢</h5>
+                <h5 class="modal-title" id="announcementModalLabel">📢 Pengumuman 2025📢</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -461,7 +461,6 @@
                             <th>No</th>
                             <th>Pegawai</th>
                             <th>Tanggal</th>
-                            <th>Status</th>
                             <th>Jenis Kegiatan</th>
                             <th>Kegiatan</th>
                             <th>Progres</th>
@@ -474,7 +473,6 @@
                             <td>{{ ++$i }}</td>
                             <td>{{ \Illuminate\Support\Str::limit($act->fullname , 17) }}</td>
                             <td>{{ Carbon\Carbon::parse($act->tgl)->format('d-M-Y')  }}</td>
-                            <td>{{ $act->wfo_wfh }}</td>
                             <td>{{ $act->jenis_kegiatan }}</td>
                             <td>{{ \Illuminate\Support\Str::limit($act->kegiatan , 65) }}</td>
                             <td>
