@@ -49,6 +49,17 @@
                                         <option value="Lainnya">Lainnya (Cuti, Sakit, Izin)</option>
                                     </select>
                                 </div>
+
+                                @if (Auth::user()->id == 2)
+                                <div class="form-group">
+                                    <label for="jenis_kegiatan">Pekerjaan Utama/Tambahan</label>
+                                    <select class="form-control" name="jenis_kegiatan" required>
+                                        <option value="UTAMA" selected>Pekerjaan Utama</option>
+                                        <option value="TAMBAHAN">Pekerjaan Tambahan</option>
+                                    </select>
+                                </div>
+
+                                @else
                                 <div class="form-group">
                                     <label for="jenis_kegiatan">Pekerjaan Utama/Tambahan</label>
                                     <select class="form-control" id="jenis_kegiatan" name="jenis_kegiatan" required>
@@ -77,6 +88,9 @@
                                         <option value="">Pilih Kegiatan Utama</option>
                                     </select>                                        
                                 </div>
+
+                                @endif
+                                
                                 <div class="form-group">
                                     <label for="kegiatan">Nama Kegiatan:</label>
                                     <input list="kegiatan-options" class="form-control" name="kegiatan" id="kegiatan" autocomplete="off" required/>
@@ -276,7 +290,6 @@
                 $('#project').empty().append('<option value="" selected disabled>Pilih Project</option>');
             }
         });
-
 
         $('#project').change(function() {
             var project_id = $(this).val();

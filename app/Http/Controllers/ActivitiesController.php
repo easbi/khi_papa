@@ -317,22 +317,39 @@ class ActivitiesController extends Controller
             'tgl'=> 'required',
         ]);
 
-        $result = Activity::create([
-                'nip' => Auth::user()->nip,
-                'wfo_wfh' => $request->wfo_wfh,
-                'jenis_kegiatan' => $request->jenis_kegiatan,
-                'tim_kerja_id' => $request->tim_kerja_id,
-                'project_id' => $request->project_id,
-                'kegiatan_utama_id' => $request->kegiatan_utama_id,
-                'kegiatan'=> $request->kegiatan,
-                'keterangan'=> $request->keterangan_kegiatan,
-                'satuan'=> $request->satuan,
-                'kuantitas'=> $request->kuantitas,
-                'tgl'=> $request->tgl,
-                'created_by' => Auth::user()->nip,
+        if (Auth::user()->id != 2 && $request->jenis_kegiatan == 'UTAMA') {
+            $request->validate([
+                'tim_kerja_id' => 'required',
+                'project_id' => 'required',
+                'kegiatan_utama_id' => 'required',
             ]);
+        }
 
-         return redirect()->route('act.index')
+        // Siapkan data default
+        $data = [
+            'nip' => Auth::user()->nip,
+            'wfo_wfh' => $request->wfo_wfh,
+            'jenis_kegiatan' => $request->jenis_kegiatan,
+            'kegiatan' => $request->kegiatan,
+            'keterangan' => $request->keterangan_kegiatan,
+            'satuan' => $request->satuan,
+            'kuantitas' => $request->kuantitas,
+            'tgl' => $request->tgl,
+            'created_by' => Auth::user()->nip,
+        ];
+
+        if (Auth::user()->id != 2 && $request->jenis_kegiatan == 'UTAMA') {
+            $data['tim_kerja_id'] = $request->tim_kerja_id;
+            $data['project_id'] = $request->project_id;
+            $data['kegiatan_utama_id'] = $request->kegiatan_utama_id;
+        }
+
+        // Simpan data ke database
+        $result = Activity::create($data);
+
+        
+
+        return redirect()->route('act.index')
                         ->with('success','Kegiatan Sukses Ditambahkan!');
     }
 
