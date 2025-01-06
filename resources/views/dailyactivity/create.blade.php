@@ -219,4 +219,146 @@
     });
 </script>
 
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- <script>
+    $(document).ready(function(){
+        $('#jenis_kegiatan').change(function() {
+            var jenis_kegiatan = $(this).val();
+            if(jenis_kegiatan == 'TAMBAHAN') {
+                // Hide fields when 'TAMBAHAN' is selected
+                $('#tim_kerja_field').hide();
+                $('#project_field').hide();
+                $('#kegiatan_utama_field').hide();
+            } else {
+                // Show fields when 'UTAMA' is selected
+                $('#tim_kerja_field').show();
+                $('#project_field').show();
+                $('#kegiatan_utama_field').show();
+            }
+        });
+    });
+</script> -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const jenisKegiatan = document.getElementById('jenis_kegiatan');
+        const timKerjaField = document.getElementById('tim_kerja_field');
+        const projectField = document.getElementById('project_field');
+        const kegiatanUtamaField = document.getElementById('kegiatan_utama_field');
+
+        // Fungsi untuk validasi sebelum submit form
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (e) {
+            const selectedJenisKegiatan = jenisKegiatan.value;
+
+            // Validasi jika "Pekerjaan Utama" dipilih
+            if (selectedJenisKegiatan === 'UTAMA') {
+                const timKerja = document.getElementById('tim_kerja_id').value;
+                const project = document.getElementById('project').value;
+                const kegiatanUtama = document.getElementById('kegiatan_utama').value;
+
+                if (!timKerja || !project || !kegiatanUtama) {
+                    e.preventDefault(); // Mencegah pengiriman form
+                    alert('Untuk Pekerjaan Utama, Anda harus mengisi semua kolom: Tim Kerja, Project, dan Kegiatan Utama.');
+                    return;
+                }
+            }
+        });
+
+        // Fungsi untuk menampilkan atau menyembunyikan field berdasarkan pilihan "Jenis Kegiatan"
+        jenisKegiatan.addEventListener('change', function () {
+            if (jenisKegiatan.value === 'UTAMA') {
+                // Wajib diisi
+                timKerjaField.style.display = 'block';
+                projectField.style.display = 'block';
+                kegiatanUtamaField.style.display = 'block';
+
+                // Tambahkan atribut required
+                document.getElementById('tim_kerja_id').setAttribute('required', 'required');
+                document.getElementById('project').setAttribute('required', 'required');
+                document.getElementById('kegiatan_utama').setAttribute('required', 'required');
+            } else if (jenisKegiatan.value === 'TAMBAHAN') {
+                // Tidak wajib diisi
+                timKerjaField.style.display = 'none';
+                projectField.style.display = 'none';
+                kegiatanUtamaField.style.display = 'none';
+
+                // Hapus atribut required
+                document.getElementById('tim_kerja_id').removeAttribute('required');
+                document.getElementById('project').removeAttribute('required');
+                document.getElementById('kegiatan_utama').removeAttribute('required');
+            }
+        });
+
+        // Trigger initial state
+        jenisKegiatan.dispatchEvent(new Event('change'));
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('#tim_kerja_id').change(function() {
+            var tim_kerja_id = $(this).val();
+            $("#project").html('');
+            if (tim_kerja_id) {
+                // var url = '{{ url("kegiatanutama/getProject") }}/' + tim_kerja_id;
+                // console.log('Project:', url);
+                $.ajax({
+                    url: '{{ url("temp/getProject") }}/' + tim_kerja_id,                    
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        // console.log("Respons JSON:", data); // Debugging respons
+                        $('#project').empty().append('<option value="" selected disabled>Pilih Project</option>');
+                        if ($.isEmptyObject(data)) {
+                            alert('Tidak ada project untuk Tim Kerja yang dipilih.');
+                        } else {
+                            $.each(data, function(key, value) {
+                                $('#project').append('<option value="'+ key +'">'+ value +'</option>');
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", xhr.responseText); // Debugging error
+                        alert('Gagal mengambil data. Silakan coba lagi.');
+                    }
+                });
+            } else {
+                $('#project').empty().append('<option value="" selected disabled>Pilih Project</option>');
+            }
+        });
+
+        $('#project').change(function() {
+            var project_id = $(this).val();
+            $("#kegiatanutama").html('');
+            if (project_id) {
+                $.ajax({
+                    url: '{{ url("temp/getKegiatanutama") }}/' + project_id,                    
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        // console.log("Respons JSON:", data); // Debugging respons
+                        $('#kegiatan_utama').empty().append('<option value="" selected disabled>Pilih Project</option>');
+                        if ($.isEmptyObject(data)) {
+                            alert('Tidak ada kegiatan_utama untuk Tim Kerja yang dipilih.');
+                        } else {
+                            $.each(data, function(key, value) {
+                                $('#kegiatan_utama').append('<option value="'+ key +'">'+ value +'</option>');
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", xhr.responseText); // Debugging error
+                        alert('Gagal mengambil data. Silakan coba lagi.');
+                    }
+                });
+            } else {
+                $('#kegiatan_utama').empty().append('<option value="" selected disabled>Pilih kegiatan utama</option>');
+            }
+        });
+    });
+
+</script>
+
 @endsection
