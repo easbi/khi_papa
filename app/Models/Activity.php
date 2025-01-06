@@ -24,6 +24,8 @@ class Activity extends Model
         'satuan',
         'kuantitas',
         'is_done',
+        'link',
+        'berkas',
         'tgl',
         'tgl_selesai',
         'created_by'

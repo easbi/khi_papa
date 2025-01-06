@@ -322,8 +322,6 @@ class ActivitiesController extends Controller
            $tgl_selesai = NULL;
         }
 
-
-
         $request->validate([
             'wfo_wfh' => 'required',
             'jenis_kegiatan' => 'required',
