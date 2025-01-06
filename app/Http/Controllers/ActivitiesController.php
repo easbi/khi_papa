@@ -308,6 +308,22 @@ class ActivitiesController extends Controller
      */
     public function store(Request $request)
     {
+        $filename = NULL;
+        if ($request->hasFile('berkas'))
+        {
+           $file = $request->file('berkas');
+           $filename = $filename = \Carbon\Carbon::now()->format('Y-m-d H-i').'_'. Auth::user()->nip .'_'. str_replace(' ', '', substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 25)). '.' .$file->getClientOriginalExtension();
+           $file->move('bukti', $filename);
+        }
+
+        if ($request->is_done == '1') {
+           $tgl_selesai = date('Y-m-d');
+        } else {
+           $tgl_selesai = NULL;
+        }
+
+
+
         $request->validate([
             'wfo_wfh' => 'required',
             'jenis_kegiatan' => 'required',
@@ -336,6 +352,10 @@ class ActivitiesController extends Controller
             'kuantitas' => $request->kuantitas,
             'tgl' => $request->tgl,
             'created_by' => Auth::user()->nip,
+            'is_done' => $request->is_done,
+            'tgl_selesai' => $tgl_selesai,
+            'berkas' => $filename,
+            'link' => $request->link,
         ];
 
         if (Auth::user()->id != 2 && $request->jenis_kegiatan == 'UTAMA') {
