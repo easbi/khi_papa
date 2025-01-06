@@ -1,12 +1,6 @@
 @extends('layouts.template')
 
 @section('content')
-<style>
-    .hidden {
-        display: none;
-    }
-</style>
-
 
 <div class="page-header row no-gutters py-4">
     <div class="col-12 col-sm-4 text-center text-sm-left mb-0">
@@ -17,6 +11,11 @@
 
 <!-- Content -->
 <div class="row">
+    <div class="col-lg-12 col-md-12 text-right">        
+        <a href="{{ route('act.createdbyteam') }}" class="btn btn-primary">
+            <i class="fa fa-plus"></i> Penugasan Anggota
+        </a>
+    </div>
     <div class="col-lg-12 col-md-12">
         <div class="card card-small mb-4">
             <div class="card-header border-bottom">
@@ -25,14 +24,14 @@
             <ul class="list-group list-group-flush">
                 <li class="list-group-item p-0 px-3 pt-3">
                     @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <strong>Whoops!</strong> There were some problems with your input.<br><br>
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                        <div class="alert alert-danger">
+                            <strong>Whoops!</strong> There were some problems with your input.<br><br>
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                     @endif
                     <div class="row">
                         <div class="col-sm-12 col-md-12">
@@ -50,6 +49,17 @@
                                         <option value="Lainnya">Lainnya (Cuti, Sakit, Izin)</option>
                                     </select>
                                 </div>
+
+                                @if (Auth::user()->id == 2)
+                                <div class="form-group">
+                                    <label for="jenis_kegiatan">Pekerjaan Utama/Tambahan</label>
+                                    <select class="form-control" name="jenis_kegiatan" required>
+                                        <option value="UTAMA" selected>Pekerjaan Utama</option>
+                                        <option value="TAMBAHAN">Pekerjaan Tambahan</option>
+                                    </select>
+                                </div>
+
+                                @else
                                 <div class="form-group">
                                     <label for="jenis_kegiatan">Pekerjaan Utama/Tambahan</label>
                                     <select class="form-control" id="jenis_kegiatan" name="jenis_kegiatan" required>
@@ -57,7 +67,7 @@
                                         <option value="TAMBAHAN">Pekerjaan Tambahan</option>
                                     </select>
                                 </div>
-                               <div class="form-group" id="tim_kerja_field">
+                                <div class="form-group" id="tim_kerja_field">
                                     <label for="">Tim Kerja</label>                                    
                                     <select class="form-control" id="tim_kerja_id" name="tim_kerja_id">
                                         <option value="" selected disabled>Pilih</option>
