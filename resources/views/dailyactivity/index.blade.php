@@ -51,7 +51,7 @@
 
 
 <!-- Pengumuman Modal -->
-<div class="modal fade" id="announcementModal" tabindex="-1" role="dialog" aria-labelledby="announcementModalLabel" aria-hidden="true">
+<!-- <div class="modal fade" id="announcementModal" tabindex="-1" role="dialog" aria-labelledby="announcementModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -69,7 +69,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <link rel="stylesheet" href="{{asset('css/runningtext1.css')}}">
 <div class="running-text-container">
