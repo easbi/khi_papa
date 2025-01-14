@@ -107,6 +107,16 @@
                 </a>
               </li>
 
+              @if (Auth::user()->id == 1)
+              <li class="nav-item">
+                <a class="nav-link {{ Request::is('notif')? "active":"" }}" href="{{ url('/notif')}}">
+                  <i class="material-icons">campaign</i>
+                  <span>Notifikasi</span>
+                  <span class="new-badge">New</span>
+                </a>
+              </li>
+              @endif
+
               <li class="nav-item">
                 <a class="nav-link {{ Request::is('licensedapp/')? 'active':'' }}" href="{{ url('/licensedapp/') }}">
                   <i class="material-icons">verified_user</i>
@@ -160,22 +170,40 @@
                   </div>
                 </div>
               </form>
+
+              
+
               <ul class="navbar-nav border-left flex-row align-items-center">
-                <!-- <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-nowrap px-3" id="notificationsDropdown" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
-                        <i class="material-icons">notifications</i>
-                        <span class="badge badge-pill badge-danger" id="notification-badge">3</span> 
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-small" aria-labelledby="notificationsDropdown">
-                        <h6 class="dropdown-header">Notifikasi</h6>
-                        <div id="notification-list">
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item text-danger" href="{{ url('/notifications') }}">
-                            <i class="material-icons text-danger">&#xE879;</i> Lihat Semua
-                        </a>
+                <li class="nav-item border-right dropdown notifications">
+                  <a class="nav-link nav-link-icon text-center" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <div class="nav-link-icon__wrapper">
+                      <i class="material-icons">&#xE7F4;</i>
+                      <span class="badge badge-pill badge-danger">2</span>
                     </div>
-                </li> -->
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-small" aria-labelledby="dropdownMenuLink">
+                    @php
+                        $notifications = DB::table('notifications')
+                                        ->orderBy('created_at', 'desc')
+                                        ->limit(3)
+                                        ->get();
+                    @endphp
+                    @foreach ($notifications as $notification)
+                    <a class="dropdown-item" href="#">
+                      <div class="notification__icon-wrapper">
+                        <div class="notification__icon">
+                          <i class="material-icons">&#xE6E1;</i>
+                        </div>
+                      </div>
+                      <div class="notification__content">
+                        <span class="notification__category">{{ $notification->type }}</span>
+                        <p>{{ $notification->description }}</p>
+                      </div>
+                    </a>
+                    @endforeach
+                    <a class="dropdown-item notification__all text-center" href="{{ url('/notif') }}"> View all Notifications </a>
+                  </div>
+                </li>
 
                 <li class="nav-item dropdown">
                   <a class="nav-link dropdown-toggle text-nowrap px-3" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">

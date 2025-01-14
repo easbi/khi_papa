@@ -13,6 +13,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\KegiatanutamaController;
 use App\Http\Controllers\AssigntimController;
 use App\Http\Controllers\TimkerjaController;
+use App\Http\Controllers\NotificationController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -71,4 +72,7 @@ Route::resource('licensedapp', LicensedappController::class);
 
 //Suggestion
 Route::get('/autocomplete/search', [SuggestController::class, 'search'])->name('autocomplete.search');
+
+Route::resource('notif', NotificationController::class);
+
 

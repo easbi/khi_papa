@@ -488,6 +488,9 @@
                                     <a class="btn btn-info btn-sm" href="{{ route('act.show',$act->id) }}">Show</a>
                                     @if ($act->nip == Auth::user()->nip ||  $act->created_by == Auth::user()->nip)
                                     <a class="btn btn-primary btn-sm" href="{{ route('act.edit',$act->id) }}">Edit</a>
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
                                     @endif
                                 </form>                                 
                             </td>

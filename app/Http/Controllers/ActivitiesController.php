@@ -12,6 +12,7 @@ use DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
+use App\Jobs\SendWaPenugasan;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -365,8 +366,6 @@ class ActivitiesController extends Controller
         // Simpan data ke database
         $result = Activity::create($data);
 
-        
-
         return redirect()->route('act.index')
                         ->with('success','Kegiatan Sukses Ditambahkan!');
     }
@@ -397,6 +396,39 @@ class ActivitiesController extends Controller
                 'tgl'=> $request->tgl,
                 'created_by' => Auth::user()->nip,
             ]);
+
+        // Mendapatkan ID dari aktivitas yang baru disimpan
+        $activityId = $result->id;
+        $taskLink = route('act.show', ['act' => $activityId]);
+
+        $timestamp = date('d-m-y h:i:s');
+        $ketua = DB::table('users')->where('nip', '=', Auth::user()->nip)->value('fullname');
+        $no_hp = DB::table('users')->where('nip', '=', $request->anggota_nip)->value('no_hp');
+        $message = 
+"*Notifikasi Penugasan dari Ketua Tim*.
+Dua Tiga Kucing Makan Sushi, Anda dapat tugas dari KHI.
+Tugas ini diberikan oleh {$ketua} kepada Anda untuk segera ditindaklanjuti:
+
+Tugas : {$request->kegiatan} 
+Waktu Mulai/Selesai : {$request->tgl} 
+Link Tugas (Klik Aja) : {$taskLink}
+ -----------
+
+Harap memastikan bahwa tugas tersebut diselesaikan dalam jadwal yang telah diberikan dan jangan lupa berkomunikasi dengan ketua tim anda. 
+Semangat, dan mari selesaikan ini dengan baik! 💪 KHI Selalu mengingatkan bahwa tugas dengan status tidak selesai akan di-exclude dari CKP reallisasi anda.
+
+_Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp} WIB_
+";
+        $details = [
+                'message' => $message,
+                'no_hp' => $no_hp,
+            ];
+
+        $delay = \DB::table('jobs')->count()*10;
+        $queue = new SendWaPenugasan($details);
+
+        // send all notification whatsapp in the queue.
+        dispatch($queue->delay($delay));
 
          return redirect()->route('act.index')
                         ->with('success','Kegiatan Sukses Ditambahkan!');
