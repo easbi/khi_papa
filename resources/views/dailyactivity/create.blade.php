@@ -49,7 +49,7 @@
 
                                 <div class="form-group custom-control custom-checkbox mb-1">
                                     <input type="checkbox" class="custom-control-input" id="is_repeated" name="is_repeated" onclick="toggleEndDate()" value="1">
-                                    <label class="custom-control-label" for="is_repeated">Kegiatan Berulang? (Dalam Hari)</label>
+                                    <label class="custom-control-label" for="is_repeated">Kegiatan Berulang? (dihitung dalam hari)</label>
                                 </div>
 
                                 <div class="form-group" id="end_date_group" style="display: none;">
