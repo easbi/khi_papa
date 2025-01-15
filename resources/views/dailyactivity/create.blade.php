@@ -43,9 +43,41 @@
                             <form action="{{ route('act.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="form-group">
-                                    <label for="tgl">Tanggal</label>
+                                    <label for="tgl">Tanggal Mulai Kegiatan</label>
                                     <input type="date" class="form-control form-control-lg mb-3" name="tgl" required>
                                 </div>
+
+                                <div class="form-group custom-control custom-checkbox mb-1">
+                                    <input type="checkbox" class="custom-control-input" id="is_repeated" name="is_repeated" onclick="toggleEndDate()" value="1">
+                                    <label class="custom-control-label" for="is_repeated">Kegiatan Berulang? (Dalam Hari)</label>
+                                </div>
+
+                                <div class="form-group" id="end_date_group" style="display: none;">
+                                    <label for="tgl_akhir">Tanggal Akhir Kegiatan</label>
+                                    <input type="date" class="form-control form-control-lg mb-3" name="tgl_akhir">
+                                </div>
+
+                                <script>
+                                    function toggleEndDate() {
+                                        const isRepeated = document.getElementById("is_repeated").checked;
+                                        const endDateGroup = document.getElementById("end_date_group");
+                                        const kuantitas = document.getElementById("kuantitas");
+                                        const satuan = document.getElementById("satuan");
+
+                                        // Tampilkan atau sembunyikan elemen berdasarkan checkbox
+                                        if (isRepeated) {
+                                            endDateGroup.style.display = "block";
+                                            kuantitas.style.display = "none";
+                                            satuan.style.display = "none";
+                                        } else {
+                                            endDateGroup.style.display = "none";
+                                            kuantitas.style.display = "block";
+                                            satuan.style.display = "block";
+                                        }
+                                    }
+                                </script>
+
+
                                 <div class="form-group">
                                     <label for="wfo_wfh">WFO/WFH:</label>
                                     <select class="form-control" id="wfo_wfh" name="wfo_wfh" required>
@@ -103,13 +135,13 @@
                                         <!-- Options will be populated via JavaScript -->
                                     </datalist>
                                 </div>
-                                <div class="form-group">
-                                    <label for="kuantitas">Jumlah:</label>
-                                    <input type="number" class="form-control" name="kuantitas" required/>
+                                <div class="form-group" id="kuantitas" style="display: block;">
+                                    <label for="kuantitas" >Jumlah:</label>
+                                    <input type="number" class="form-control" name="kuantitas"/>
                                 </div>
-                                <div class="form-group">
-                                    <label for="satuan">Satuan:</label>
-                                    <input type="text" class="form-control" name="satuan" required/>
+                                <div class="form-group" id="satuan" style="display: block;">
+                                    <label for="satuan" >Satuan:</label>
+                                    <input type="text" class="form-control" name="satuan"/>
                                 </div>
                                 <div class="form-group">
                                     <label for="keterangan_kegiatan">Keterangan Kegiatan:</label>

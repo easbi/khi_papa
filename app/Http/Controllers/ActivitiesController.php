@@ -323,48 +323,82 @@ class ActivitiesController extends Controller
            $tgl_selesai = NULL;
         }
 
+        if ($request->is_repeated == '1') {
+           $kuantitas = 1;
+           $satuan = "Hari";
+        } else {
+           $kuantitas = $request->kuantitas;
+           $satuan = $request->satuan;
+        }
+
+        // Ambil tanggal mulai dan tanggal selesai (opsional)
+        $tglMulai = Carbon::createFromFormat('Y-m-d', $request->tgl);
+        $tglendLoop = $request->tgl_akhir 
+            ? Carbon::createFromFormat('Y-m-d', $request->tgl_akhir) 
+            : $tglMulai; // Jika kosong, gunakan tanggal mulai
+
         $request->validate([
             'wfo_wfh' => 'required',
             'jenis_kegiatan' => 'required',
             'kegiatan'=> 'required',
-            'satuan'=> 'required',
-            'kuantitas'=> 'required',
+            'satuan'=> 'nullable',
+            'kuantitas'=> 'nullable',
             'tgl'=> 'required',
+            'tgl_akhir' => 'nullable|date|after_or_equal:tgl',
         ]);
 
-        if (Auth::user()->id != 2 && $request->jenis_kegiatan == 'UTAMA') {
+        if (Auth::user()->id == 2 || $request->jenis_kegiatan == 'TAMBAHAN'){
+            $data = [
+                'nip' => Auth::user()->nip,
+                'wfo_wfh' => $request->wfo_wfh,
+                'jenis_kegiatan' => $request->jenis_kegiatan,
+                'kegiatan' => $request->kegiatan,
+                'keterangan' => $request->keterangan_kegiatan,
+                'satuan' => $satuan,
+                'kuantitas' => $kuantitas,
+                'created_by' => Auth::user()->nip,
+                'is_done' => $request->is_done,
+                'tgl_selesai' => $tgl_selesai,
+                'berkas' => $filename,
+                'link' => $request->link,
+            ];
+        } elseif (Auth::user()->id != 2 && $request->jenis_kegiatan == 'UTAMA') {
             $request->validate([
                 'tim_kerja_id' => 'required',
                 'project_id' => 'required',
                 'kegiatan_utama_id' => 'required',
             ]);
+            $data = [
+                'nip' => Auth::user()->nip,
+                'wfo_wfh' => $request->wfo_wfh,
+                'jenis_kegiatan' => $request->jenis_kegiatan,
+                'kegiatan' => $request->kegiatan,
+                'keterangan' => $request->keterangan_kegiatan,
+                'satuan' => $satuan,
+                'kuantitas' => $kuantitas,
+                'created_by' => Auth::user()->nip,
+                'is_done' => $request->is_done,
+                'tgl_selesai' => $tgl_selesai,
+                'berkas' => $filename,
+                'link' => $request->link,
+                'tim_kerja_id' => $request->tim_kerja_id,
+                'project_id' => $request->project_id,
+                'kegiatan_utama_id' => $request->kegiatan_utama_id,
+            ]; 
+        } 
+
+        $insertData = [];
+
+        // Loop untuk setiap hari dalam rentang tanggal
+        while ($tglMulai->lte($tglendLoop)) {
+            $insertData[] = array_merge($data, [
+                'tgl' => $tglMulai->format('Y-m-d'),
+            ]);
+            $tglMulai->addDay(); // Tambahkan 1 hari
         }
 
-        // Siapkan data default
-        $data = [
-            'nip' => Auth::user()->nip,
-            'wfo_wfh' => $request->wfo_wfh,
-            'jenis_kegiatan' => $request->jenis_kegiatan,
-            'kegiatan' => $request->kegiatan,
-            'keterangan' => $request->keterangan_kegiatan,
-            'satuan' => $request->satuan,
-            'kuantitas' => $request->kuantitas,
-            'tgl' => $request->tgl,
-            'created_by' => Auth::user()->nip,
-            'is_done' => $request->is_done,
-            'tgl_selesai' => $tgl_selesai,
-            'berkas' => $filename,
-            'link' => $request->link,
-        ];
-
-        if (Auth::user()->id != 2 && $request->jenis_kegiatan == 'UTAMA') {
-            $data['tim_kerja_id'] = $request->tim_kerja_id;
-            $data['project_id'] = $request->project_id;
-            $data['kegiatan_utama_id'] = $request->kegiatan_utama_id;
-        }
-
-        // Simpan data ke database
-        $result = Activity::create($data);
+        // Simpan semua data ke database
+        $result = Activity::insert($insertData);
 
         return redirect()->route('act.index')
                         ->with('success','Kegiatan Sukses Ditambahkan!');
@@ -505,7 +539,6 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
 
         $activity = Activity::find($id);
         if($activity) {
-            $activity->nip = Auth::user()->nip;
             $activity->wfo_wfh = $request->wfo_wfh;
             $activity->kegiatan = $request->kegiatan;
             $activity->keterangan = $request->keterangan_kegiatan;
