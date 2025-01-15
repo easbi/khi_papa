@@ -333,9 +333,8 @@ class ActivitiesController extends Controller
 
         // Ambil tanggal mulai dan tanggal selesai (opsional)
         $tglMulai = Carbon::createFromFormat('Y-m-d', $request->tgl);
-        $tglendLoop = $request->tgl_akhir 
-            ? Carbon::createFromFormat('Y-m-d', $request->tgl_akhir) 
-            : $tglMulai; // Jika kosong, gunakan tanggal mulai
+        $tglendLoop = $request->tgl_akhir ? Carbon::createFromFormat('Y-m-d', $request->tgl_akhir) : $tglMulai; 
+
 
         $request->validate([
             'wfo_wfh' => 'required',
@@ -389,13 +388,20 @@ class ActivitiesController extends Controller
 
         $insertData = [];
 
-        // Loop untuk setiap hari dalam rentang tanggal
-        while ($tglMulai->lte($tglendLoop)) {
+
+        if ($tglMulai->format('Y-m-d') == $tglendLoop->format('Y-m-d')) {
             $insertData[] = array_merge($data, [
                 'tgl' => $tglMulai->format('Y-m-d'),
             ]);
-            $tglMulai->addDay(); // Tambahkan 1 hari
-        }
+        } else {
+            // Loop untuk setiap hari dalam rentang tanggal
+            while ($tglMulai->format('Y-m-d') <= $tglendLoop->format('Y-m-d')) {
+                $insertData[] = array_merge($data, [
+                    'tgl' => $tglMulai->format('Y-m-d'),
+                ]);
+                $tglMulai->addDay(); // Tambahkan 1 hari
+            }
+        }        
 
         // Simpan semua data ke database
         $result = Activity::insert($insertData);
