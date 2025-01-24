@@ -256,7 +256,7 @@
     <div class="col-sm-6">
         <div class="card card-small mb-4">
             <div class="card-header border-bottom">
-                <h6 class="m-0">Top 5 Pegawai Kurang Aktif Bulan ini</h6>
+                <h6 class="m-0">Top 3 Pegawai Kurang Aktif Bulan ini</h6>
             </div>
             <div class="card-body d-flex flex-column">
                 <div class="chart-container">
@@ -268,6 +268,7 @@
                     $(function(){
                         //get the bar chart canvas
                         var cData = <?php echo $leastEmployeesDataJson; ?>;
+                        cData = cData.slice(0, 3);  // Ambil 3 pegawai terendah
                         var labels = cData.map(employee => employee.nama); // Nama pegawai
                         var dataValues = cData.map(employee => employee.jumlah_hari_tdk_mengisi); // Data pekerjaan yang selesai
                         var ctx = $("#bar-chart-min-5");
@@ -282,16 +283,12 @@
                                     backgroundColor: [
                                         "#FF6384",
                                         "#36A2EB",
-                                        "#FFCE56",
-                                        "#4BC0C0",
-                                        "#9966FF"
+                                        "#FFCE56"
                                     ],
                                     borderColor: [
                                         "#FF6384",
                                         "#36A2EB",
-                                        "#FFCE56",
-                                        "#4BC0C0",
-                                        "#9966FF"
+                                        "#FFCE56"
                                     ],
                                     borderWidth: 1
                                 }
@@ -304,7 +301,7 @@
                             title: {
                                 display: true,
                                 position: "top",
-                                text: "Top 5 Pegawai Kurang Aktif",
+                                text: "Top 3 Pegawai Kurang Aktif",
                                 fontSize: 18,
                                 fontColor: "#111"
                             },
