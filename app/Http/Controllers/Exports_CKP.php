@@ -55,6 +55,13 @@ class Exports_CKP extends Controller
         $spreadsheet->setActiveSheetIndexByName($sheetName);
         $sheet = $spreadsheet->getActiveSheet();
 
+
+        #Ubah Header CKP-R Menjadi Dinamis
+        $sheet->setCellValue('A2', 'CAPAIAN KINERJA PEGAWAI TAHUN ' . $tahun);
+        $sheet->mergeCells('A2:K2');
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2')->getFont()->setName('Quattrocento Sans')->setBold(true)->setSize(14);
+
         // Populate data starting from a specific row (e.g., row 2)
         $dummydate = $tahun . '-' . $bulan . '-1'; // Example date
         $row = 13;
@@ -108,6 +115,12 @@ class Exports_CKP extends Controller
         $sheetName = 'CKP_T';  // Replace 'SheetName' with the actual name of the sheet
         $spreadsheet->setActiveSheetIndexByName($sheetName);
         $sheet = $spreadsheet->getActiveSheet();
+
+        #Ubah Header CKP-T Menjadi Dinamis
+        $sheet->setCellValue('A2', 'TARGET KINERJA PEGAWAI TAHUN ' . $tahun);
+        $sheet->mergeCells('A2:K2');
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2')->getFont()->setName('Quattrocento Sans')->setBold(true)->setSize(14);
 
         // Populate data starting from a specific row (e.g., row 2)
         // $dummydate = $tahun . '-' . $bulan+1 . '-1'; // Example date
