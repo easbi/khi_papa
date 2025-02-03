@@ -85,7 +85,7 @@ class ActivitiesController extends Controller
                 $datenow = (new \DateTime())->format('Y-m-d'); 
                 // Hari Libur dalam Senin-Jumat
                 $hariLibur = count(array_filter(
-                    json_decode(file_get_contents("https://dayoffapi.vercel.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
+                    json_decode(file_get_contents("https://api-harilibur.vercel.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
                     fn($holiday) => (new \DateTime($holiday['tanggal']))->format('N') <= 5 && $holiday['tanggal'] <= $datenow
                 ));
 
