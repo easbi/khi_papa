@@ -86,7 +86,7 @@ class ActivitiesController extends Controller
                 // Hari Libur dalam Senin-Jumat
                 $hariLibur = count(array_filter(
                     json_decode(file_get_contents("https://api-harilibur.vercel.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
-                    fn($holiday) => (new \DateTime($holiday['tanggal']))->format('N') <= 5 && $holiday['tanggal'] <= $datenow
+                    fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5 && $holiday['holiday_date'] <= $datenow
                 ));
 
                 // Hitung hari yang sudah diisi oleh pengguna
