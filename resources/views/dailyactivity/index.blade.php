@@ -22,7 +22,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p>Hidup adalah serangkaian bab. Hari ini, bab baru dimulai. Selamat ulang tahun untuk teman kami:</p>
+                    <p>Hidup adalah serangkaian bab. Hari ini, bab baru dimulai. Selamat ulang tahun untuk rekan kerja kami:</p>
                     <ul>
                         @foreach ($birthdayToday as $name)
                             <li><strong>{{ $name }}</strong></li>
@@ -144,7 +144,7 @@
     <div class="col-sm-6">
         <div class="card card-small mb-4">
             <div class="card-header border-bottom">
-                <h6 class="m-0">Progress Entri Pegawai</h6>
+                <h6 class="m-0">Progress Entri Pegawai Hari Ini</h6>
             </div>
             <div class="card-body d-flex flex-column">
                 <style type="text/css">
@@ -440,7 +440,7 @@
 	<div class="col">
 		<div class="card card-small mb-4">
 			<div class="card-header border-bottom">
-				<h6 class="m-0">Tabel Aktivitas</h6>
+				<h6 class="m-0">Tabel Aktivitas Hari Ini</h6>
 			</div>
 			@if ($message = Session::get('success'))
             <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">

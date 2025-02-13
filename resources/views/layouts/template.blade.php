@@ -51,7 +51,7 @@
               <li class="nav-item">
                 <a class="nav-link {{ Request::is('act')? "active":"" }}" href="{{ url('/act')}}">
                   <i class="material-icons">view_module</i>
-                  <span>Tampilan Aktivitas Keseluruhan</span>
+                  <span>Tampilan Aktivitas Hari Ini</span>
                 </a>
               </li>
               <li class="nav-item">
@@ -64,7 +64,6 @@
                 <a class="nav-link {{ Request::is('act/create')? "active":"" }}" href="{{ url('/act/create')}}">
                   <i class="material-icons">edit</i>
                   <span>Tambahkan Aktivitas</span>
-                  <span class="new-badge">NEW</span>
                 </a>
               </li>
 
@@ -79,7 +78,6 @@
                 <a class="nav-link {{ Request::is('timkerja')? "active":"" }}" href="{{ url('/timkerja')}}">
                   <i class="material-icons">assessment</i>
                   <span>Tim Kerja</span>
-                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -87,7 +85,6 @@
                 <a class="nav-link {{ Request::is('project')? "active":"" }}" href="{{ url('/project')}}">
                   <i class="material-icons">assessment</i>
                   <span>Proyek</span>
-                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -95,7 +92,6 @@
                 <a class="nav-link {{ Request::is('kegiatanutama')? "active":"" }}" href="{{ url('/kegiatanutama')}}">
                   <i class="material-icons">assessment</i>
                   <span>Kegiatan Utama</span>
-                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 
@@ -103,7 +99,6 @@
                 <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/assigntim')}}">
                   <i class="material-icons">assessment</i>
                   <span>Alokasi Tim</span>
-                  <span class="new-badge">To-do</span>
                 </a>
               </li>
 

@@ -34,7 +34,7 @@ class ActivitiesController extends Controller
     public function index()
     {
         $today = Carbon::now();
-        $activities = DB::table('daily_activity')->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
+        $activities = DB::table('daily_activity')->join('users', 'daily_activity.nip', 'users.nip')->whereDate('daily_activity.tgl', Carbon::today())->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
         $act_count_today = Activity::whereDate('tgl', Carbon::today())->count();
 
         $yesterday = date("Y-m-d", strtotime( '-1 days' ) );
