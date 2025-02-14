@@ -201,7 +201,7 @@ class ActivitiesController extends Controller
             json_decode(file_get_contents("https://hari-libur-api.vercel.app//api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
             fn($holiday) => (new \DateTime($holiday['is_national_holiday']))->format('N') <= 5 && $holiday['is_national_holiday'] <= $datenow
         );  
-        $holidayDates = array_map(fn($holiday) => $holiday['tanggal'], $hariLibur);
+        $holidayDates = array_map(fn($holiday) => $holiday['event_date'], $hariLibur);
         $workingDaysWithoutHolidays = array_diff($allWorkingDays, $holidayDates);
         $filledDays = DB::table('daily_activity')
             ->where('nip', Auth::user()->nip)
