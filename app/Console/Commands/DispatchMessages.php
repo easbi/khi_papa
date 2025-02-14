@@ -46,7 +46,17 @@ class DispatchMessages extends Command
                             ];
                     $queue = new DailyReminder($details);
                     dispatch($queue->delay(now()->addSeconds(10)));
-                }
+            }
+
+            // if ($TodayActivity != 0) {
+            //         $details = [
+            //                     'message' => '💬 Selamat Sore, ' . $user->fullname . 'Berikut Detail Kegiatan Kam',
+            //                     'no_hp' => $user->no_hp
+            //                 ];
+            //         $queue = new DailyReminder($details);
+            //         dispatch($queue->delay(now()->addSeconds(10)));
+            // };
+            #Tambahkan List Aktifitas Yang Mau di Copy Utk Presensi Disini
         }; 
 
         return Command::SUCCESS;
