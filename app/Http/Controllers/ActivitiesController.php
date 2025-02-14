@@ -85,8 +85,8 @@ class ActivitiesController extends Controller
                 $datenow = (new \DateTime())->format('Y-m-d'); 
                 // Hari Libur dalam Senin-Jumat
                 $hariLibur = count(array_filter(
-                    json_decode(file_get_contents("https://hari-libur-api.vercel.app//api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
-                    fn($holiday) => (new \DateTime($holiday['is_national_holiday']))->format('N') <= 5 && $holiday['is_national_holiday'] <= $datenow
+                    json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
+                    fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5 && $holiday['holiday_date'] <= $datenow
                 ));
 
                 // Hitung hari yang sudah diisi oleh pengguna
@@ -198,10 +198,10 @@ class ActivitiesController extends Controller
             $startOfMonth->addDay();
         }
         $hariLibur = array_filter(
-            json_decode(file_get_contents("https://hari-libur-api.vercel.app//api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
-            fn($holiday) => (new \DateTime($holiday['is_national_holiday']))->format('N') <= 5 && $holiday['is_national_holiday'] <= $datenow
+            json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
+            fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5 && $holiday['holiday_date'] <= $datenow
         );  
-        $holidayDates = array_map(fn($holiday) => $holiday['event_date'], $hariLibur);
+        $holidayDates = array_map(fn($holiday) => $holiday['tanggal'], $hariLibur);
         $workingDaysWithoutHolidays = array_diff($allWorkingDays, $holidayDates);
         $filledDays = DB::table('daily_activity')
             ->where('nip', Auth::user()->nip)
@@ -622,8 +622,8 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                 $datenow = (new \DateTime())->format('Y-m-d'); 
                 // Hari Libur dalam Senin-Jumat
                 $hariLibur = count(array_filter(
-                        json_decode(file_get_contents("https://hari-libur-api.vercel.app//api?month=$bulan&year=$tahun"), true),
-                        fn($holiday) => (new \DateTime($holiday['is_national_holiday']))->format('N') <= 5 && $holiday['is_national_holiday'] <= $datenow));
+                        json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=$bulan&year=$tahun"), true),
+                        fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5 && $holiday['holiday_date'] <= $datenow));
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
@@ -732,7 +732,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                 );
 
                 // Hari Libur dalam Senin-Jumat
-                $hariLibur = count(array_filter(json_decode(file_get_contents("https://hari-libur-api.vercel.app//api?month=$bulan&year=$tahun"), true), fn($holiday) => (new \DateTime($holiday['tanggal']))->format('N') <= 5));
+                $hariLibur = count(array_filter(json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=$bulan&year=$tahun"), true), fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5));
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
@@ -842,7 +842,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                 );
 
                 // Hari Libur dalam Senin-Jumat
-                $hariLibur = count(array_filter(json_decode(file_get_contents("https://hari-libur-api.vercel.app//api?month=$bulan&year=$tahun"), true), fn($holiday) => (new \DateTime($holiday['is_national_holiday']))->format('N') <= 5));
+                $hariLibur = count(array_filter(json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=$bulan&year=$tahun"), true), fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5));
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
