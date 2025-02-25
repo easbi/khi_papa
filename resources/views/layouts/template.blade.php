@@ -51,7 +51,13 @@
               <li class="nav-item">
                 <a class="nav-link {{ Request::is('act')? "active":"" }}" href="{{ url('/act')}}">
                   <i class="material-icons">view_module</i>
-                  <span>Tampilan Aktivitas Hari Ini</span>
+                  <span>Aktivitas Hari Ini</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {{ Request::is('act/allactivity')? "active":"" }}" href="{{ url('/act/allactivity')}}">
+                  <i class="material-icons">view_module</i>
+                  <span>Tampilan Semua Aktivitas</span>
                 </a>
               </li>
               <li class="nav-item">
@@ -74,33 +80,64 @@
                 </a>
               </li>
 
-              <li class="nav-item">
-                <a class="nav-link {{ Request::is('timkerja')? "active":"" }}" href="{{ url('/timkerja')}}">
-                  <i class="material-icons">assessment</i>
-                  <span>Tim Kerja</span>
+              <li class="nav-item" id="menu-parent">
+                <a class="nav-link" href="#" id="toggle-menu">
+                  <i class="material-icons">expand_more</i>
+                  <span>Manajemen Tim Kerja</span>
                 </a>
               </li>
+              <ul id="submenu" class="nav-submenu">
+                <li class="nav-item">
+                  <a class="nav-link" href="#">
+                    <i class="material-icons">assessment</i>
+                    <span>Tim Kerja</span>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">
+                    <i class="material-icons">assessment</i>
+                    <span>Proyek</span>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">
+                    <i class="material-icons">assessment</i>
+                    <span>Kegiatan Utama</span>
+                  </a>
+                </li>                
+                <li class="nav-item">
+                  <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/assigntim')}}">
+                    <i class="material-icons">assessment</i>
+                    <span>Alokasi Tim</span>
+                  </a>
+                </li>
+              </ul>
 
-              <li class="nav-item">
-                <a class="nav-link {{ Request::is('project')? "active":"" }}" href="{{ url('/project')}}">
-                  <i class="material-icons">assessment</i>
-                  <span>Proyek</span>
-                </a>
-              </li>
+              <script>
+                document.getElementById("toggle-menu").addEventListener("click", function(event) {
+                  event.preventDefault();
+                  var menuParent = document.getElementById("menu-parent");
+                  var submenu = document.getElementById("submenu");
 
-              <li class="nav-item">
-                <a class="nav-link {{ Request::is('kegiatanutama')? "active":"" }}" href="{{ url('/kegiatanutama')}}">
-                  <i class="material-icons">assessment</i>
-                  <span>Kegiatan Utama</span>
-                </a>
-              </li>
+                  if (menuParent.classList.contains("menu-is-opening")) {
+                    menuParent.classList.remove("menu-is-opening", "menu-open");
+                    submenu.style.display = "none";
+                  } else {
+                    menuParent.classList.add("menu-is-opening", "menu-open");
+                    submenu.style.display = "block";
+                  }
+                });
+              </script>
 
-              <li class="nav-item">
-                <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/assigntim')}}">
-                  <i class="material-icons">assessment</i>
-                  <span>Alokasi Tim</span>
-                </a>
-              </li>
+              <style>
+                .nav-submenu {
+                  display: none;
+                  padding-left: 20px;
+                }
+                .menu-open .nav-submenu {
+                  display: block;
+                }
+              </style>
 
               @if (Auth::user()->id == 1)
               <li class="nav-item">

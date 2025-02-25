@@ -157,6 +157,12 @@ class ActivitiesController extends Controller
         ->with('i');
     }
 
+    public function allActivity()
+    {
+       $activities = DB::table('daily_activity')->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get(); 
+       return view('dailyactivity.allactivity',compact('activities'))->with('i');
+    }
+
     public function selftable()
     {
         $bulan = "";

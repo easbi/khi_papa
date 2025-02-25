@@ -36,6 +36,7 @@ Route::get('act/indexkhi/export-to-excel/{bulan}/{tahun}', [ActivitiesController
 Route::get('act/filterMonthYear', [ActivitiesController::class, 'filterMonthYear'])->name('act.filterMonthYear');
 Route::get('act/selftable', [ActivitiesController::class, 'selftable'])->name('act.selftable');
 Route::get('act/monitoring', [ActivitiesController::class, 'monitoring'])->name('act.monitoring');
+Route::get('act/allactivity', [ActivitiesController::class, 'allActivity'])->name('act.allactivity');
 Route::get('act/filterMonthYear2', [ActivitiesController::class, 'filterMonthYear2'])->name('act.filterMonthYear2');
 Route::resource('act', ActivitiesController::class);
 
