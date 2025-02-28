@@ -48,7 +48,6 @@ class ActivitiesController extends Controller
             ->select('users.fullname', 'daily_activity.nip', DB::raw('COUNT(*) as jumlah_kegiatan'))
             ->whereMonth('daily_activity.tgl', '=', date('m'))
             ->whereYear('daily_activity.tgl', '=', date('Y'))
-            ->where('users.organisasi','=','BPS Kota Padang Panjang')
             ->groupBy('daily_activity.nip', 'users.fullname')
             ->orderByDesc('jumlah_kegiatan')
             ->limit(5)
@@ -70,7 +69,6 @@ class ActivitiesController extends Controller
             ->leftJoin('daily_activity', function($join) {
                 $join->on('users.nip', '=', 'daily_activity.nip')
                      ->whereMonth('daily_activity.tgl', '=', date('m'))
-                     ->where('users.organisasi','=','BPS Kota Padang Panjang')
                      ->whereYear('daily_activity.tgl', '=', date('Y'));
             })
             ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001' ]) // Mengecualikan pegawai tertentu
