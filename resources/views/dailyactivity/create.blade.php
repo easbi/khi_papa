@@ -82,6 +82,8 @@
                                     <label for="wfo_wfh">WFO/WFH:</label>
                                     <select class="form-control" id="wfo_wfh" name="wfo_wfh" required>
                                         <option value="WFO" selected>WFO - Work From Office</option>
+                                        <option value="Lembur">Lembur (Official)</option>
+                                        <option value="Adhoc">Tugas Adhoc / Genting  / Prioritas</option>
                                         <option value="TL">Tugas Luar</option>
                                         <option value="Lainnya">Lainnya (Cuti, Sakit, Izin)</option>
                                     </select>

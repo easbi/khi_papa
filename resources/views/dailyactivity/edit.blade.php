@@ -47,6 +47,8 @@
 									<label for="wfo_wfh"><b>WFO/WFH:</label>
 										<select class="form-control" id="wfo_wfh" name="wfo_wfh">
 											<option value="WFO" @if($activity->wfo_wfh == "WFO") selected @endif>WFO - Work From Office</option>
+											<option value="Lembur" @if($activity->wfo_wfh == "Lembur") selected @endif>Lembur (Official)</option>
+											<option value="Adhoc" @if($activity->wfo_wfh == "Adhoc") selected @endif>Tugas Adhoc / Genting / Prioritas</option>
 											<option value="WFH" @if($activity->wfo_wfh == "WFH") selected @endif>WFH - Work From Home</option>
 											<option value="TL" @if($activity->wfo_wfh == "TL") selected @endif>Tugas Luar</option>
 											<option value="Lainnya" @if($activity->wfo_wfh == "Lainnya") selected @endif>Lainnya (Cuti, Sakit, Izin)</option>

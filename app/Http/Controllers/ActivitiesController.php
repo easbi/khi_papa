@@ -48,6 +48,7 @@ class ActivitiesController extends Controller
             ->select('users.fullname', 'daily_activity.nip', DB::raw('COUNT(*) as jumlah_kegiatan'))
             ->whereMonth('daily_activity.tgl', '=', date('m'))
             ->whereYear('daily_activity.tgl', '=', date('Y'))
+            ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
             ->groupBy('daily_activity.nip', 'users.fullname')
             ->orderByDesc('jumlah_kegiatan')
             ->limit(5)
@@ -71,7 +72,8 @@ class ActivitiesController extends Controller
                      ->whereMonth('daily_activity.tgl', '=', date('m'))
                      ->whereYear('daily_activity.tgl', '=', date('Y'));
             })
-            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001' ]) // Mengecualikan pegawai tertentu
+            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001', '198410302011011016' ]) // Mengecualikan pegawai tertentu
+            ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
             ->orderBy('jumlah_pengisian', 'asc')
@@ -614,7 +616,8 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                      ->whereMonth('daily_activity.created_at', '=', date('m'))
                      ->whereYear('daily_activity.created_at', '=', date('Y'));
             })
-            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001']) // Mengecualikan pegawai tertentu
+            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001', '198410302011011016']) // Mengecualikan pegawai tertentu            
+            ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
             ->orderBy('jumlah_pengisian', 'desc')
