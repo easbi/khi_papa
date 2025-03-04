@@ -345,7 +345,7 @@
     <div class="col-sm-6">
         <div class="card card-small mb-4">
             <div class="card-header border-bottom">
-                <h6 class="m-0">Top 5 Pegawai Rajin Mengisi KHI Bulan ini</h6>
+                <h6 class="m-0">Top 5 Pegawai Rajin Mengisi KHI Bulan ini (Kondisi per Hari ini) </h6>
             </div>
             <div class="card-body d-flex flex-column">
                 <div class="chart-container">

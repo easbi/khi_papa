@@ -48,6 +48,7 @@ class ActivitiesController extends Controller
             ->select('users.fullname', 'daily_activity.nip', DB::raw('COUNT(*) as jumlah_kegiatan'))
             ->whereMonth('daily_activity.tgl', '=', date('m'))
             ->whereYear('daily_activity.tgl', '=', date('Y'))
+            ->whereDay('daily_activity.tgl', '<=', date('d'))
             ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
             ->groupBy('daily_activity.nip', 'users.fullname')
             ->orderByDesc('jumlah_kegiatan')
