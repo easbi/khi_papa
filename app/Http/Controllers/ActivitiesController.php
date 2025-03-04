@@ -404,9 +404,11 @@ class ActivitiesController extends Controller
         } else {
             // Loop untuk setiap hari dalam rentang tanggal
             while ($tglMulai->format('Y-m-d') <= $tglendLoop->format('Y-m-d')) {
-                $insertData[] = array_merge($data, [
-                    'tgl' => $tglMulai->format('Y-m-d'),
-                ]);
+                if ($tglMulai->dayOfWeek != 6 && $tglMulai->dayOfWeek != 0) {
+                    $insertData[] = array_merge($data, [
+                        'tgl' => $tglMulai->format('Y-m-d'),
+                    ]);
+                }
                 $tglMulai->addDay(); // Tambahkan 1 hari
             }
         }        
