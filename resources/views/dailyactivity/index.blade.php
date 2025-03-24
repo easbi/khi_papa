@@ -161,13 +161,13 @@
                           data: {
                             labels: [],
                             datasets: [{
-                              data: [<?php echo number_format($userfill*100/18,2); ?>],
+                              data: [<?php echo number_format($userfill*100/19,2); ?>],
                               backgroundColor: "#00BC43",
                               datalabels: {
                                 color: 'white'               //Color for percentage value
                               }
                             }, {
-                              data: [100 - <?php echo number_format($userfill*100/18,2); ?>],
+                              data: [100 - <?php echo number_format($userfill*100/19,2); ?>],
                               backgroundColor: "lightgrey",
                               hoverBackgroundColor: "lightgrey",
                               datalabels: {
@@ -213,7 +213,7 @@
                                     dataArr.map(data => {
                                         sum += data;
                                     });
-                                    let percentage = (value*13/100).toFixed(0)+" org";
+                                    let percentage = (value*19/100).toFixed(0)+" org";
                                     return percentage;
                                 },
                               },
