@@ -26,7 +26,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('app:send-birthday-reminders')->dailyAt('00:20');   
 
-        $schedule->command('app:dispatch-messages')->dailyAt('14:00')->weekdays();
+        $schedule->command('app:dispatch-messages')->dailyAt('13:30')->weekdays();
         $schedule->command('queue:work --stop-when-empty')->everyMinute();
     }
 
