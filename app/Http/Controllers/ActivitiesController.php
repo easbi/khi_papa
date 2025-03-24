@@ -73,7 +73,7 @@ class ActivitiesController extends Controller
                      ->whereMonth('daily_activity.tgl', '=', date('m'))
                      ->whereYear('daily_activity.tgl', '=', date('Y'));
             })
-            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001', '198410302011011016' ]) // Mengecualikan pegawai tertentu
+            ->whereNotIn('users.nip', ['199111052014102001', '197612291999011001' ]) // Mengecualikan pegawai tertentu
             ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
@@ -301,7 +301,7 @@ class ActivitiesController extends Controller
             ->get()            
             ->unique('nip');
 
-        $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 10, 14])->get();
+        $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 14])->get();
 
         $TimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
 
@@ -619,7 +619,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                      ->whereMonth('daily_activity.created_at', '=', date('m'))
                      ->whereYear('daily_activity.created_at', '=', date('Y'));
             })
-            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001', '198410302011011016']) // Mengecualikan pegawai tertentu            
+            ->whereNotIn('users.nip', ['199111052014102001', '196701201993031001']) // Mengecualikan pegawai tertentu            
             ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
@@ -730,7 +730,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                          ->whereMonth('daily_activity.tgl', '=', $bulan)
                          ->whereYear('daily_activity.tgl', '=', $tahun);
                 })
-            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001']) // Mengecualikan pegawai tertentu
+            ->whereNotIn('users.nip', ['199111052014102001', '197612291999011001']) // Mengecualikan pegawai tertentu
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
             ->orderBy('jumlah_pengisian', 'desc')
@@ -840,7 +840,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                          ->whereMonth('daily_activity.tgl', '=', $bulan)
                          ->whereYear('daily_activity.tgl', '=', $tahun);
                 })
-            ->whereNotIn('users.nip', ['199111052014102001', '199906092021121002', '197111211994032002', '196701201993031001']) // Mengecualikan pegawai tertentu
+            ->whereNotIn('users.nip', ['199111052014102001', '197612291999011001']) // Mengecualikan pegawai tertentu
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
             ->orderBy('jumlah_pengisian', 'desc')
