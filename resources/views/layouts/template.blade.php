@@ -88,19 +88,19 @@
               </li>
               <ul id="submenu" class="nav-submenu">
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
+                  <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/timkerja')}}">
                     <i class="material-icons">assessment</i>
                     <span>Tim Kerja</span>
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
+                  <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/project')}}">
                     <i class="material-icons">assessment</i>
                     <span>Proyek</span>
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
+                  <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/kegiatanutama')}}">
                     <i class="material-icons">assessment</i>
                     <span>Kegiatan Utama</span>
                   </a>
