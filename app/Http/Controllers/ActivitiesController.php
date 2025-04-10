@@ -206,22 +206,34 @@ class ActivitiesController extends Controller
             }
             $startOfMonth->addDay();
         }
+
         $hariLibur = array_filter(
-            json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
-            fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5 && $holiday['holiday_date'] <= $datenow
+            json_decode(file_get_contents("https://dayoffapi.vercel.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
+            function ($holiday) use ($datenow) {
+                if (!isset($holiday['tanggal'])) return false;
+
+                $tanggalLibur = new \DateTime($holiday['tanggal']);
+
+                return $tanggalLibur->format('N') <= 5 && // Senin-Jumat
+                       $tanggalLibur->format('Y-m-d') <= $datenow; // ✅ perbandingan string benar
+            }
         );  
 
-        // dd($hariLibur);
-        $holidayDates = array_map(fn($holiday) => $holiday['holiday_date'], $hariLibur);
+        $holidayDates = array_map(
+            fn($holiday) => (new \DateTime($holiday['tanggal']))->format('Y-m-d'),
+            $hariLibur
+        );
 
         $workingDaysWithoutHolidays = array_diff($allWorkingDays, $holidayDates);
+
         $filledDays = DB::table('daily_activity')
             ->where('nip', Auth::user()->nip)
             ->whereMonth('tgl', $today->format('m'))
             ->whereYear('tgl', $today->format('Y'))
             ->select(DB::raw('DATE(tgl) as date'))
             ->pluck('date')
-            ->toArray(); 
+            ->toArray();
+
         $missedDays = array_diff($workingDaysWithoutHolidays, $filledDays);
         $missedDaysFormatted = array_map(function ($date) {
             $carbonDate = Carbon::parse($date);
@@ -594,6 +606,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
     {
         $bulan = date('m');
         $tahun = date('Y');
+
         $months = [
             ['value' => 1, 'name' => 'Januari'],
             ['value' => 2, 'name' => 'Februari'],
@@ -609,68 +622,86 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
             ['value' => 12, 'name' => 'Desember']
         ];
 
-
         $years = DB::table('daily_activity')
             ->select(DB::raw('YEAR(tgl) year'))
             ->distinct()
             ->orderBy('year', 'desc')
             ->get();
-        // Query to get employees with the most daily activity submissions
+
+        $today = Carbon::today();
+        $datenow = $today->format('Y-m-d');
+
+        // Ambil data hari libur dari API
+        $dataLibur = json_decode(
+            file_get_contents("https://dayoffapi.vercel.app/api?month={$bulan}&year={$tahun}"),
+            true
+        );
+
+        // Filter hari libur yang jatuh pada hari kerja (Senin - Jumat) dan sudah lewat dari hari ini
+        $hariLibur = array_filter($dataLibur, function ($holiday) use ($datenow) {
+            if (!isset($holiday['tanggal'])) return false;
+            $tanggalLibur = new \DateTime($holiday['tanggal']);
+            return $tanggalLibur->format('N') <= 5 && $tanggalLibur->format('Y-m-d') <= $datenow;
+        });
+
+        // Format tanggal libur jadi 'Y-m-d' agar bisa dibandingkan
+        $holidayDates = array_map(
+            fn($holiday) => (new \DateTime($holiday['tanggal']))->format('Y-m-d'),
+            $hariLibur
+        );
+
+        // Ambil seluruh pegawai aktif (tanpa dua NIP tertentu)
         $rankTodayEmployees = DB::table('users')
-            ->leftJoin('daily_activity', function($join) {
+            ->leftJoin('daily_activity', function ($join) {
                 $join->on('users.nip', '=', 'daily_activity.nip')
-                     ->whereMonth('daily_activity.created_at', '=', date('m'))
-                     ->whereYear('daily_activity.created_at', '=', date('Y'));
+                    ->whereMonth('daily_activity.tgl', '=', date('m'))
+                    ->whereYear('daily_activity.tgl', '=', date('Y'));
             })
-            ->whereNotIn('users.nip', ['199111052014102001', '196701201993031001']) // Mengecualikan pegawai tertentu            
-            ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
+            ->whereNotIn('users.nip', ['199111052014102001', '196701201993031001'])
+            ->where('users.unit_kerja', '=', 'BPS Kota Padang Panjang')
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
             ->orderBy('jumlah_pengisian', 'desc')
             ->get()
-            ->map(function ($user) use ($bulan, $tahun) {
-                // Hitung hari kerja dalam bulan ini (kecuali Sabtu dan Minggu)
-                $maxWorkDaysFiltered = Carbon::createFromDate($tahun, $bulan)->startOfMonth()->diffInDaysFiltered(
-                    fn($date) => $date->isWeekday(), // Hanya menghitung hari Senin - Jumat
-                    Carbon::today()
-                ) + 1; //adjustment to the day
-                $datenow = (new \DateTime())->format('Y-m-d'); 
-                // Hari Libur dalam Senin-Jumat
-                $hariLibur = count(array_filter(
-                        json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=$bulan&year=$tahun"), true),
-                        fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5 && $holiday['holiday_date'] <= $datenow));
+            ->map(function ($user) use ($bulan, $tahun, $holidayDates, $datenow) {
+                // Hitung semua hari kerja (weekday) dari awal bulan sampai hari ini
+                $allWorkingDays = [];
+                $startOfMonth = Carbon::createFromDate($tahun, $bulan)->startOfMonth();
+                $endOfMonth = Carbon::today();
+                while ($startOfMonth <= $endOfMonth) {
+                    if ($startOfMonth->isWeekday()) {
+                        $allWorkingDays[] = $startOfMonth->format('Y-m-d');
+                    }
+                    $startOfMonth->addDay();
+                }
 
-                // Hitung hari yang sudah diisi oleh pengguna
+                // Kurangi hari libur dari daftar hari kerja
+                $workingDaysWithoutHolidays = array_diff($allWorkingDays, $holidayDates);
+                $maxWorkDays = count($workingDaysWithoutHolidays);
+
+                // Ambil daftar hari yang diisi user
                 $filledDays = DB::table('daily_activity')
                     ->where('nip', $user->nip)
-                    ->whereMonth('tgl', date('m'))
-                    ->whereYear('tgl', date('Y'))
+                    ->whereMonth('tgl', $bulan)
+                    ->whereYear('tgl', $tahun)
                     ->select(DB::raw('DATE(tgl) as date'))
-                    ->distinct()
-                    ->get()
-                    ->count();
+                    ->pluck('date')
+                    ->toArray();
 
-                $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
+                // Hitung hari kerja yang belum diisi
+                $missedDays = array_diff($workingDaysWithoutHolidays, $filledDays);
+                $filledDayCount = count($filledDays);
 
-                // Menghitung hari kerja yang tidak diisi
-                $user->missed_days = $maxWorkDays-$filledDays;
+                // Skor pengisian (maks 50)
+                $filledDaysScore = ($maxWorkDays > 0) ? (($filledDayCount / $maxWorkDays) * 50) : 0;
 
-                // Menambahkan jumlah hari yang diisi ke objek pengguna
-                $user->filled_days = $filledDays;
-                
-
-
-                // Skala 50 untuk hari pengisian
-                $filledDaysScore = (($filledDays - $hariLibur) / $maxWorkDays) * 50;
-
-                // Hitung total kegiatan (total aktivitas yang dilakukan karyawan dalam bulan ini)
+                // Hitung total aktivitas
                 $totalActivities = DB::table('daily_activity')
                     ->where('nip', $user->nip)
                     ->whereMonth('tgl', $bulan)
                     ->whereYear('tgl', $tahun)
                     ->count();
 
-                // Tentukan maksimum kegiatan untuk skala kegiatan (misalnya ambil nilai tertinggi dalam database)
                 $maxActivities = DB::table('daily_activity')
                     ->whereMonth('tgl', $bulan)
                     ->whereYear('tgl', $tahun)
@@ -678,25 +709,25 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                     ->groupBy('nip')
                     ->orderByDesc('activity_count')
                     ->limit(1)
-                    ->value('activity_count') ?? 1; // Beri nilai default 1 agar tidak ada pembagian nol
+                    ->value('activity_count') ?? 1;
 
-                // Skala 50 untuk kegiatan
                 $activityScore = ($totalActivities / $maxActivities) * 50;
 
-                // Total skor dalam skala 100
+                $user->missed_days = count($missedDays);
+                $user->filled_days = $filledDayCount;
                 $user->score = $filledDaysScore + $activityScore;
-                $user->filledDaysScore =$filledDaysScore;///
+                $user->filledDaysScore = $filledDaysScore;
                 $user->maxWorkDays = $maxWorkDays;
 
                 return $user;
             })
-            ->sortByDesc('score') // Mengurutkan berdasarkan score secara menurun
+            ->sortByDesc('score')
             ->values();
 
-        // dd($rankTodayEmployees);
-
-        return view('dailyactivity.monitoring', compact('rankTodayEmployees', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5 );
+        return view('dailyactivity.monitoring', compact('rankTodayEmployees', 'months', 'years', 'bulan', 'tahun'))
+            ->with('i', (request()->input('page', 1) - 1) * 5);
     }
+
 
     public function filterMonthYear2(Request $request)
     {
