@@ -210,7 +210,10 @@ class ActivitiesController extends Controller
             json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
             fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5 && $holiday['holiday_date'] <= $datenow
         );  
-        $holidayDates = array_map(fn($holiday) => $holiday['tanggal'], $hariLibur);
+
+        // dd($hariLibur);
+        $holidayDates = array_map(fn($holiday) => $holiday['holiday_date'], $hariLibur);
+
         $workingDaysWithoutHolidays = array_diff($allWorkingDays, $holidayDates);
         $filledDays = DB::table('daily_activity')
             ->where('nip', Auth::user()->nip)
