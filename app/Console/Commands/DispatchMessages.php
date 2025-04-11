@@ -5,10 +5,12 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Jobs\DailyReminder;
 use App\Jobs\SendBirthdayReminderJob; 
+use App\Helpers\DateHelper;
 use App\Models\User;
 use App\Models\Activity;
 use Carbon\Carbon;
 use DB;
+
 
 class DispatchMessages extends Command
 {
@@ -66,15 +68,8 @@ class DispatchMessages extends Command
                     }
                     $startOfMonth->addDay();
                 }
-
-                // Ambil hari libur nasional yang jatuh di hari kerja
-                $hariLibur = array_filter(
-                    json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=$bulan&year=$tahun"), true),
-                    fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5 && $holiday['holiday_date'] <= $datenow
-                );
-
-                $holidayDates = array_map(fn($holiday) => $holiday['holiday_date'], $hariLibur);
-                $workingDaysWithoutHolidays = array_diff($allWorkingDays, $holidayDates);
+                
+                $workingDaysWithoutHolidays = DateHelper::getWorkingDaysWithoutHolidaysUntilToday($bulan, $tahun);
 
                 // Ambil daftar hari yang sudah diisi user
                 $filledDays = DB::table('daily_activity')
