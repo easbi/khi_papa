@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\DateHelper;
 
 use App\Jobs\SendWaPenugasan;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -87,10 +88,11 @@ class ActivitiesController extends Controller
                 ) + 1; //adjustment to the day
                 $datenow = (new \DateTime())->format('Y-m-d'); 
                 // Hari Libur dalam Senin-Jumat
-                $hariLibur = count(array_filter(
-                    json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
-                    fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5 && $holiday['holiday_date'] <= $datenow
-                ));
+
+                $bulan=$today->format('m');
+                $tahun=$today->format('Y');
+
+                $hariLibur = DateHelper::countWeekdayHolidaysUntilToday($bulan, $tahun);
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
@@ -168,6 +170,7 @@ class ActivitiesController extends Controller
 
     public function selftable()
     {
+        $today = Carbon::today();
         $bulan = "";
         $tahun = "";
 
@@ -193,38 +196,8 @@ class ActivitiesController extends Controller
             ->orderBy('year', 'desc')
             ->get();
 
-        //Script Menampilkan Tanggal tidak Mengisi KHI
-        $today = Carbon::today();
-        $datenow = $today->format('Y-m-d');
-
-        $allWorkingDays = [];
-        $startOfMonth = $today->copy()->startOfMonth();
-        $endOfMonth = $today->copy();
-        while ($startOfMonth <= $endOfMonth) {
-            if ($startOfMonth->isWeekday()) {
-                $allWorkingDays[] = $startOfMonth->format('Y-m-d');
-            }
-            $startOfMonth->addDay();
-        }
-
-        $hariLibur = array_filter(
-            json_decode(file_get_contents("https://dayoffapi.vercel.app/api?month=" . $today->format('m') . "&year=" . $today->format('Y')), true),
-            function ($holiday) use ($datenow) {
-                if (!isset($holiday['tanggal'])) return false;
-
-                $tanggalLibur = new \DateTime($holiday['tanggal']);
-
-                return $tanggalLibur->format('N') <= 5 && // Senin-Jumat
-                       $tanggalLibur->format('Y-m-d') <= $datenow; // ✅ perbandingan string benar
-            }
-        );  
-
-        $holidayDates = array_map(
-            fn($holiday) => (new \DateTime($holiday['tanggal']))->format('Y-m-d'),
-            $hariLibur
-        );
-
-        $workingDaysWithoutHolidays = array_diff($allWorkingDays, $holidayDates);
+        //Script Menampilkan Tanggal tidak Mengisi KHI     
+        $workingDaysWithoutHolidays = DateHelper::getWorkingDaysWithoutHolidaysUntilToday();
 
         $filledDays = DB::table('daily_activity')
             ->where('nip', Auth::user()->nip)
@@ -472,7 +445,7 @@ class ActivitiesController extends Controller
         $no_hp = DB::table('users')->where('nip', '=', $request->anggota_nip)->value('no_hp');
         $message = 
 "*Notifikasi Penugasan dari Ketua Tim*.
-Dua Tiga Kucing Makan Sushi, Anda dapat tugas dari KHI.
+Hari berganti hari, Anda dapat tugas dari KHI.
 Tugas ini diberikan oleh {$ketua} kepada Anda untuk segera ditindaklanjuti:
 
 Tugas : {$request->kegiatan} 
@@ -599,7 +572,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
     {
         $act = Activity::find($id);
         $act->delete();
-        return redirect('/act');
+        return redirect('/act/selftable');
     }
 
     public function monitoring()
@@ -631,24 +604,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
         $today = Carbon::today();
         $datenow = $today->format('Y-m-d');
 
-        // Ambil data hari libur dari API
-        $dataLibur = json_decode(
-            file_get_contents("https://dayoffapi.vercel.app/api?month={$bulan}&year={$tahun}"),
-            true
-        );
-
-        // Filter hari libur yang jatuh pada hari kerja (Senin - Jumat) dan sudah lewat dari hari ini
-        $hariLibur = array_filter($dataLibur, function ($holiday) use ($datenow) {
-            if (!isset($holiday['tanggal'])) return false;
-            $tanggalLibur = new \DateTime($holiday['tanggal']);
-            return $tanggalLibur->format('N') <= 5 && $tanggalLibur->format('Y-m-d') <= $datenow;
-        });
-
-        // Format tanggal libur jadi 'Y-m-d' agar bisa dibandingkan
-        $holidayDates = array_map(
-            fn($holiday) => (new \DateTime($holiday['tanggal']))->format('Y-m-d'),
-            $hariLibur
-        );
+        $holidayDates = DateHelper::getWeekdayHolidaysUntilToday($bulan, $tahun);
 
         // Ambil seluruh pegawai aktif (tanpa dua NIP tertentu)
         $rankTodayEmployees = DB::table('users')
@@ -778,7 +734,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                 );
 
                 // Hari Libur dalam Senin-Jumat
-                $hariLibur = count(array_filter(json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=$bulan&year=$tahun"), true), fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5));
+                $hariLibur = DateHelper::countWeekdayHolidaysFullMonth($bulan,$tahun);
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
@@ -798,8 +754,6 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                 // Menambahkan jumlah hari yang diisi ke objek pengguna
                 $user->filled_days = $filledDays;
                 
-
-
                 // Skala 50 untuk hari pengisian
                 $filledDaysScore = (($filledDays - $hariLibur) / $maxWorkDays) * 50;
 
@@ -888,7 +842,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                 );
 
                 // Hari Libur dalam Senin-Jumat
-                $hariLibur = count(array_filter(json_decode(file_get_contents("https://api-harilibur.netlify.app/api?month=$bulan&year=$tahun"), true), fn($holiday) => (new \DateTime($holiday['holiday_date']))->format('N') <= 5));
+                $hariLibur = DateHelper::countWeekdayHolidaysFullMonth($bulan,$tahun);
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
