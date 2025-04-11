@@ -63,7 +63,7 @@ class Exports_CKP extends Controller
         $sheet->setCellValue('C' . 7, ":  1-". carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
         $sheet->setCellValue('C' . 25, auth()->user()->fullname);
         $sheet->setCellValue('C' . 26, "NIP. ". auth()->user()->nip);
-        $sheet->setCellValue('B' . 21, "Tanggal : ". Carbon::now()->translatedFormat('j F Y'));
+        $sheet->setCellValue('B' . 21, "Tanggal : ". carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
 
         foreach ($mainActivities as $activity) {
             $sheet->setCellValue('A' . $row, $row-12);
@@ -158,7 +158,7 @@ class Exports_CKP extends Controller
         $sheet->setCellValue('C' . 7, ":  1-". carbon::parse($newDate)->endOfMonth()->translatedFormat('j F Y'));
         $sheet->setCellValue('C' . 23, auth()->user()->fullname);
         $sheet->setCellValue('C' . 24, "NIP. ". auth()->user()->nip);
-        $sheet->setCellValue('B' . 19, "Tanggal : ". Carbon::now()->translatedFormat('j F Y'));
+        $sheet->setCellValue('B' . 19, "Tanggal : ". carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
         foreach ($mainActivitiesNext as $activity) {
             $sheet->setCellValue('A' . $row, $row-12);
             $sheet->setCellValue('B' . $row, $activity->kegiatan);
