@@ -230,6 +230,7 @@
                       <div class="notification__content">
                         <span class="notification__category">{{ $notification->type }}</span>
                         <p>{{ $notification->description }}</p>
+                         <small class="text-muted">{{ \Carbon\Carbon::parse($notification->created_at)->translatedFormat('d F Y H:i') }}</small>
                       </div>
                     </a>
                     @endforeach
