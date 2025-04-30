@@ -125,9 +125,9 @@ class DispatchMessages extends Command
 
             if ($TodayActivity == 0) {
                 $details = [
-                    'message' => "💬 *Notifikasi Aplikasi KHI* .\nSelamat Petang, {$user->fullname}. Anda didapati belum mengisi aktiviti kerja untuk hari ini di pautan https://sipalink.id/khi/public/. " .
-                                 "Setakat di bulan ini, anda telah direkodkan tidak mengisi aktiviti selama {$user->missed_days} hari kerja tanpa mengisi kegiatan di aplikasi. " .
-                                 "Walid nak {$user->fullname} isi KHI dulu Boleh?, #Jomla 📲",
+                    'message' => "💬 *Notifikasi Aplikasi KHI* .\nSelamat Siang, {$user->fullname}. Aduduh, Anda terbukti belum mengisi aktivitas kerja untuk hari ini di KHI https://sipalink.id/khi/public/. " .
+                                 "Statistik berjalan hingga sekarang ini menunjukkan anda tidak mengisi aktivitas di KHI selama {$user->missed_days} hari kerja. " .
+                                 "Masih Stecu?, #CobaKaseEffortnya Saja 📲",
                     'no_hp' => $user->no_hp
                 ];
                 $queue = new DailyReminder($details);
