@@ -100,6 +100,7 @@
                             <th>Jenis Kegiatan</th>
                             <th>Nama Kegiatan</th>
                             <th>Progres</th>
+                            <th>Bukti Dukung</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -117,6 +118,18 @@
                                     <span class="badge badge-warning">Selesai?</span>
                                 @else
                                     <span class="badge badge-success">Selesai</span>
+                                @endif
+                            </td>
+                            
+                            <td>
+                                @if ($act->berkas == NULL AND $act->link == NULL )
+                                    <strong class="text-danger"> Tidak ada! </strong>
+                                @elseif ($act->berkas != NULL AND $act->link == NULL )
+                                    <strong class="text-success"> Berkas </strong>
+                                @elseif ($act->berkas == NULL AND $act->link != NULL )                                   
+                                    <strong class="text-success"> Link </strong>
+                                @elseif ($act->berkas != NULL AND $act->link != NULL )                                    
+                                    <strong class="text-success"> Berkas dan Link </strong>
                                 @endif
                             </td>
                             <td>
