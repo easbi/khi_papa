@@ -41,6 +41,9 @@ Route::get('act/filterMonthYear2', [ActivitiesController::class, 'filterMonthYea
 Route::resource('act', ActivitiesController::class);
 
 
+Route::get('/api/active-notifications', [NotificationController::class, 'getActiveNotifications'])->name('notifications.active');
+
+
 //soon to be deleted
 Route::get('temp/getKegiatanutama/{project_id}', [TempController::class, 'getKegiatanutama'])->name('temp.getKegiatanutama');
 Route::get('temp/getProject/{tim_kerja_id}', [TempController::class, 'getProject'])->name('temp.getProject');

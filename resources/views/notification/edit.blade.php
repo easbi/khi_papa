@@ -46,6 +46,15 @@
                                     <input type="text" name="tipe" class="form-control form-control-lg mb-3" value="{{ $notification->type }}">
                                 </div>
                                 <div class="form-group">
+                                    <label for="start_date">Tanggal Mulai</label>
+                                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ $notification->start_date }}" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="end_date">Tanggal Berakhir</label>
+                                    <input type="date" name="end_date" id="end_date" value="{{ $notification->end_date }}" class="form-control" required>
+                                </div>
+                                <div class="form-group">
                                     <button type="submit" class="btn btn-success">Kirim</button>
                                 </div>
                             </form>

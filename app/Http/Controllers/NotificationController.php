@@ -45,7 +45,9 @@ class NotificationController extends Controller
         Notification::create([
             'title' => $request->judul,
             'description' => $request->deskripsi,
-            'type' => $request->tipe, // Bisa disesuaikan jika ada tipe lain
+            'type' => $request->tipe, 
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
         ]);
 
         return redirect()->route('notif.index')->with('success', 'Notifikasi berhasil ditambahkan.');
@@ -94,11 +96,23 @@ class NotificationController extends Controller
         $notification->update([
             'title' => $request->judul,
             'description' => $request->deskripsi,
-            'type' => $request->tipe,
+            'type' => $request->tipe,            
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
         ]);
 
         return redirect()->route('notif.index')
                         ->with('success','Notifikasi sukses diperbaharui');
+    }
+
+    public function getActiveNotifications()
+    {
+        $now = now();
+        $notifications = Notification::where('start_date', '<=', $now->toDateString())
+                                      ->where('end_date', '>=', $now->toDateString())
+                                      ->get();
+
+        return response()->json($notifications);
     }
 
     /**

@@ -16,6 +16,8 @@
     <!-- Datatable CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
     <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 
   </head>
@@ -37,6 +39,73 @@
               </a>
             </nav>
           </div>
+
+
+          <!-- JavaScript untuk Notifikasi Pop-Up -->
+          <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                  // Fungsi untuk membaca cookie
+                  function getCookie(name) {
+                      const value = `; ${document.cookie}`;
+                      const parts = value.split(`; ${name}=`);
+                      if (parts.length === 2) return parts.pop().split(';').shift();
+                      return null;
+                  }
+
+                  // Fungsi untuk menulis cookie
+                  function setCookie(name, value, days = 1) {
+                      const date = new Date();
+                      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                      const expires = `expires=${date.toUTCString()}`;
+                      document.cookie = `${name}=${value};${expires};path=/`;
+                  }
+
+                  // Ambil data notifikasi dari API
+                  fetch("{{ route('notifications.active') }}")
+                      .then(response => response.json())
+                      .then(data => {
+                          console.log('Data Notifikasi:', data);
+
+                          // Baca cookie notifikasi yang sudah dilihat
+                          const viewedNotifications = JSON.parse(getCookie('viewedNotifications')) || {};
+                          const today = new Date().toISOString().split('T')[0]; // Hari ini (YYYY-MM-DD)
+
+                          // Filter notifikasi yang belum dilihat hari ini
+                          const filteredNotifications = data.filter(notification => {
+                              return !viewedNotifications[notification.id] || viewedNotifications[notification.id] !== today;
+                          });
+
+                          if (filteredNotifications.length > 0) {
+                              let delay = 0; // Delay awal (dalam milidetik)
+
+                              filteredNotifications.forEach((notification, index) => {
+                                  setTimeout(() => {
+                                      Swal.fire({
+                                          title: notification.title,
+                                          text: notification.description,
+                                          icon: notification.type === 'info' ? 'info' : 'warning',
+                                          confirmButtonText: 'Tutup'
+                                      }).then(() => {
+                                          // Tandai notifikasi sebagai "dilihat"
+                                          viewedNotifications[notification.id] = today;
+
+                                          // Simpan ke cookie
+                                          setCookie('viewedNotifications', JSON.stringify(viewedNotifications), 1); // Berlaku selama 1 hari
+                                      });
+                                  }, delay);
+
+                                  delay += 2000; // Tambahkan delay 2 detik (2000 ms) untuk setiap notifikasi
+                              });
+                          } else {
+                              console.log('Tidak ada notifikasi aktif.');
+                          }
+                      })
+                      .catch(error => {
+                          console.error('Error fetching notifications:', error);
+                      });
+              });
+          </script>
+
           <form action="#" class="main-sidebar__search w-100 border-right d-sm-flex d-md-none d-lg-none">
             <div class="input-group input-group-seamless ml-3">
               <div class="input-group-prepend">
@@ -143,7 +212,7 @@
               <li class="nav-item">
                 <a class="nav-link {{ Request::is('notif')? "active":"" }}" href="{{ url('/notif')}}">
                   <i class="material-icons">campaign</i>
-                  <span>Notifikasi</span>
+                  <span>What's</span>
                   <span class="new-badge">New</span>
                 </a>
               </li>
@@ -153,6 +222,14 @@
                 <a class="nav-link {{ Request::is('licensedapp/')? 'active':'' }}" href="{{ url('/licensedapp/') }}">
                   <i class="material-icons">verified_user</i>
                   <span>Lisensi Aplikasi</span>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link" href="#">
+                  <i class="material-icons">verified_user</i>
+                  <span>Repository Tim Kerja</span>                  
+                  <span class="new-badge">cooming soon</span>
                 </a>
               </li>
               <style type="text/css">
