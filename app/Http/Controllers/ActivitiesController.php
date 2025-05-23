@@ -111,6 +111,7 @@ class ActivitiesController extends Controller
 
                 return $user;
             })
+            ->filter(fn($user) => $user->missed_days > 0)
             ->sortByDesc('missed_days') 
             ->values(); 
 

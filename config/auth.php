@@ -18,6 +18,11 @@ return [
         'passwords' => 'users',
     ],
 
+    'sanctum' => [
+        'driver' => 'sanctum',
+        'provider' => 'users',
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards
