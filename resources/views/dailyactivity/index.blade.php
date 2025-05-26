@@ -301,7 +301,7 @@
                             title: {
                                 display: true,
                                 position: "top",
-                                text: "Top 3 Pegawai Kurang Aktif",
+                                text: "Top Pegawai Kurang Aktif",
                                 fontSize: 18,
                                 fontColor: "#111"
                             },
