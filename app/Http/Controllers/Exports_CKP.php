@@ -17,11 +17,19 @@ class Exports_CKP extends Controller
     public function exportToExcel($tahun, $bulan)
     {
         $mainActivities = DB::table('daily_activity')
-            ->whereYear('tgl', '=', $tahun) // Filter by year
-            ->whereMonth('tgl', '=', $bulan) // Filter by month
-            ->where('daily_activity.nip', auth()->user()->nip) // Filter by the authenticated user's nip
-            ->where('daily_activity.jenis_kegiatan', 'UTAMA') // Filter by kind of Activities
-            ->where('daily_activity.wfo_wfh', '!=', 'Lainnya') // Filter by WFH or WFO
+            ->whereYear('tgl', '=', $tahun) 
+            ->whereMonth('tgl', '=', $bulan) 
+            ->where('daily_activity.nip', auth()->user()->nip) 
+            ->where('daily_activity.jenis_kegiatan', 'UTAMA')
+            ->where('daily_activity.wfo_wfh', '!=', 'Lainnya')
+            ->where(function($query) {
+                $query->whereNotNull('daily_activity.link')
+                      ->orWhereNotNull('daily_activity.berkas');
+            })
+            ->where(function($query) {
+                $query->where('daily_activity.link', '<>', '')
+                      ->orWhere('daily_activity.berkas', '<>', '');
+            })
             ->join('users', 'daily_activity.nip', '=', 'users.nip') // Join with the users table
             ->select('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname', DB::raw('SUM(daily_activity.kuantitas) as total_kuantitas'), DB::raw('MIN(daily_activity.id) as min_id')) // Select the required fields
             ->groupBy('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname') // Group by kegiatan, satuan, and fullname
