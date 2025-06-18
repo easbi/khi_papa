@@ -73,13 +73,13 @@
                   @if ($activity->berkas == NULL AND $activity->link == NULL )
                     <strong class="text-danger"> Belum ada Bukti Penyelesaian! </strong>
                   @elseif ($activity->berkas != NULL AND $activity->link == NULL )
-                    <a class="btn btn-primary btn-sm" href="{{ url('/bukti',$activity->berkas) }}">Berkas</a>
+                    <a class="btn btn-primary btn-sm" href="{{ url('/bukti',$activity->berkas) }}" target="_blank">Berkas</a>
                   @elseif ($activity->berkas == NULL AND $activity->link != NULL )
-                    <a class="btn btn-primary btn-sm" href="{{ $activity->link }}">Link</a>
+                    <a class="btn btn-primary btn-sm" href="{{ $activity->link }}" target="_blank">Link</a>
                     @elseif ($activity->berkas != NULL AND $activity->link != NULL )
-                    <a class="btn btn-primary btn-sm" href="{{ url('/bukti',$activity->berkas) }}">Berkas</a> 
+                    <a class="btn btn-primary btn-sm" href="{{ url('/bukti',$activity->berkas) }}" target="_blank">Berkas</a> 
                      dan        
-                    <a class="btn btn-primary btn-sm" href="{{ $activity->link }}">Link</a>
+                    <a class="btn btn-primary btn-sm" href="{{ $activity->link }}" target="_blank">Link</a>
                   @endif
               </span>
               <span class="d-flex">
