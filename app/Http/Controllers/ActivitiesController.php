@@ -342,6 +342,7 @@ class ActivitiesController extends Controller
             'kuantitas'=> 'nullable',
             'tgl'=> 'required',
             'tgl_akhir' => 'nullable|date|after_or_equal:tgl',
+            'reminder_time' => 'nullable|date_format:H:i',
         ]);
 
         if (Auth::user()->id == 2 || $request->jenis_kegiatan == 'TAMBAHAN'){
@@ -381,15 +382,20 @@ class ActivitiesController extends Controller
                 'tim_kerja_id' => $request->tim_kerja_id,
                 'project_id' => $request->project_id,
                 'kegiatan_utama_id' => $request->kegiatan_utama_id,
+                'is_reminded' => $request->enable_reminder == '1' ? 1 : 0
             ]; 
         } 
 
         $insertData = [];
-
+        $reminderTime = $request->reminder_time;
 
         if ($tglMulai->format('Y-m-d') == $tglendLoop->format('Y-m-d')) {
             $insertData[] = array_merge($data, [
                 'tgl' => $tglMulai->format('Y-m-d'),
+                'reminder_at' => ($request->enable_reminder == '1' && $reminderTime)
+                    ? Carbon::createFromFormat('Y-m-d H:i', $tglMulai->format('Y-m-d') . ' ' . $reminderTime)
+                    : null
+
             ]);
         } else {
             // Loop untuk setiap hari dalam rentang tanggal
@@ -397,6 +403,9 @@ class ActivitiesController extends Controller
                 if ($tglMulai->dayOfWeek != 6 && $tglMulai->dayOfWeek != 0) {
                     $insertData[] = array_merge($data, [
                         'tgl' => $tglMulai->format('Y-m-d'),
+                        'reminder_at' => ($request->enable_reminder == '1' && $reminderTime)
+                    ? Carbon::createFromFormat('Y-m-d H:i', $tglMulai->format('Y-m-d') . ' ' . $reminderTime)
+                    : null
                     ]);
                 }
                 $tglMulai->addDay(); // Tambahkan 1 hari

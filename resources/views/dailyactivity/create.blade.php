@@ -77,6 +77,28 @@
                                     }
                                 </script>
 
+                                <!-- Checkbox Reminder -->
+                                <div class="form-group custom-control custom-checkbox mb-2">
+                                    <input type="checkbox" class="custom-control-input" id="enable_reminder" onclick="toggleReminder()" name="enable_reminder" value="1">
+                                    <label class="custom-control-label" for="enable_reminder">Ingin diingatkan?</label>
+                                </div>
+
+                                <!-- Form Input Reminder Time -->
+                                <div class="form-group" id="reminder_time_group" style="display: none;">
+                                    <label for="reminder_time">Waktu Reminder</label>
+                                    <input type="time" name="reminder_time" class="form-control">
+                                </div>
+
+                                <script>
+                                    function toggleReminder() {
+                                        const reminderEnabled = document.getElementById("enable_reminder").checked;
+                                        const reminderGroup = document.getElementById("reminder_time_group");
+
+                                        reminderGroup.style.display = reminderEnabled ? "block" : "none";
+                                    }
+                                </script>
+
+
 
                                 <div class="form-group">
                                     <label for="wfo_wfh">WFO/WFH:</label>

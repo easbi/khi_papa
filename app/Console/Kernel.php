@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        \App\Console\Commands\SendActivityReminders::class,
     ];
 
     /**
@@ -26,8 +26,10 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('app:send-birthday-reminders')->dailyAt('00:20');   
 
-        $schedule->command('app:dispatch-messages')->dailyAt('13:30')->weekdays();
-        $schedule->command('queue:work --stop-when-empty')->everyMinute();
+        $schedule->command('app:dispatch-messages')->dailyAt('13:30')->weekdays();        
+        $schedule->command('send-activity-reminders')->everyMinute();
+        $schedule->command('queue:work --stop-when-empty')->everyMinute()->withoutOverlapping()->appendOutputTo(storage_path('logs/queue-worker.log'));
+
     }
 
     /**
