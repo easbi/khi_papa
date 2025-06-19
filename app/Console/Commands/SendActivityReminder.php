@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
+
 use App\Jobs\SendReminderActivityJob; 
 use App\Helpers\DateHelper;
 use App\Models\User;
@@ -44,11 +46,13 @@ class SendActivityReminders extends Command
         foreach ($reminders as $activity) {
             $user = User::where('nip', $activity->nip)->first();
             if (!$user || !$user->no_hp) continue;
+            $keterangan = $activity->keterangan ? Str::limit($activity->keterangan, 100, '...') : '-';
 
             $details = [
-                'message' => "⏰ *Reminder Kegiatan Hari Ini (KHI)*\n"
-                    ."📝 *Kegiatan:* {$activity->kegiatan}\n"
+                'message' => "⏰ *Reminder Kegiatan Hari Ini (KHI)*\n"                
                     ."📅 *Tanggal:* {$activity->tgl}\n"
+                    ."📝 *Kegiatan:* {$activity->kegiatan}\n"
+                    ."🗒️ *Keterangan:* {$keterangan}\n"
                     ."Jangan lupa untuk melengkapi dan menyelesaikan kegiatan hari ini ya, *{$user->fullname}*! 📲",
                 'no_hp' => $user->no_hp,
             ];
