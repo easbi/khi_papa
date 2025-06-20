@@ -46,7 +46,8 @@ class SendActivityReminders extends Command
         foreach ($reminders as $activity) {
             $user = User::where('nip', $activity->nip)->first();
             if (!$user || !$user->no_hp) continue;
-            $keterangan = $activity->keterangan ? Str::limit($activity->keterangan, 100, '...') : '-';
+            $plainKeterangan = strip_tags($activity->keterangan); // Hilangkan tag HTML
+            $keterangan = $plainKeterangan ? Str::limit($plainKeterangan, 100, '...') : '-';
 
             $details = [
                 'message' => "⏰ *Reminder Kegiatan Hari Ini (KHI)*\n"                
