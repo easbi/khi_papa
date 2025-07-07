@@ -64,8 +64,24 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="tgl">Tanggal</label>
+                                    <label for="tgl">Tanggal Mulai</label>
                                     <input type="date" class="form-control form-control-lg mb-3" name="tgl" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_repeated" name="is_repeated" value="1">
+                                        <label class="form-check-label" for="is_repeated">
+                                            <strong>Kegiatan Berulang (Hari Kerja)</strong>
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">Centang jika kegiatan ini berlangsung dalam rentang waktu tertentu (tidak termasuk Sabtu-Minggu)</small>
+                                </div>
+
+                                <div class="form-group" id="tgl_akhir_field" style="display: none;">
+                                    <label for="tgl_akhir">Tanggal Akhir</label>
+                                    <input type="date" class="form-control form-control-lg mb-3" name="tgl_akhir">
+                                    <small class="form-text text-muted">Kegiatan akan dibuat untuk setiap hari kerja (Senin-Jumat) dalam rentang ini</small>
                                 </div>
 
                                 <div class="form-group">
@@ -149,6 +165,29 @@
 
 <script>
     $(document).ready(function(){
+        // Kegiatan berulang toggle
+        $('#is_repeated').change(function(){
+            if($(this).is(':checked')){
+                $('#tgl_akhir_field').show();
+                $('input[name="tgl_akhir"]').attr('required', true);
+            } else {
+                $('#tgl_akhir_field').hide();
+                $('input[name="tgl_akhir"]').attr('required', false);
+                $('input[name="tgl_akhir"]').val('');
+            }
+        });
+
+        // Validasi tanggal akhir
+        $('input[name="tgl_akhir"]').change(function(){
+            var tglMulai = $('input[name="tgl"]').val();
+            var tglAkhir = $(this).val();
+
+            if(tglMulai && tglAkhir && tglAkhir <= tglMulai) {
+                alert('Tanggal akhir harus lebih besar dari tanggal mulai');
+                $(this).val('');
+            }
+        });
+
         // Select All functionality
         $('#selectAll').change(function(){
             if($(this).is(':checked')){
@@ -190,6 +229,7 @@
         });
     });
 </script>
+
 
 <!-- Add Quill CSS and JS -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />

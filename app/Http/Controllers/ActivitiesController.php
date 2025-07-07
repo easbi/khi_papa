@@ -423,7 +423,7 @@ class ActivitiesController extends Controller
     public function storebyteam(Request $request)
     {
         try {
-            // Validasi input
+            // Validasi input dengan tambahan field untuk kegiatan berulang
             $request->validate([
                 'anggota_nip' => 'required|array|min:1',
                 'anggota_nip.*' => 'required|exists:users,nip',
@@ -433,6 +433,8 @@ class ActivitiesController extends Controller
                 'satuan' => 'required|string|max:50',
                 'kuantitas' => 'required|numeric|min:1',
                 'tgl' => 'required|date',
+                'tgl_akhir' => 'nullable|date|after:tgl',
+                'is_repeated' => 'nullable|boolean',
                 'keterangan_kegiatan' => 'nullable|string',
             ]);
 
@@ -445,29 +447,41 @@ class ActivitiesController extends Controller
                 ]);
             }
 
-            // Cek duplikasi untuk setiap anggota yang dipilih
+            // Validasi kegiatan berulang
+            if ($request->is_repeated == '1' && !$request->tgl_akhir) {
+                return redirect()->back()
+                    ->withErrors(['tgl_akhir' => 'Tanggal akhir wajib diisi untuk kegiatan berulang'])
+                    ->withInput();
+            }
+
+            // Generate tanggal-tanggal yang akan digunakan (exclude weekends)
+            $tanggalList = $this->generateWorkingDates($request->tgl, $request->tgl_akhir, $request->is_repeated);
+
+            // Cek duplikasi untuk setiap anggota dan setiap tanggal
             $duplicates = [];
             foreach ($request->anggota_nip as $nip) {
-                $isDuplicate = DB::table('daily_activity')
-                    ->where('nip', $nip)
-                    ->where('tgl', $request->tgl)
-                    ->where('kegiatan', $request->kegiatan)
-                    ->exists();
-
-                if ($isDuplicate) {
-                    $member = DB::table('users')
+                foreach ($tanggalList as $tanggal) {
+                    $isDuplicate = DB::table('daily_activity')
                         ->where('nip', $nip)
-                        ->select('fullname')
-                        ->first();
+                        ->where('tgl', $tanggal)
+                        ->where('kegiatan', $request->kegiatan)
+                        ->exists();
 
-                    $duplicates[] = $member->fullname ?? 'NIP: ' . $nip;
+                    if ($isDuplicate) {
+                        $member = DB::table('users')
+                            ->where('nip', $nip)
+                            ->select('fullname')
+                            ->first();
+
+                        $duplicates[] = ($member->fullname ?? 'NIP: ' . $nip) . ' pada tanggal ' . Carbon::parse($tanggal)->format('d-m-Y');
+                    }
                 }
             }
 
             // Jika ada duplikasi, kembalikan dengan error
             if (!empty($duplicates)) {
                 return redirect()->back()
-                    ->withErrors(['anggota_nip' => 'Anggota berikut sudah memiliki kegiatan yang sama pada tanggal tersebut: ' . implode(', ', $duplicates)])
+                    ->withErrors(['anggota_nip' => 'Duplikasi ditemukan: ' . implode(', ', array_slice($duplicates, 0, 3)) . (count($duplicates) > 3 ? ' dan ' . (count($duplicates) - 3) . ' lainnya...' : '')])
                     ->withInput();
             }
 
@@ -480,54 +494,71 @@ class ActivitiesController extends Controller
 
             // Proses setiap anggota yang dipilih
             foreach ($request->anggota_nip as $nip) {
-                $activityData = [
-                    'nip' => $nip,
-                    'wfo_wfh' => $request->wfo_wfh,
-                    'jenis_kegiatan' => $request->jenis_kegiatan,
-                    'kegiatan' => $request->kegiatan,
-                    'keterangan' => $request->keterangan_kegiatan,
-                    'satuan' => $request->satuan,
-                    'kuantitas' => $request->kuantitas,
-                    'tgl' => $request->tgl,
-                    'created_by' => Auth::user()->nip,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+                $insertData = [];
 
-                // Tambahkan field tambahan jika jenis kegiatan UTAMA
-                if ($request->jenis_kegiatan == 'UTAMA') {
-                    $activityData['tim_kerja_id'] = $request->tim_kerja_id;
-                    $activityData['project_id'] = $request->project_id;
-                    $activityData['kegiatan_utama_id'] = $request->kegiatan_utama_id;
+                // Buat data untuk setiap tanggal
+                foreach ($tanggalList as $tanggal) {
+                    $activityData = [
+                        'nip' => $nip,
+                        'wfo_wfh' => $request->wfo_wfh,
+                        'jenis_kegiatan' => $request->jenis_kegiatan,
+                        'kegiatan' => $request->kegiatan,
+                        'keterangan' => $request->keterangan_kegiatan,
+                        'satuan' => $request->satuan,
+                        'kuantitas' => $request->kuantitas,
+                        'tgl' => $tanggal,
+                        'created_by' => Auth::user()->nip,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+
+                    // Tambahkan field tambahan jika jenis kegiatan UTAMA
+                    if ($request->jenis_kegiatan == 'UTAMA') {
+                        $activityData['tim_kerja_id'] = $request->tim_kerja_id;
+                        $activityData['project_id'] = $request->project_id;
+                        $activityData['kegiatan_utama_id'] = $request->kegiatan_utama_id;
+                    }
+
+                    $insertData[] = $activityData;
                 }
 
-                // Simpan ke database menggunakan Model Activity
-                $result = Activity::create($activityData);
+                // Bulk insert untuk semua tanggal user ini
+                if (!empty($insertData)) {
+                    Activity::insert($insertData);
+                    $successCount += count($insertData);
 
-                if ($result) {
-                    $activities[] = $result;
-                    $successCount++;
-
-                    // Siapkan data untuk notifikasi WhatsApp
+                    // Siapkan data untuk notifikasi WhatsApp (sekali per user)
                     $member = DB::table('users')->where('nip', $nip)->select('fullname', 'no_hp')->first();
                     if ($member && $member->no_hp) {
-                        $taskLink = route('act.show', ['act' => $result->id]);
-                        $timestamp = date('d-m-y H:i:s');
+                        // Ambil activity terakhir untuk link (bisa ambil yang pertama saja)
+                        $latestActivity = Activity::where('nip', $nip)
+                            ->where('kegiatan', $request->kegiatan)
+                            ->where('created_by', Auth::user()->nip)
+                            ->orderBy('id', 'desc')
+                            ->first();
+
+                        $taskLink = route('act.show', ['act' => $latestActivity->id]);
+                        $timestamp = date('d-m-Y H:i:s');
                         $ketua = Auth::user()->fullname;
 
+                        // Format tanggal untuk pesan
+                        $tanggalInfo = count($tanggalList) > 1
+                            ? Carbon::parse($tanggalList[0])->format('d-m-Y') . ' s.d ' . Carbon::parse(end($tanggalList))->format('d-m-Y')
+                            : Carbon::parse($tanggalList[0])->format('d-m-Y');
+
                         $message = "*Notifikasi Penugasan dari Ketua Tim*.
-Hari berganti hari, Anda dapat tugas dari KHI.
-Tugas ini diberikan oleh {$ketua} kepada Anda untuk segera ditindaklanjuti:
+    Hari berganti hari, Anda dapat tugas dari KHI.
+    Tugas ini diberikan oleh {$ketua} kepada Anda untuk segera ditindaklanjuti:
 
-Tugas : {$request->kegiatan}
-Waktu Mulai/Selesai : {$request->tgl}
-Link Tugas (Klik Aja) : {$taskLink}
- -----------
+    Tugas : {$request->kegiatan}
+    Waktu Mulai/Selesai : {$tanggalInfo}
+    Link Tugas (Klik Aja) : {$taskLink}
+    -----------
 
-Harap memastikan bahwa tugas tersebut diselesaikan dalam jadwal yang telah diberikan dan jangan lupa berkomunikasi dengan ketua tim anda.
-Semangat, dan mari selesaikan ini dengan baik! 💪 KHI Selalu mengingatkan bahwa tugas dengan status tidak selesai akan di-exclude dari CKP reallisasi anda.
+    Harap memastikan bahwa tugas tersebut diselesaikan dalam jadwal yang telah diberikan dan jangan lupa berkomunikasi dengan ketua tim anda.
+    Semangat, dan mari selesaikan ini dengan baik! 💪 KHI Selalu mengingatkan bahwa tugas dengan status tidak selesai akan di-exclude dari CKP reallisasi anda.
 
-_Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp} WIB_";
+    _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp} WIB_";
 
                         $notifications[] = [
                             'message' => $message,
@@ -541,42 +572,43 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
             // Commit transaksi
             DB::commit();
 
-            // Kirim notifikasi WhatsApp untuk setiap anggota dengan delay yang lebih baik
-            $baseDelaySeconds = 15; // Delay dasar 15 detik untuk job pertama
-            $intervalSeconds = 20;  // Interval 20 detik antar job
+            // Kirim notifikasi WhatsApp untuk setiap anggota (sekali per user)
+            $baseDelaySeconds = 15;
+            $intervalSeconds = 20;
 
             foreach ($notifications as $index => $notification) {
-                // Hitung delay untuk setiap job
                 $delaySeconds = $baseDelaySeconds + ($index * $intervalSeconds);
-
-                // Convert ke Carbon untuk delay yang akurat
                 $delayTime = now()->addSeconds($delaySeconds);
 
                 $queue = new SendWaPenugasan($notification);
-
-                // Dispatch dengan delay yang spesifik
                 dispatch($queue->delay($delayTime));
 
                 Log::info('WhatsApp job scheduled', [
                     'index' => $index + 1,
                     'member_name' => $notification['member_name'],
                     'delay_seconds' => $delaySeconds,
-                    'scheduled_at' => $delayTime->format('Y-m-d H:i:s'),
-                    'estimated_execution' => $delayTime->addSeconds(5)->format('Y-m-d H:i:s') // +5s untuk execution
+                    'scheduled_at' => $delayTime->format('Y-m-d H:i:s')
                 ]);
             }
 
-            // Log summary
-            Log::info('WhatsApp notifications scheduling completed', [
-                'total_notifications' => count($notifications),
-                'first_job_at' => now()->addSeconds($baseDelaySeconds)->format('H:i:s'),
-                'last_job_at' => now()->addSeconds($baseDelaySeconds + ((count($notifications) - 1) * $intervalSeconds))->format('H:i:s'),
-                'total_duration_minutes' => ceil(($baseDelaySeconds + ((count($notifications) - 1) * $intervalSeconds)) / 60)
+            // Log aktivitas
+            Log::info('Multiple team assignments created by user: ' . Auth::user()->nip, [
+                'assignments_count' => $successCount,
+                'members' => $request->anggota_nip,
+                'date_range' => count($tanggalList) > 1 ? $tanggalList[0] . ' to ' . end($tanggalList) : $tanggalList[0],
+                'working_days' => count($tanggalList),
+                'activity' => $request->kegiatan,
+                'notifications_sent' => count($notifications),
+                'is_repeated' => $request->is_repeated == '1'
             ]);
+
+            $dateRangeText = count($tanggalList) > 1
+                ? 'rentang ' . Carbon::parse($tanggalList[0])->format('d-m-Y') . ' s.d ' . Carbon::parse(end($tanggalList))->format('d-m-Y') . ' (' . count($tanggalList) . ' hari kerja)'
+                : 'tanggal ' . Carbon::parse($tanggalList[0])->format('d-m-Y');
 
             // Redirect dengan pesan sukses
             return redirect()->route('act.index')
-                ->with('success', "Penugasan berhasil disimpan untuk {$successCount} anggota tim! Notifikasi WhatsApp telah dikirim ke " . count($notifications) . " anggota.");
+                ->with('success', "Penugasan berhasil disimpan untuk " . count($request->anggota_nip) . " anggota tim pada {$dateRangeText}! Total {$successCount} kegiatan dibuat. Notifikasi WhatsApp telah dikirim ke " . count($notifications) . " anggota.");
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollback();
@@ -594,6 +626,34 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
                 ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.'])
                 ->withInput();
         }
+    }
+
+    /**
+     * Generate working dates (excluding weekends)
+     */
+    private function generateWorkingDates($startDate, $endDate = null, $isRepeated = false)
+    {
+        $dates = [];
+        $start = Carbon::createFromFormat('Y-m-d', $startDate);
+
+        if (!$isRepeated || !$endDate) {
+            // Single date
+            return [$start->format('Y-m-d')];
+        }
+
+        $end = Carbon::createFromFormat('Y-m-d', $endDate);
+
+        // Generate working days (Monday to Friday)
+        $current = $start->copy();
+        while ($current->lte($end)) {
+            // Check if it's a weekday (Monday = 1, Friday = 5)
+            if ($current->dayOfWeek >= 1 && $current->dayOfWeek <= 5) {
+                $dates[] = $current->format('Y-m-d');
+            }
+            $current->addDay();
+        }
+
+        return $dates;
     }
 
     /**
