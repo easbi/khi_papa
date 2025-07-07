@@ -48,9 +48,9 @@ class SendWaPenugasan implements ShouldQueue
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => 'token=' . $token . '&number=' . $this->details['no_hp'] . '&message=' . urlencode($this->details['message']),
         ));
-        
+
         $response = curl_exec($curl);
-        
+
         if (curl_errno($curl)) {
             Log::error('Curl error: ' . curl_error($curl));
         } else {

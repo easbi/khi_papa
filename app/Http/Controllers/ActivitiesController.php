@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Helpers\DateHelper;
 
 use App\Jobs\SendWaPenugasan;
@@ -86,7 +87,7 @@ class ActivitiesController extends Controller
                     fn($date) => $date->isWeekday(), // Hanya menghitung hari Senin - Jumat
                     Carbon::today()
                 ) + 1; //adjustment to the day
-                $datenow = (new \DateTime())->format('Y-m-d'); 
+                $datenow = (new \DateTime())->format('Y-m-d');
                 // Hari Libur dalam Senin-Jumat
 
                 $bulan=$today->format('m');
@@ -112,8 +113,8 @@ class ActivitiesController extends Controller
                 return $user;
             })
             ->filter(fn($user) => $user->missed_days > 0)
-            ->sortByDesc('missed_days') 
-            ->values(); 
+            ->sortByDesc('missed_days')
+            ->values();
 
 
         // dd($leastEmployees);
@@ -165,7 +166,7 @@ class ActivitiesController extends Controller
 
     public function allActivity()
     {
-       $activities = DB::table('daily_activity')->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get(); 
+       $activities = DB::table('daily_activity')->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
        return view('dailyactivity.allactivity',compact('activities'))->with('i');
     }
 
@@ -197,7 +198,7 @@ class ActivitiesController extends Controller
             ->orderBy('year', 'desc')
             ->get();
 
-        //Script Menampilkan Tanggal tidak Mengisi KHI     
+        //Script Menampilkan Tanggal tidak Mengisi KHI
         $workingDaysWithoutHolidays = DateHelper::getWorkingDaysWithoutHolidaysUntilToday();
 
         $filledDays = DB::table('daily_activity')
@@ -216,7 +217,7 @@ class ActivitiesController extends Controller
         // dd($missedDaysFormatted);
 
         $activities = DB::table('daily_activity')->where('daily_activity.nip', Auth::user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
-        
+
         return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted'))->with('i', (request()->input('page', 1) - 1) * 5 );
     }
 
@@ -264,9 +265,9 @@ class ActivitiesController extends Controller
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
             ->join('users as ketua_tim', 'master_tim_kerja.nip_ketua_tim', '=', 'ketua_tim.nip')
             ->select(
-                'master_tim_kerja.nama_tim_kerja', 
+                'master_tim_kerja.nama_tim_kerja',
                 'ketua_tim.fullname as nama_ketua_tim',
-                'master_project.nama_project', 
+                'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
                 'master_assign_anggota.*')
             ->get();
@@ -284,10 +285,10 @@ class ActivitiesController extends Controller
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
             ->where('master_tim_kerja.nip_ketua_tim', '=', Auth::user()->nip)
             ->join('users', 'users.nip', '=', 'master_assign_anggota.anggota_nip')
-            ->select( 
+            ->select(
                 'users.fullname',
                 'users.nip')
-            ->get()            
+            ->get()
             ->unique('nip');
 
         $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 14])->get();
@@ -331,7 +332,7 @@ class ActivitiesController extends Controller
 
         // Ambil tanggal mulai dan tanggal selesai (opsional)
         $tglMulai = Carbon::createFromFormat('Y-m-d', $request->tgl);
-        $tglendLoop = $request->tgl_akhir ? Carbon::createFromFormat('Y-m-d', $request->tgl_akhir) : $tglMulai; 
+        $tglendLoop = $request->tgl_akhir ? Carbon::createFromFormat('Y-m-d', $request->tgl_akhir) : $tglMulai;
 
 
         $request->validate([
@@ -383,8 +384,8 @@ class ActivitiesController extends Controller
                 'project_id' => $request->project_id,
                 'kegiatan_utama_id' => $request->kegiatan_utama_id,
                 'is_reminded' => $request->enable_reminder == '1' ? 1 : 0
-            ]; 
-        } 
+            ];
+        }
 
         $insertData = [];
         $reminderTime = $request->reminder_time;
@@ -410,7 +411,7 @@ class ActivitiesController extends Controller
                 }
                 $tglMulai->addDay(); // Tambahkan 1 hari
             }
-        }        
+        }
 
         // Simpan semua data ke database
         $result = Activity::insert($insertData);
@@ -421,66 +422,178 @@ class ActivitiesController extends Controller
 
     public function storebyteam(Request $request)
     {
-        $request->validate([
-            'anggota_nip' => 'required',
-            'wfo_wfh' => 'required',
-            'jenis_kegiatan' => 'required',
-            'kegiatan'=> 'required',
-            'satuan'=> 'required',
-            'kuantitas'=> 'required',
-            'tgl'=> 'required',
-        ]);
-
-        $result = Activity::create([
-                'nip' => $request->anggota_nip,
-                'wfo_wfh' => $request->wfo_wfh,
-                'jenis_kegiatan' => $request->jenis_kegiatan,
-                'tim_kerja_id' => $request->tim_kerja_id,
-                'project_id' => $request->project_id,
-                'kegiatan_utama_id' => $request->kegiatan_utama_id,
-                'kegiatan'=> $request->kegiatan,
-                'keterangan'=> $request->keterangan_kegiatan,
-                'satuan'=> $request->satuan,
-                'kuantitas'=> $request->kuantitas,
-                'tgl'=> $request->tgl,
-                'created_by' => Auth::user()->nip,
+        try {
+            // Validasi input
+            $request->validate([
+                'anggota_nip' => 'required|array|min:1',
+                'anggota_nip.*' => 'required|exists:users,nip',
+                'wfo_wfh' => 'required|in:WFO,TL,Lainnya',
+                'jenis_kegiatan' => 'required|in:UTAMA,TAMBAHAN',
+                'kegiatan' => 'required|string|max:255',
+                'satuan' => 'required|string|max:50',
+                'kuantitas' => 'required|numeric|min:1',
+                'tgl' => 'required|date',
+                'keterangan_kegiatan' => 'nullable|string',
             ]);
 
-        // Mendapatkan ID dari aktivitas yang baru disimpan
-        $activityId = $result->id;
-        $taskLink = route('act.show', ['act' => $activityId]);
+            // Validasi tambahan untuk jenis kegiatan UTAMA
+            if ($request->jenis_kegiatan == 'UTAMA') {
+                $request->validate([
+                    'tim_kerja_id' => 'required|exists:master_tim_kerja,id',
+                    'project_id' => 'required|exists:master_project,id',
+                    'kegiatan_utama_id' => 'required|exists:master_kegiatan_utama,id',
+                ]);
+            }
 
-        $timestamp = date('d-m-y h:i:s');
-        $ketua = DB::table('users')->where('nip', '=', Auth::user()->nip)->value('fullname');
-        $no_hp = DB::table('users')->where('nip', '=', $request->anggota_nip)->value('no_hp');
-        $message = 
-"*Notifikasi Penugasan dari Ketua Tim*.
+            // Cek duplikasi untuk setiap anggota yang dipilih
+            $duplicates = [];
+            foreach ($request->anggota_nip as $nip) {
+                $isDuplicate = DB::table('daily_activity')
+                    ->where('nip', $nip)
+                    ->where('tgl', $request->tgl)
+                    ->where('kegiatan', $request->kegiatan)
+                    ->exists();
+
+                if ($isDuplicate) {
+                    $member = DB::table('users')
+                        ->where('nip', $nip)
+                        ->select('fullname')
+                        ->first();
+
+                    $duplicates[] = $member->fullname ?? 'NIP: ' . $nip;
+                }
+            }
+
+            // Jika ada duplikasi, kembalikan dengan error
+            if (!empty($duplicates)) {
+                return redirect()->back()
+                    ->withErrors(['anggota_nip' => 'Anggota berikut sudah memiliki kegiatan yang sama pada tanggal tersebut: ' . implode(', ', $duplicates)])
+                    ->withInput();
+            }
+
+            // Mulai transaksi database
+            DB::beginTransaction();
+
+            $successCount = 0;
+            $activities = [];
+            $notifications = [];
+
+            // Proses setiap anggota yang dipilih
+            foreach ($request->anggota_nip as $nip) {
+                $activityData = [
+                    'nip' => $nip,
+                    'wfo_wfh' => $request->wfo_wfh,
+                    'jenis_kegiatan' => $request->jenis_kegiatan,
+                    'kegiatan' => $request->kegiatan,
+                    'keterangan' => $request->keterangan_kegiatan,
+                    'satuan' => $request->satuan,
+                    'kuantitas' => $request->kuantitas,
+                    'tgl' => $request->tgl,
+                    'created_by' => Auth::user()->nip,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+
+                // Tambahkan field tambahan jika jenis kegiatan UTAMA
+                if ($request->jenis_kegiatan == 'UTAMA') {
+                    $activityData['tim_kerja_id'] = $request->tim_kerja_id;
+                    $activityData['project_id'] = $request->project_id;
+                    $activityData['kegiatan_utama_id'] = $request->kegiatan_utama_id;
+                }
+
+                // Simpan ke database menggunakan Model Activity
+                $result = Activity::create($activityData);
+
+                if ($result) {
+                    $activities[] = $result;
+                    $successCount++;
+
+                    // Siapkan data untuk notifikasi WhatsApp
+                    $member = DB::table('users')->where('nip', $nip)->select('fullname', 'no_hp')->first();
+                    if ($member && $member->no_hp) {
+                        $taskLink = route('act.show', ['act' => $result->id]);
+                        $timestamp = date('d-m-y H:i:s');
+                        $ketua = Auth::user()->fullname;
+
+                        $message = "*Notifikasi Penugasan dari Ketua Tim*.
 Hari berganti hari, Anda dapat tugas dari KHI.
 Tugas ini diberikan oleh {$ketua} kepada Anda untuk segera ditindaklanjuti:
 
-Tugas : {$request->kegiatan} 
-Waktu Mulai/Selesai : {$request->tgl} 
+Tugas : {$request->kegiatan}
+Waktu Mulai/Selesai : {$request->tgl}
 Link Tugas (Klik Aja) : {$taskLink}
  -----------
 
-Harap memastikan bahwa tugas tersebut diselesaikan dalam jadwal yang telah diberikan dan jangan lupa berkomunikasi dengan ketua tim anda. 
+Harap memastikan bahwa tugas tersebut diselesaikan dalam jadwal yang telah diberikan dan jangan lupa berkomunikasi dengan ketua tim anda.
 Semangat, dan mari selesaikan ini dengan baik! 💪 KHI Selalu mengingatkan bahwa tugas dengan status tidak selesai akan di-exclude dari CKP reallisasi anda.
 
-_Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp} WIB_
-";
-        $details = [
-                'message' => $message,
-                'no_hp' => $no_hp,
-            ];
+_Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp} WIB_";
 
-        $delay = \DB::table('jobs')->count()*10;
-        $queue = new SendWaPenugasan($details);
+                        $notifications[] = [
+                            'message' => $message,
+                            'no_hp' => $member->no_hp,
+                            'member_name' => $member->fullname
+                        ];
+                    }
+                }
+            }
 
-        // send all notification whatsapp in the queue.
-        dispatch($queue->delay($delay));
+            // Commit transaksi
+            DB::commit();
 
-         return redirect()->route('act.index')
-                        ->with('success','Kegiatan Sukses Ditambahkan!');
+            // Kirim notifikasi WhatsApp untuk setiap anggota dengan delay yang lebih baik
+            $baseDelaySeconds = 15; // Delay dasar 15 detik untuk job pertama
+            $intervalSeconds = 20;  // Interval 20 detik antar job
+
+            foreach ($notifications as $index => $notification) {
+                // Hitung delay untuk setiap job
+                $delaySeconds = $baseDelaySeconds + ($index * $intervalSeconds);
+
+                // Convert ke Carbon untuk delay yang akurat
+                $delayTime = now()->addSeconds($delaySeconds);
+
+                $queue = new SendWaPenugasan($notification);
+
+                // Dispatch dengan delay yang spesifik
+                dispatch($queue->delay($delayTime));
+
+                Log::info('WhatsApp job scheduled', [
+                    'index' => $index + 1,
+                    'member_name' => $notification['member_name'],
+                    'delay_seconds' => $delaySeconds,
+                    'scheduled_at' => $delayTime->format('Y-m-d H:i:s'),
+                    'estimated_execution' => $delayTime->addSeconds(5)->format('Y-m-d H:i:s') // +5s untuk execution
+                ]);
+            }
+
+            // Log summary
+            Log::info('WhatsApp notifications scheduling completed', [
+                'total_notifications' => count($notifications),
+                'first_job_at' => now()->addSeconds($baseDelaySeconds)->format('H:i:s'),
+                'last_job_at' => now()->addSeconds($baseDelaySeconds + ((count($notifications) - 1) * $intervalSeconds))->format('H:i:s'),
+                'total_duration_minutes' => ceil(($baseDelaySeconds + ((count($notifications) - 1) * $intervalSeconds)) / 60)
+            ]);
+
+            // Redirect dengan pesan sukses
+            return redirect()->route('act.index')
+                ->with('success', "Penugasan berhasil disimpan untuk {$successCount} anggota tim! Notifikasi WhatsApp telah dikirim ke " . count($notifications) . " anggota.");
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput();
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error in storebyteam: ' . $e->getMessage(), [
+                'user_id' => Auth::user()->id,
+                'request_data' => $request->all()
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.'])
+                ->withInput();
+        }
     }
 
     /**
@@ -497,8 +610,8 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
             ->leftJoin('master_project', 'master_project.id', '=', 'daily_activity.project_id')
             ->leftJoin('master_tim_kerja', 'master_tim_kerja.id', '=', 'daily_activity.tim_kerja_id')
             ->select(
-                'master_tim_kerja.nama_tim_kerja', 
-                'master_project.nama_project', 
+                'master_tim_kerja.nama_tim_kerja',
+                'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
                 'daily_activity.*')
             ->first();
@@ -519,8 +632,8 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
             ->leftJoin('master_project', 'master_project.id', '=', 'daily_activity.project_id')
             ->leftJoin('master_tim_kerja', 'master_tim_kerja.id', '=', 'daily_activity.tim_kerja_id')
             ->select(
-                'master_tim_kerja.nama_tim_kerja', 
-                'master_project.nama_project', 
+                'master_tim_kerja.nama_tim_kerja',
+                'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
                 'daily_activity.*')
             ->first();
@@ -763,7 +876,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
 
                 // Menambahkan jumlah hari yang diisi ke objek pengguna
                 $user->filled_days = $filledDays;
-                
+
                 // Skala 50 untuk hari pengisian
                 $filledDaysScore = (($filledDays - $hariLibur) / $maxWorkDays) * 50;
 
@@ -871,7 +984,7 @@ _Pesan ini dikirimkan oleh *KHI* BPS Kota Padang Panjang Pada waktu {$timestamp}
 
                 // Menambahkan jumlah hari yang diisi ke objek pengguna
                 $user->filled_days = $filledDays;
-                
+
 
 
                 // Skala 50 untuk hari pengisian

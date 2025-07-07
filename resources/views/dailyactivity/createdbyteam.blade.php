@@ -7,7 +7,6 @@
         <span class="text-uppercase page-subtitle">KHI</span>
         <h3 class="page-title">Penugasan oleh Ketua Tim</h3>
     </div>
-    
 </div>
 
 <!-- Content -->
@@ -32,20 +31,43 @@
                     <div class="row">
                         <div class="col-sm-12 col-md-12">
                             <form action="{{ route('act.storebyteam') }}" method="POST" enctype="multipart/form-data">
-                                @csrf                                
+                                @csrf
+
+                                <!-- Multiple Team Member Selection -->
                                 <div class="form-group">
-                                    <label for="">Anggota Tim Kerja</label>                                    
-                                    <select class="form-control" id="anggota_nip" name="anggota_nip" required>
-                                        <option value="" selected disabled>Pilih</option>
-                                        @foreach($teammember as $item)
-                                            <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
-                                        @endforeach
-                                    </select>
+                                    <label for="">Anggota Tim Kerja</label>
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                                <label class="form-check-label" for="selectAll">
+                                                    <strong>Pilih Semua</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+                                            @foreach($teammember as $index => $member)
+                                                <div class="form-check">
+                                                    <input class="form-check-input member-checkbox"
+                                                           type="checkbox"
+                                                           name="anggota_nip[]"
+                                                           value="{{ $member->nip }}"
+                                                           id="member_{{ $index }}">
+                                                    <label class="form-check-label" for="member_{{ $index }}">
+                                                        {{ $member->fullname }} ({{ $member->nip }})
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted">Pilih satu atau lebih anggota tim kerja</small>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="tgl">Tanggal</label>
                                     <input type="date" class="form-control form-control-lg mb-3" name="tgl" required>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="wfo_wfh">WFO/WFH:</label>
                                     <select class="form-control" id="wfo_wfh" name="wfo_wfh" required>
@@ -54,6 +76,7 @@
                                         <option value="Lainnya">Lainnya (Cuti, Sakit, Izin)</option>
                                     </select>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="jenis_kegiatan">Pekerjaan Utama/Tambahan</label>
                                     <select class="form-control" id="jenis_kegiatan" name="jenis_kegiatan" required>
@@ -61,27 +84,31 @@
                                         <option value="TAMBAHAN">Pekerjaan Tambahan</option>
                                     </select>
                                 </div>
+
                                 <div class="form-group" id="tim_kerja_field">
-                                    <label for="">Tim Kerja</label>                                    
+                                    <label for="">Tim Kerja</label>
                                     <select class="form-control" id="tim_kerja_id" name="tim_kerja_id">
                                         <option value="" selected disabled>Pilih</option>
                                         @foreach($TimKerja as $TimKerja)
                                             <option value="{{ $TimKerja->tim_kerja_id }}">{{ $TimKerja->nama_tim_kerja }}</option>
                                         @endforeach
                                     </select>
-                                </div>                                
+                                </div>
+
                                 <div class="form-group" id="project_field">
-                                    <label for="">Project</label>                                    
+                                    <label for="">Project</label>
                                     <select class="form-control" id="project" name="project_id">
                                         <option value="">Pilih Project</option>
-                                    </select>                                        
+                                    </select>
                                 </div>
+
                                 <div class="form-group" id="kegiatan_utama_field">
-                                    <label for="">Kegiatan Utama</label>                                    
+                                    <label for="">Kegiatan Utama</label>
                                     <select class="form-control" id="kegiatan_utama" name="kegiatan_utama_id">
                                         <option value="">Pilih Kegiatan Utama</option>
-                                    </select>                                        
+                                    </select>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="kegiatan">Nama Kegiatan:</label>
                                     <input list="kegiatan-options" class="form-control" name="kegiatan" id="kegiatan" autocomplete="off" required/>
@@ -89,18 +116,22 @@
                                         <!-- Options will be populated via JavaScript -->
                                     </datalist>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="kuantitas">Jumlah:</label>
                                     <input type="number" class="form-control" name="kuantitas" required/>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="satuan">Satuan:</label>
                                     <input type="text" class="form-control" name="satuan" required/>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="keterangan_kegiatan">Keterangan Kegiatan:</label>
                                     <div id="keterangan_kegiatan" style="height: 200px;"></div>
                                 </div>
+
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-success">Kirim</button>
                                 </div>
@@ -115,8 +146,28 @@
 <!-- End of Content -->
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
 <script>
     $(document).ready(function(){
+        // Select All functionality
+        $('#selectAll').change(function(){
+            if($(this).is(':checked')){
+                $('.member-checkbox').prop('checked', true);
+            } else {
+                $('.member-checkbox').prop('checked', false);
+            }
+        });
+
+        // Individual checkbox change
+        $('.member-checkbox').change(function(){
+            if($('.member-checkbox:checked').length === $('.member-checkbox').length){
+                $('#selectAll').prop('checked', true);
+            } else {
+                $('#selectAll').prop('checked', false);
+            }
+        });
+
+        // Kegiatan autocomplete
         $('#kegiatan').on('input', function(){
             let query = $(this).val();
 
@@ -139,6 +190,7 @@
         });
     });
 </script>
+
 <!-- Add Quill CSS and JS -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
@@ -146,8 +198,8 @@
 <script>
     // Initialize Quill editor for the "Keterangan Kegiatan" field
     var quill = new Quill('#keterangan_kegiatan', {
-        theme: 'snow', // Theme for the editor
-        placeholder: 'Masukkan keterangan kegiatan berupa nama proses detail atau rincian tahapan kegiatan, field input ini bisa juga diabaian jika nama kegiatan sudah unik dan tidak perlu pemisahan', // Placeholder text
+        theme: 'snow',
+        placeholder: 'Masukkan keterangan kegiatan berupa nama proses detail atau rincian tahapan kegiatan, field input ini bisa juga diabaian jika nama kegiatan sudah unik dan tidak perlu pemisahan',
         modules: {
             toolbar: [
                 ['bold', 'italic', 'underline', 'strike'],
@@ -160,8 +212,15 @@
         }
     });
 
-    // Optional: If you need to capture the content of the editor to save it in a hidden field
-    $('form').submit(function() {
+    // Form submission handler
+    $('form').submit(function(e) {
+        // Check if at least one member is selected
+        if($('.member-checkbox:checked').length === 0) {
+            e.preventDefault();
+            alert('Silakan pilih minimal satu anggota tim kerja');
+            return false;
+        }
+
         // Assign Quill editor content to a hidden input field before form submission
         var keterangan = quill.root.innerHTML;
         $('<input>').attr({
@@ -172,19 +231,15 @@
     });
 </script>
 
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function(){
         $('#jenis_kegiatan').change(function() {
             var jenis_kegiatan = $(this).val();
             if(jenis_kegiatan == 'TAMBAHAN') {
-                // Hide fields when 'TAMBAHAN' is selected
                 $('#tim_kerja_field').hide();
                 $('#project_field').hide();
                 $('#kegiatan_utama_field').hide();
             } else {
-                // Show fields when 'UTAMA' is selected
                 $('#tim_kerja_field').show();
                 $('#project_field').show();
                 $('#kegiatan_utama_field').show();
@@ -192,20 +247,18 @@
         });
     });
 </script>
+
 <script>
     $(document).ready(function() {
         $('#tim_kerja_id').change(function() {
             var tim_kerja_id = $(this).val();
             $("#project").html('');
             if (tim_kerja_id) {
-                // var url = '{{ url("kegiatanutama/getProject") }}/' + tim_kerja_id;
-                // console.log('Project:', url);
                 $.ajax({
-                    url: '{{ url("temp/getProject") }}/' + tim_kerja_id,                    
+                    url: '{{ url("temp/getProject") }}/' + tim_kerja_id,
                     type: "GET",
                     dataType: "json",
                     success: function(data) {
-                        // console.log("Respons JSON:", data); // Debugging respons
                         $('#project').empty().append('<option value="" selected disabled>Pilih Project</option>');
                         if ($.isEmptyObject(data)) {
                             alert('Tidak ada project untuk Tim Kerja yang dipilih.');
@@ -216,7 +269,7 @@
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error("Error:", xhr.responseText); // Debugging error
+                        console.error("Error:", xhr.responseText);
                         alert('Gagal mengambil data. Silakan coba lagi.');
                     }
                 });
@@ -225,20 +278,18 @@
             }
         });
 
-
         $('#project').change(function() {
             var project_id = $(this).val();
-            $("#kegiatanutama").html('');
+            $("#kegiatan_utama").html('');
             if (project_id) {
                 $.ajax({
-                    url: '{{ url("temp/getKegiatanutama") }}/' + project_id,                    
+                    url: '{{ url("temp/getKegiatanutama") }}/' + project_id,
                     type: "GET",
                     dataType: "json",
                     success: function(data) {
-                        // console.log("Respons JSON:", data); // Debugging respons
-                        $('#kegiatan_utama').empty().append('<option value="" selected disabled>Pilih Project</option>');
+                        $('#kegiatan_utama').empty().append('<option value="" selected disabled>Pilih Kegiatan Utama</option>');
                         if ($.isEmptyObject(data)) {
-                            alert('Tidak ada kegiatan_utama untuk Tim Kerja yang dipilih.');
+                            alert('Tidak ada kegiatan_utama untuk Project yang dipilih.');
                         } else {
                             $.each(data, function(key, value) {
                                 $('#kegiatan_utama').append('<option value="'+ key +'">'+ value +'</option>');
@@ -246,7 +297,7 @@
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error("Error:", xhr.responseText); // Debugging error
+                        console.error("Error:", xhr.responseText);
                         alert('Gagal mengambil data. Silakan coba lagi.');
                     }
                 });
@@ -255,7 +306,6 @@
             }
         });
     });
-
 </script>
 
 @endsection
