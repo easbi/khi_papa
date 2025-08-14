@@ -79,4 +79,22 @@ class DateHelper
 
         return $workingDays;
     }
+
+    // Di DateHelper.php tambahkan method ini:
+    public static function getWorkingDaysWithoutHolidaysFullMonth($bulan, $tahun)
+    {
+        $holidayDates = self::getWeekdayHolidaysFullMonth($bulan, $tahun);
+        $workingDays = [];
+        $date = Carbon::create($tahun, $bulan)->startOfMonth();
+        $endOfMonth = Carbon::create($tahun, $bulan)->endOfMonth();
+
+        while ($date->lessThanOrEqualTo($endOfMonth)) {
+            if ($date->isWeekday() && !in_array($date->format('Y-m-d'), $holidayDates)) {
+                $workingDays[] = $date->format('Y-m-d');
+            }
+            $date->addDay();
+        }
+
+        return $workingDays;
+    }
 }

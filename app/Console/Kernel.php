@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\SendActivityReminders::class,
+        \App\Console\Commands\SendNotifLeaderMonthlyReport::class,
     ];
 
     /**
@@ -24,9 +25,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('app:send-birthday-reminders')->dailyAt('00:20');   
+        $schedule->command('app:send-birthday-reminders')->dailyAt('00:20');
+        $schedule->command('send-notif-leader-monthly-report')->monthlyOn(1, '07:30');
 
-        $schedule->command('app:dispatch-messages')->dailyAt('13:30')->weekdays();        
+        $schedule->command('app:dispatch-messages')->dailyAt('13:30')->weekdays();
         $schedule->command('send-activity-reminders')->everyMinute();
         $schedule->command('queue:work --stop-when-empty')->everyMinute()->withoutOverlapping()->appendOutputTo(storage_path('logs/queue-worker.log'));
 
