@@ -26,7 +26,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('app:send-birthday-reminders')->dailyAt('00:20');
-        $schedule->command('send-notif-leader-monthly-report')->monthlyOn(1, '07:30');
+        $schedule->command('send-notif-leader-monthly-report')->monthlyOn(1, '10:02');
 
         $schedule->command('app:dispatch-messages')->dailyAt('13:30')->weekdays();
         $schedule->command('send-activity-reminders')->everyMinute();
