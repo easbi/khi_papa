@@ -30,7 +30,7 @@ class SendNotifLeaderMonthlyReport extends Command
         // Hitung statistik KHI
         $stats = $this->getKHIStats($startDate, $endDate, $workingDays);
 
-        $message = "📊 *Laporan Monitoring KBI Bulanan*\n\n"
+        $message = "📊 *Laporan Monitoring KHI Bulanan*\n\n"
             . "📅 Periode: {$monthName}\n"
             . "📆 Hari Kerja: {$stats['actual_working_days']} hari\n"
             . "👥 Total Pegawai: {$stats['total_employees']} orang\n\n"
@@ -48,7 +48,7 @@ class SendNotifLeaderMonthlyReport extends Command
 
         $message .= "📋 Rata- rata Persentase Keaktifan Pengisian KHI : {$stats['rata_rata']}%\n\n"
             . "📊 Monitoring lengkap dapat di akses di : https://sipalink.id/khi/public/act/monitoring\n\n"
-            . "_ Notifikasi Laporan ini secara otomatis sistem KHI di awal bulan untuk pimpinan_";
+            . "_Notifikasi Laporan ini secara otomatis sistem KHI di akhir bulan untuk pimpinan_";
 
         $details = [
             'message' => $message,
