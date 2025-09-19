@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
-use App\Jobs\SendReminderActivityJob; 
+use App\Jobs\SendReminderActivityJob;
 use App\Helpers\DateHelper;
 use App\Models\User;
 use App\Models\Activity;
@@ -50,7 +50,7 @@ class SendActivityReminders extends Command
             $keterangan = $plainKeterangan ? Str::limit($plainKeterangan, 100, '...') : '-';
 
             $details = [
-                'message' => "⏰ *Reminder Kegiatan Hari Ini (KHI)*\n"                
+                'message' => "⏰ *Reminder Kegiatan Hari Ini (KHI)*\n"
                     ."📅 *Tanggal:* {$activity->tgl}\n"
                     ."📝 *Kegiatan:* {$activity->kegiatan}\n"
                     ."🗒️ *Keterangan:* {$keterangan}\n"
