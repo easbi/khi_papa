@@ -173,7 +173,7 @@
                     <i class="material-icons">assessment</i>
                     <span>Kegiatan Utama</span>
                   </a>
-                </li>                
+                </li>
                 <li class="nav-item">
                   <a class="nav-link {{ Request::is('assigntim')? "active":"" }}" href="{{ url('/assigntim')}}">
                     <i class="material-icons">assessment</i>
@@ -228,7 +228,7 @@
               <li class="nav-item">
                 <a class="nav-link" href="#">
                   <i class="material-icons">verified_user</i>
-                  <span>Repository Tim Kerja</span>                  
+                  <span>Repository Tim Kerja</span>
                   <span class="new-badge">cooming soon</span>
                 </a>
               </li>
@@ -280,7 +280,7 @@
                 </div>
               </form>
 
-              
+
 
               <ul class="navbar-nav border-left flex-row align-items-center">
                 <li class="nav-item border-right dropdown notifications">

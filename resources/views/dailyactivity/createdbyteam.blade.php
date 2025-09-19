@@ -138,10 +138,37 @@
                                     <input type="number" class="form-control" name="kuantitas" required/>
                                 </div>
 
-                                <div class="form-group">
-                                    <label for="satuan">Satuan:</label>
-                                    <input type="text" class="form-control" name="satuan" required/>
-                                </div>
+                                <div class="form-group" id="satuan" style="display: block;">
+                                        <label for="satuan">Satuan:</label>
+                                        <select class="form-control" name="satuan" id="satuanSelect" required>
+                                            <option value="">-- Pilih Satuan --</option>
+                                            <option value="Kegiatan" selected>Kegiatan</option>
+                                            <option value="Hari">Hari</option>
+                                            <option value="Dokumen">Dokumen</option>
+                                            <option value="Laporan">Laporan</option>
+                                            <option value="Publikasi">Publikasi</option>
+                                            <option value="Blok Sensus">Blok Sensus</option>
+                                            <option value="Paket">Paket</option>
+                                            <option value="Sampel">Sampel</option>
+                                            <option value="Tabel">Tabel</option>
+                                            <option value="File">File</option>
+                                            <option value="Daftar">Daftar</option>
+                                            <option value="Responden">Responden</option>
+                                            <option value="Jam Pelatihan">Jam Pelatiha (JP)</option>
+                                            <option value="Transaksi">Transaksi</option>
+                                            <option value="Jam">Jam</option>
+                                            <option value="Petugas">Petugas</option>
+                                            <option value="Kali">Kali</option>
+                                            <option value="E-Form">E-Form</option>
+                                            <option value="Buku">Buku</option>
+                                            <option value="Konten">Konten</option>
+                                            <option value="Rumah Tangga">Rumah Tangga</option>
+                                            <option value="Pertemuan">Pertemuan</option>
+                                            <option value="Bab">Bab</option>
+                                            <option value="Blok">Blok</option>
+                                            <option value="Segmen">Segmen</option>
+                                        </select>
+                                    </div>
 
                                 <div class="form-group">
                                     <label for="keterangan_kegiatan">Keterangan Kegiatan:</label>
