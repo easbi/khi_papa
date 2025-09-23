@@ -30,32 +30,27 @@ class Kernel extends ConsoleKernel
         // Kirim reminder ulang tahun setiap hari pukul 00:20
         $schedule->command('app:send-birthday-reminders')
             ->dailyAt('00:20')
-            ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/send-birthday-reminders.log'));
 
         // Kirim laporan bulanan terakhir pukul 14:00
         $schedule->command('send-notif-leader-monthly-report')
             ->lastDayOfMonth('14:00')
-            ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/send-notif-leader-monthly-report.log'));
 
         // Dispatch daily messages tiap hari kerja pukul 13:30
         $schedule->command('app:dispatch-messages')
             ->weekdays()
             ->dailyAt('13:30')
-            ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/dispatch-messages.log'));
 
         // Kirim activity reminder setiap 10 menit
         $schedule->command('send-activity-reminders')
             ->everyTenMinutes()
-            ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/send-activity-reminders.log'));
 
         // Proses queue worker setiap menit (job queue akan diproses setiap 1 menit)
         $schedule->command('queue:work --once --timeout=120 --tries=3')
             ->everyMinute()
-            ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/queue-worker.log'));
     }
 
