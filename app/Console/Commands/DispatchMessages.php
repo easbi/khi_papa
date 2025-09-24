@@ -243,9 +243,9 @@ class DispatchMessages extends Command
 
         foreach ($users as $user) {
             // 🚧 Hanya untuk test ke 1 nomor (ganti sesuai no HP Anda)
-            if ($user->no_hp !== '085265513571') {
-                continue; // lewati semua kecuali nomor ini
-            }
+            // if ($user->no_hp !== '085265513571') {
+            //     continue; // lewati semua kecuali nomor ini
+            // }
             $TodayActivity = Activity::where('nip', $user->nip)
                 ->where('tgl', $today)
                 ->count();
