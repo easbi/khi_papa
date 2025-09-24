@@ -37,10 +37,10 @@ class Kernel extends ConsoleKernel
             ->lastDayOfMonth('14:00')
             ->appendOutputTo(storage_path('logs/send-notif-leader-monthly-report.log'));
 
-        // Dispatch daily messages tiap hari kerja pukul 13:30
+        // Dispatch daily messages tiap hari kerja pukul 11:30
         $schedule->command('app:dispatch-messages')
             ->weekdays()
-            ->dailyAt('13:30')
+            ->dailyAt('11:30')
             ->appendOutputTo(storage_path('logs/dispatch-messages.log'));
 
         // Kirim activity reminder setiap 10 menit
