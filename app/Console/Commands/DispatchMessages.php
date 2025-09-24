@@ -242,8 +242,8 @@ class DispatchMessages extends Command
         $story = $stories[$index];
 
         foreach ($users as $user) {
-            // 🚧 Hanya untuk test ke 1 nomor (ganti sesuai no HP Anda)
-            // if ($user->no_hp !== '085265513571') {
+            // Hanya untuk test ke 1 nomor (ganti sesuai no HP Anda)
+            // if ($user->no_hp !== 'xxxxxxxxxxxx') {
             //     continue; // lewati semua kecuali nomor ini
             // }
             $TodayActivity = Activity::where('nip', $user->nip)
