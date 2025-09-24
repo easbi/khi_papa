@@ -28,28 +28,28 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // Kirim reminder ulang tahun setiap hari pukul 00:20
-        $schedule->command('app:send-birthday-reminders')
+        $schedule->command('app:send-birthday-reminders --no-interaction')
             ->dailyAt('00:20')
             ->appendOutputTo(storage_path('logs/send-birthday-reminders.log'));
 
         // Kirim laporan bulanan terakhir pukul 14:00
-        $schedule->command('send-notif-leader-monthly-report')
+        $schedule->command('send-notif-leader-monthly-report --no-interaction')
             ->lastDayOfMonth('14:00')
             ->appendOutputTo(storage_path('logs/send-notif-leader-monthly-report.log'));
 
         // Dispatch daily messages tiap hari kerja pukul 11:30
-        $schedule->command('app:dispatch-messages')
+        $schedule->command('app:dispatch-messages --no-interaction')
             ->weekdays()
             ->dailyAt('11:30')
             ->appendOutputTo(storage_path('logs/dispatch-messages.log'));
 
         // Kirim activity reminder setiap 10 menit
-        $schedule->command('send-activity-reminders')
+        $schedule->command('send-activity-reminders --no-interaction')
             ->everyTenMinutes()
             ->appendOutputTo(storage_path('logs/send-activity-reminders.log'));
 
         // Proses queue worker setiap menit (job queue akan diproses setiap 1 menit)
-        $schedule->command('queue:work --once --timeout=120 --tries=3')
+        $schedule->command('queue:work --once --timeout=120 --tries=3 --no-interaction')
             ->everyMinute()
             ->appendOutputTo(storage_path('logs/queue-worker.log'));
     }

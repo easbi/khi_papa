@@ -416,8 +416,7 @@ class ActivitiesController extends Controller
         // Simpan semua data ke database
         $result = Activity::insert($insertData);
 
-        return redirect()->route('act.index')
-                        ->with('success','Kegiatan Sukses Ditambahkan!');
+        return redirect()->route('act.index')->with('success','Kegiatan Sukses Ditambahkan!');
     }
 
     public function storebyteam(Request $request)
