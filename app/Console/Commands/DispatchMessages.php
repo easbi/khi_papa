@@ -237,20 +237,15 @@ class DispatchMessages extends Command
         ];
 
 
-        // pilih narasi berdasar hari (rotate)
         $index = $today->day % count($stories);
         $story = $stories[$index];
 
         foreach ($users as $user) {
-            // Hanya untuk test ke 1 nomor (ganti sesuai no HP Anda)
-            // if ($user->no_hp !== 'xxxxxxxxxxxx') {
-            //     continue; // lewati semua kecuali nomor ini
-            // }
-            $TodayActivity = Activity::where('nip', $user->nip)
-                ->where('tgl', $today)
+            $todayActivity = Activity::where('nip', $user->nip)
+                ->whereDate('tgl', $today)
                 ->count();
 
-            if ($TodayActivity == 0) {
+            if ($todayActivity == 0) {
                 $narrative = str_replace(':missed', $user->missed_days, $story['narrative']);
 
                 $message = "💬 *Notifikasi Aplikasi KHI*\n"
@@ -261,13 +256,19 @@ class DispatchMessages extends Command
                 $details = [
                     'message' => $message,
                     'no_hp' => $user->no_hp,
+                    'fullname' => $user->fullname, // tambahkan biar job tidak error
                 ];
 
                 \Log::info("DispatchMessages jalan untuk user {$user->fullname}, no_hp: {$user->no_hp}");
 
-                $queue = new DailyReminder($details);
-                sleep(10); // delay 10 detik
-                dispatch($queue);
+                // eksekusi langsung job (sync)
+                $job = new DailyReminder($details);
+
+                // kalau mau ada jeda antar user, pakai sleep
+                sleep(10);
+
+                // langsung jalankan handle()
+                $job->handle();
             }
         }
 

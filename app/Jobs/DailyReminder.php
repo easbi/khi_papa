@@ -4,18 +4,22 @@ namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class DailyReminder implements ShouldQueue, ShouldBeUnique
+class DailyReminder implements ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $details;
     public $timeout = 20; // maksimal job jalan 20 detik
+
+    /**
+     * Jalankan job ini selalu di koneksi sync (langsung dieksekusi, tidak masuk tabel jobs).
+     */
+    public $connection = 'sync';
 
     /**
      * Create a new job instance.
@@ -38,7 +42,9 @@ class DailyReminder implements ShouldQueue, ShouldBeUnique
      */
     public function handle(): void
     {
-        Log::info("DailyReminder START untuk {$this->details['no_hp']} - {$this->details['fullname']}");
+        $fullname = $this->details['fullname'] ?? '-';
+
+        Log::info("DailyReminder START untuk {$this->details['no_hp']} - {$fullname}");
 
         $token = env('API_WA_TOKEN');
         $curl = curl_init();
@@ -52,18 +58,18 @@ class DailyReminder implements ShouldQueue, ShouldBeUnique
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => http_build_query([
-                'token'   => $token,
-                'number'  => $this->details['no_hp'],
+                'token' => $token,
+                'number' => $this->details['no_hp'],
                 'message' => $this->details['message'],
             ]),
         ]);
 
         $response = curl_exec($curl);
-        $error    = curl_error($curl);
+        $error = curl_error($curl);
         curl_close($curl);
 
         if ($error) {
-            Log::error("DailyReminder ERROR untuk {$this->details['no_hp']}  : {$error}");
+            Log::error("DailyReminder ERROR untuk {$this->details['no_hp']} : {$error}");
         } else {
             Log::info("DailyReminder SELESAI untuk {$this->details['no_hp']} - Response: {$response}");
         }
