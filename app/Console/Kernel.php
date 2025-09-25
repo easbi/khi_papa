@@ -49,7 +49,7 @@ class Kernel extends ConsoleKernel
             ->appendOutputTo(storage_path('logs/send-activity-reminders.log'));
 
         // Proses queue worker setiap menit (job queue akan diproses setiap 1 menit)
-        $schedule->command('queue:work --once --timeout=120 --tries=3 --no-interaction')
+        $schedule->command('queue:work --no-interaction')
             ->everyMinute()
             ->appendOutputTo(storage_path('logs/queue-worker.log'));
     }
