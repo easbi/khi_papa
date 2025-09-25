@@ -63,7 +63,7 @@ class DailyReminder implements ShouldQueue, ShouldBeUnique
         curl_close($curl);
 
         if ($error) {
-            Log::error("DailyReminder ERROR untuk {$this->details['no_hp']} - {$this->details['fullname']} : {$error}");
+            Log::error("DailyReminder ERROR untuk {$this->details['no_hp']}  : {$error}");
         } else {
             Log::info("DailyReminder SELESAI untuk {$this->details['no_hp']} - Response: {$response}");
         }
