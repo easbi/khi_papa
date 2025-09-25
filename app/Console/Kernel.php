@@ -40,19 +40,13 @@ class Kernel extends ConsoleKernel
         // Dispatch daily messages tiap hari kerja pukul 11:30
         $schedule->command('app:dispatch-messages --no-interaction')
             ->weekdays()
-            ->dailyAt('15:22')
+            ->dailyAt('15:38')
             ->appendOutputTo(storage_path('logs/dispatch-messages.log'));
 
         // Kirim activity reminder setiap 10 menit
         $schedule->command('send-activity-reminders --no-interaction')
             ->everyTenMinutes()
             ->appendOutputTo(storage_path('logs/send-activity-reminders.log'));
-
-        // Proses queue worker setiap menit (job queue akan diproses setiap 1 menit)
-        $schedule->command('queue:work --stop-when-empty --timeout=50 --tries=3 --no-interaction')
-            ->everyMinute()
-            ->withoutOverlapping()
-            ->appendOutputTo(storage_path('logs/queue-worker.log'));
     }
 
     /**

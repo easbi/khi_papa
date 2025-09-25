@@ -266,7 +266,8 @@ class DispatchMessages extends Command
                 \Log::info("DispatchMessages jalan untuk user {$user->fullname}, no_hp: {$user->no_hp}");
 
                 $queue = new DailyReminder($details);
-                dispatch($queue->delay(now()->addSeconds(10)));
+                sleep(10); // delay 10 detik
+                dispatch($queue);
             }
         }
 

@@ -45,20 +45,24 @@ class SendActivityReminders extends Command
 
         foreach ($reminders as $activity) {
             $user = User::where('nip', $activity->nip)->first();
-            if (!$user || !$user->no_hp) continue;
+            if (!$user || !$user->no_hp)
+                continue;
             $plainKeterangan = strip_tags($activity->keterangan); // Hilangkan tag HTML
             $keterangan = $plainKeterangan ? Str::limit($plainKeterangan, 100, '...') : '-';
 
             $details = [
                 'message' => "⏰ *Reminder Kegiatan Hari Ini (KHI)*\n"
-                    ."📅 *Tanggal:* {$activity->tgl}\n"
-                    ."📝 *Kegiatan:* {$activity->kegiatan}\n"
-                    ."🗒️ *Keterangan:* {$keterangan}\n"
-                    ."Jangan lupa untuk melengkapi dan menyelesaikan kegiatan hari ini ya, *{$user->fullname}*! 📲",
+                    . "📅 *Tanggal:* {$activity->tgl}\n"
+                    . "📝 *Kegiatan:* {$activity->kegiatan}\n"
+                    . "🗒️ *Keterangan:* {$keterangan}\n"
+                    . "Jangan lupa untuk melengkapi dan menyelesaikan kegiatan hari ini ya, *{$user->fullname}*! 📲",
                 'no_hp' => $user->no_hp,
             ];
 
-            dispatch((new SendReminderActivityJob($details))->delay(now()->addSeconds(10)));
+            // jeda 10 detik sebelum dispatch job berikutnya
+            sleep(10);
+
+            dispatch(new SendReminderActivityJob($details));
         }
 
 
