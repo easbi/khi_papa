@@ -210,6 +210,101 @@ class Exports_CKP extends Controller
         $sheet->removeRow($row);
 
 
+// --- Mulai Sheet LK-Kipapp ---
+$sheetName = 'LK_Kipapp';
+$spreadsheet->setActiveSheetIndexByName($sheetName);
+$sheet = $spreadsheet->getActiveSheet();
+
+// mulai dari baris 7
+$row = 7;
+
+// Ambil data aktivitas yang sudah dikelompokkan
+$allActivities = DB::table('daily_activity')
+    ->join('users', 'daily_activity.nip', '=', 'users.nip')
+    ->join('master_project', 'daily_activity.project_id', '=', 'master_project.id')
+    ->select(
+        'master_project.nama_project',
+        'daily_activity.kegiatan as nama_kegiatan',
+        'daily_activity.satuan',
+        DB::raw('MIN(daily_activity.tgl) as tgl_awal'),
+        DB::raw('MAX(daily_activity.tgl_selesai) as tgl_akhir'),
+        DB::raw('SUM(daily_activity.kuantitas) as total_kuantitas'),
+        DB::raw('GROUP_CONCAT(DISTINCT daily_activity.link SEPARATOR "; ") as links')
+    )
+    ->whereYear('daily_activity.tgl', $tahun)
+    ->whereMonth('daily_activity.tgl', $bulan)
+    ->where('daily_activity.nip', auth()->user()->nip)
+    ->where('daily_activity.wfo_wfh', '!=', 'Lainnya')
+    ->groupBy(
+        'master_project.nama_project',
+        'daily_activity.kegiatan',
+        'daily_activity.satuan'
+    )
+    ->orderBy('master_project.nama_project', 'asc')   // urut per project
+    ->orderBy(DB::raw('MIN(daily_activity.tgl)'), 'asc') // dalam project urut tanggal
+    ->get();
+
+// isi ke excel
+$no = 1;
+foreach ($allActivities as $activity) {
+    // Nomor (A) → rata tengah
+    $sheet->setCellValue('A' . $row, $no++);
+    $sheet->getStyle('A' . $row)->getAlignment()
+        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+        ->setVertical(Alignment::VERTICAL_CENTER);
+    $sheet->getRowDimension($row)->setRowHeight(25);
+
+    // Nama project (B) → rata kiri
+    $sheet->setCellValue('B' . $row, $activity->nama_project);
+    $sheet->getStyle('B' . $row)->getAlignment()
+        ->setHorizontal(Alignment::HORIZONTAL_LEFT)
+        ->setVertical(Alignment::VERTICAL_CENTER);
+
+    // Tgl mulai & akhir (C, D) → format dd-mm-yyyy
+    $sheet->setCellValue('C' . $row, Carbon::parse($activity->tgl_awal)->format('d-m-Y'));
+    $sheet->setCellValue('D' . $row, Carbon::parse($activity->tgl_akhir)->format('d-m-Y'));
+    $sheet->getStyle('C' . $row . ':D' . $row)->getAlignment()
+        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+        ->setVertical(Alignment::VERTICAL_CENTER);
+
+    // Nama kegiatan (E) → rata kiri + row height 25
+    $sheet->setCellValue('E' . $row, $activity->nama_kegiatan);
+    $sheet->getStyle('E' . $row)->getAlignment()
+        ->setHorizontal(Alignment::HORIZONTAL_LEFT)
+        ->setVertical(Alignment::VERTICAL_CENTER);
+    $sheet->getRowDimension($row)->setRowHeight(25);
+
+    // Satuan (F) & Target (G) → rata tengah middle
+    $sheet->setCellValue('F' . $row, $activity->satuan);
+    $sheet->setCellValue('G' . $row, $activity->total_kuantitas);
+    $sheet->getStyle('F' . $row . ':G' . $row)->getAlignment()
+        ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+        ->setVertical(Alignment::VERTICAL_CENTER);
+
+    // Data dukung (H) → wrap text, lebarnya ikutin kolom E
+    $sheet->setCellValue('H' . $row, $activity->links);
+    $sheet->getStyle('H' . $row)->getAlignment()->setWrapText(true);
+    $sheet->getColumnDimension('H')->setWidth($sheet->getColumnDimension('E')->getWidth());
+
+    // Tambahkan border semua sisi
+    $sheet->getStyle("A{$row}:H{$row}")
+        ->getBorders()->getAllBorders()
+        ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+    $row++;
+}
+
+
+        // Tambahkan border mulai baris 5
+        $lastRow = $row - 1;
+        $sheet->getStyle("A5:H{$lastRow}")
+            ->getBorders()->getAllBorders()
+            ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+
+
+
+
         // Save the new Excel file
         $fileName = $tahun . sprintf('%02d', $bulan) . '_CKP_' . auth()->user()->nip . '.xlsx';
         $writer = new Xlsx($spreadsheet);
