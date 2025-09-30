@@ -17,23 +17,30 @@ class Exports_CKP extends Controller
     public function exportToExcel($tahun, $bulan)
     {
         $mainActivities = DB::table('daily_activity')
-            ->whereYear('tgl', '=', $tahun) 
-            ->whereMonth('tgl', '=', $bulan) 
-            ->where('daily_activity.nip', auth()->user()->nip) 
+            ->whereYear('tgl', '=', $tahun)
+            ->whereMonth('tgl', '=', $bulan)
+            ->where('daily_activity.nip', auth()->user()->nip)
             ->where('daily_activity.jenis_kegiatan', 'UTAMA')
             ->where('daily_activity.wfo_wfh', '!=', 'Lainnya')
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNotNull('daily_activity.link')
-                      ->orWhereNotNull('daily_activity.berkas');
+                    ->orWhereNotNull('daily_activity.berkas');
             })
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('daily_activity.link', '<>', '')
-                      ->orWhere('daily_activity.berkas', '<>', '');
+                    ->orWhere('daily_activity.berkas', '<>', '');
             })
-            ->join('users', 'daily_activity.nip', '=', 'users.nip') // Join with the users table
-            ->select('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname', DB::raw('SUM(daily_activity.kuantitas) as total_kuantitas'), DB::raw('MIN(daily_activity.id) as min_id')) // Select the required fields
-            ->groupBy('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname') // Group by kegiatan, satuan, and fullname
-            ->orderBy('min_id', 'asc') // Order by the minimum id within each group
+            ->join('users', 'daily_activity.nip', '=', 'users.nip')
+            ->select(
+                'daily_activity.kegiatan',
+                'daily_activity.satuan',
+                'users.fullname',
+                DB::raw('SUM(daily_activity.kuantitas) as total_kuantitas'),
+                DB::raw('MIN(daily_activity.id) as min_id'),
+                DB::raw('GROUP_CONCAT(DISTINCT daily_activity.link SEPARATOR "; ") as links')
+            )
+            ->groupBy('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname')
+            ->orderBy('min_id', 'asc')
             ->get();
 
         $addActivities = DB::table('daily_activity')
@@ -43,10 +50,18 @@ class Exports_CKP extends Controller
             ->where('daily_activity.jenis_kegiatan', 'TAMBAHAN') // Filter by kind of Activities
             ->where('daily_activity.wfo_wfh', '!=', 'Lainnya') // Filter by WFH or WFO
             ->join('users', 'daily_activity.nip', '=', 'users.nip') // Join with the users table
-            ->select('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname', DB::raw('SUM(daily_activity.kuantitas) as total_kuantitas'), DB::raw('MIN(daily_activity.id) as min_id')) // Select the required fields
-            ->groupBy('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname') // Group by kegiatan, satuan, and fullname
-            ->orderBy('min_id', 'asc') // Order by the minimum id within each group
+            ->select(
+                'daily_activity.kegiatan',
+                'daily_activity.satuan',
+                'users.fullname',
+                DB::raw('SUM(daily_activity.kuantitas) as total_kuantitas'),
+                DB::raw('MIN(daily_activity.id) as min_id'),
+                DB::raw('GROUP_CONCAT(DISTINCT daily_activity.link SEPARATOR "; ") as links')
+            )
+            ->groupBy('daily_activity.kegiatan', 'daily_activity.satuan', 'users.fullname')
+            ->orderBy('min_id', 'asc')
             ->get();
+
 
         // Load the template Excel file
         $templatePath = public_path('template.xlsx');
@@ -66,15 +81,15 @@ class Exports_CKP extends Controller
         $dummydate = $tahun . '-' . $bulan . '-1'; // Example date
         $row = 13;
 
-        $sheet->setCellValue('C' . 5, ":  ". auth()->user()->fullname);
-        $sheet->setCellValue('C' . 6, ":  ". auth()->user()->jabatan);
-        $sheet->setCellValue('C' . 7, ":  1-". carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
+        $sheet->setCellValue('C' . 5, ":  " . auth()->user()->fullname);
+        $sheet->setCellValue('C' . 6, ":  " . auth()->user()->jabatan);
+        $sheet->setCellValue('C' . 7, ":  1-" . carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
         $sheet->setCellValue('C' . 25, auth()->user()->fullname);
-        $sheet->setCellValue('C' . 26, "NIP. ". auth()->user()->nip);
-        $sheet->setCellValue('B' . 21, "Tanggal : ". carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
+        $sheet->setCellValue('C' . 26, "NIP. " . auth()->user()->nip);
+        $sheet->setCellValue('B' . 21, "Tanggal : " . carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
 
         foreach ($mainActivities as $activity) {
-            $sheet->setCellValue('A' . $row, $row-12);
+            $sheet->setCellValue('A' . $row, $row - 12);
             $sheet->setCellValue('B' . $row, $activity->kegiatan);
             $sheet->setCellValue('D' . $row, $activity->satuan);
             $sheet->setCellValue('E' . $row, $activity->total_kuantitas);
@@ -83,6 +98,7 @@ class Exports_CKP extends Controller
             $sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('H' . $row, "100");
             $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->setCellValue('L' . $row, $activity->links);
             // Add more data fields as needed
             $row++;
             $sheet->insertNewRowBefore($row);
@@ -91,11 +107,11 @@ class Exports_CKP extends Controller
 
         $sheet->removeRow($row);
 
-        $row = $row+1;
-        $no_dummy = $row-1;
+        $row = $row + 1;
+        $no_dummy = $row - 1;
 
         foreach ($addActivities as $activity) {
-            $sheet->setCellValue('A' . $row, $row-$no_dummy);
+            $sheet->setCellValue('A' . $row, $row - $no_dummy);
             $sheet->setCellValue('B' . $row, $activity->kegiatan);
             $sheet->setCellValue('D' . $row, $activity->satuan);
             $sheet->setCellValue('E' . $row, $activity->total_kuantitas);
@@ -104,6 +120,7 @@ class Exports_CKP extends Controller
             $sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('H' . $row, "100");
             $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->setCellValue('L' . $row, $activity->links);
             // Add more data fields as needed
             $row++;
             $sheet->insertNewRowBefore($row);
@@ -112,7 +129,7 @@ class Exports_CKP extends Controller
 
         $sheet->removeRow($row);
 
-        
+
         $sheetName = 'CKP_T';  // Replace 'SheetName' with the actual name of the sheet
         $spreadsheet->setActiveSheetIndexByName($sheetName);
         $sheet = $spreadsheet->getActiveSheet();
@@ -152,7 +169,7 @@ class Exports_CKP extends Controller
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle('A2')->getFont()->setName('Quattrocento Sans')->setBold(true)->setSize(14);
 
-        // Populate data starting from a specific row 
+        // Populate data starting from a specific row
         $row = 13;
 
         // Create a DateTime object from the dummy date
@@ -160,15 +177,15 @@ class Exports_CKP extends Controller
 
         // Modify the date to move to the next month
         $newDate->modify('+1 month');
-        
-        $sheet->setCellValue('C' . 5, ":  ". auth()->user()->fullname);
-        $sheet->setCellValue('C' . 6, ":  ". auth()->user()->jabatan);
-        $sheet->setCellValue('C' . 7, ":  1-". carbon::parse($newDate)->endOfMonth()->translatedFormat('j F Y'));
+
+        $sheet->setCellValue('C' . 5, ":  " . auth()->user()->fullname);
+        $sheet->setCellValue('C' . 6, ":  " . auth()->user()->jabatan);
+        $sheet->setCellValue('C' . 7, ":  1-" . carbon::parse($newDate)->endOfMonth()->translatedFormat('j F Y'));
         $sheet->setCellValue('C' . 23, auth()->user()->fullname);
-        $sheet->setCellValue('C' . 24, "NIP. ". auth()->user()->nip);
-        $sheet->setCellValue('B' . 19, "Tanggal : ". carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
+        $sheet->setCellValue('C' . 24, "NIP. " . auth()->user()->nip);
+        $sheet->setCellValue('B' . 19, "Tanggal : " . carbon::parse($dummydate)->endOfMonth()->translatedFormat('j F Y'));
         foreach ($mainActivitiesNext as $activity) {
-            $sheet->setCellValue('A' . $row, $row-12);
+            $sheet->setCellValue('A' . $row, $row - 12);
             $sheet->setCellValue('B' . $row, $activity->kegiatan);
             $sheet->setCellValue('D' . $row, $activity->satuan);
             $sheet->setCellValue('E' . $row, $activity->total_kuantitas);
@@ -178,11 +195,11 @@ class Exports_CKP extends Controller
         }
         $sheet->removeRow($row);
 
-        $row = $row+1;
-        $no_dummy = $row-1;
+        $row = $row + 1;
+        $no_dummy = $row - 1;
 
         foreach ($addActivitiesNext as $activity) {
-            $sheet->setCellValue('A' . $row, $row-$no_dummy);
+            $sheet->setCellValue('A' . $row, $row - $no_dummy);
             $sheet->setCellValue('B' . $row, $activity->kegiatan);
             $sheet->setCellValue('D' . $row, $activity->satuan);
             $sheet->setCellValue('E' . $row, $activity->total_kuantitas);
