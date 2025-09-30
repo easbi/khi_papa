@@ -98,7 +98,6 @@ class Exports_CKP extends Controller
             $sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('H' . $row, "100");
             $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->setCellValue('L' . $row, $activity->links);
             // Add more data fields as needed
             $row++;
             $sheet->insertNewRowBefore($row);
@@ -120,7 +119,6 @@ class Exports_CKP extends Controller
             $sheet->getStyle('G' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('H' . $row, "100");
             $sheet->getStyle('H' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->setCellValue('L' . $row, $activity->links);
             // Add more data fields as needed
             $row++;
             $sheet->insertNewRowBefore($row);
