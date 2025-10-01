@@ -2,20 +2,17 @@
 
 namespace App\Jobs;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 class DailyReminder implements ShouldBeUnique
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
 
     public $details;
     public $timeout = 20;
-    public $connection = 'sync'; // langsung dieksekusi
+    public $connection = 'sync'; // langsung dieksekusi, tidak masuk tabel jobs
 
     public function __construct(array $details)
     {
