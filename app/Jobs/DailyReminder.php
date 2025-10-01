@@ -14,64 +14,50 @@ class DailyReminder implements ShouldBeUnique
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $details;
-    public $timeout = 20; // maksimal job jalan 20 detik
+    public $timeout = 20;
+    public $connection = 'sync'; // langsung dieksekusi
 
-    /**
-     * Jalankan job ini selalu di koneksi sync (langsung dieksekusi, tidak masuk tabel jobs).
-     */
-    public $connection = 'sync';
-
-    /**
-     * Create a new job instance.
-     */
-    public function __construct($details)
+    public function __construct(array $details)
     {
         $this->details = $details;
     }
 
-    /**
-     * Unique ID supaya 1 nomor HP tidak dobel job saat masih berjalan.
-     */
-    public function uniqueId()
+    public function uniqueId(): string
     {
         return $this->details['no_hp'];
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
+        $noHp     = $this->details['no_hp'] ?? '-';
         $fullname = $this->details['fullname'] ?? '-';
+        $message  = $this->details['message'] ?? '';
 
-        Log::info("DailyReminder START untuk {$this->details['no_hp']} - {$fullname}");
+        Log::info("📨 DailyReminder START untuk {$noHp} - {$fullname}");
 
         $token = env('API_WA_TOKEN');
+
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => 'https://app.ruangwa.id/api/send_message',
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 15, // timeout 15 detik
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => http_build_query([
-                'token' => $token,
-                'number' => $this->details['no_hp'],
-                'message' => $this->details['message'],
+                'token'   => $token,
+                'number'  => $noHp,
+                'message' => $message,
             ]),
         ]);
 
         $response = curl_exec($curl);
-        $error = curl_error($curl);
+        $error    = curl_error($curl);
         curl_close($curl);
 
         if ($error) {
-            Log::error("DailyReminder ERROR untuk {$this->details['no_hp']} : {$error}");
+            Log::error("❌ DailyReminder ERROR untuk {$noHp}: {$error}");
         } else {
-            Log::info("DailyReminder SELESAI untuk {$this->details['no_hp']} - Response: {$response}");
+            Log::info("✅ DailyReminder SELESAI untuk {$noHp} - Response: {$response}");
         }
     }
 }
