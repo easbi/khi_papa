@@ -40,7 +40,7 @@ class Kernel extends ConsoleKernel
         // Dispatch daily messages tiap hari kerja pukul 11:30
         $schedule->command('app:dispatch-messages --no-interaction')
             ->weekdays()
-            ->dailyAt('15:12')
+            ->dailyAt('15:42')
             ->appendOutputTo(storage_path('logs/dispatch-messages.log'));
 
         // Kirim activity reminder setiap 10 menit
