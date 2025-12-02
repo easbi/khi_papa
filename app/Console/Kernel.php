@@ -34,7 +34,7 @@ class Kernel extends ConsoleKernel
 
         // Kirim laporan bulanan terakhir pukul 14:00
         $schedule->command('send-notif-leader-monthly-report --no-interaction')
-            ->lastDayOfMonth('14:00')
+            ->monthlyOn(2, '14:00')
             ->appendOutputTo(storage_path('logs/send-notif-leader-monthly-report.log'));
 
         // Dispatch daily messages tiap hari kerja pukul 11:30

@@ -38,6 +38,7 @@ Route::get('act/selftable', [ActivitiesController::class, 'selftable'])->name('a
 Route::get('act/monitoring', [ActivitiesController::class, 'monitoring'])->name('act.monitoring');
 Route::get('act/allactivity', [ActivitiesController::class, 'allActivity'])->name('act.allactivity');
 Route::get('act/filterMonthYear2', [ActivitiesController::class, 'filterMonthYear2'])->name('act.filterMonthYear2');
+Route::get('act/{id}/duplicate', [ActivitiesController::class, 'duplicate'])->name('act.duplicate');
 Route::resource('act', ActivitiesController::class);
 
 

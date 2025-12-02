@@ -94,9 +94,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Pegawai</th>
-                            <th>Tanggal Mulai</th>
-                            <th>Tanggal Selesai</th>
+                            <th>Tanggal</th>
                             <th>Jenis Kegiatan</th>
                             <th>Nama Kegiatan</th>
                             <th>Progres</th>
@@ -108,11 +106,9 @@
                         @foreach ($activities as $act)
                         <tr>
                             <td>{{ ++$i }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($act->fullname , 17) }}</td>
                             <td>{{ Carbon\Carbon::parse($act->tgl)->format('d-M-Y')  }}</td>
-                            <td>{{ Carbon\Carbon::parse($act->tgl_selesai)->format('d-M-Y')  }}</td>
                             <td>{{ $act->jenis_kegiatan }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($act->kegiatan , 40) }}</td>
+                            <td>{{ \Illuminate\Support\Str::limit($act->kegiatan , limit: 100) }}</td>
                             <td>
                                 @if($act->is_done == 2)
                                     <span class="badge badge-warning">Selesai?</span>
@@ -120,15 +116,15 @@
                                     <span class="badge badge-success">Selesai</span>
                                 @endif
                             </td>
-                            
+
                             <td>
                                 @if ($act->berkas == NULL AND $act->link == NULL )
                                     <strong class="text-danger"> Tidak ada! </strong>
                                 @elseif ($act->berkas != NULL AND $act->link == NULL )
                                     <strong class="text-success"> Berkas </strong>
-                                @elseif ($act->berkas == NULL AND $act->link != NULL )                                   
+                                @elseif ($act->berkas == NULL AND $act->link != NULL )
                                     <strong class="text-success"> Link </strong>
-                                @elseif ($act->berkas != NULL AND $act->link != NULL )                                    
+                                @elseif ($act->berkas != NULL AND $act->link != NULL )
                                     <strong class="text-success"> Berkas dan Link </strong>
                                 @endif
                             </td>

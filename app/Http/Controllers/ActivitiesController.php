@@ -300,6 +300,20 @@ class ActivitiesController extends Controller
         return view('dailyactivity.createdbyteam', compact('TimKerja', 'teammember'));
     }
 
+    public function duplicate($id)
+    {
+        $activity = Activity::findOrFail($id);
+        $prefill = $activity->toArray();
+        unset($prefill['id'], $prefill['created_at'], $prefill['updated_at']);
+
+        // kirim ke view create sebagai $activity (dipakai untuk prefill)
+        return view('dailyactivity.create', [
+            'activity' => (object) $prefill,
+            'isDuplicate' => true,
+        ]);
+
+    }
+
     /**
      * Store a newly created resource in storage.
      *
