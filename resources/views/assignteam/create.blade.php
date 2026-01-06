@@ -55,18 +55,31 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="">Anggota Tim Kerja</label>
-                                    <div id="dynamic-input">
-                                        <div class="input-group mb-2">
-                                            <select class="form-control" name="anggota_nip[]" required>
-                                                <option value="" selected disabled>Pilih</option>
-                                                @foreach($candidate as $item)
-                                                <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
-                                                @endforeach
-                                            </select>
-                                            <button type="button" class="btn btn-danger remove-field">Remove</button>
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                                <label class="form-check-label" for="selectAll">
+                                                    <strong>Pilih Semua</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+                                            @foreach($candidate as $index => $member)
+                                                <div class="form-check">
+                                                    <input class="form-check-input member-checkbox"
+                                                           type="checkbox"
+                                                           name="anggota_nip[]"
+                                                           value="{{ $member->nip }}"
+                                                           id="member_{{ $index }}">
+                                                    <label class="form-check-label" for="member_{{ $index }}">
+                                                        {{ $member->fullname }} ({{ $member->nip }})
+                                                    </label>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     </div>
-                                    <button type="button" id="add-field" class="btn btn-primary">Tambah Anggota</button>
+                                    <small class="form-text text-muted">Pilih satu atau lebih anggota tim kerja</small>
                                 </div>
 
                                 <div class="form-group">
@@ -148,30 +161,35 @@
     });
 
 </script>
-<script type="text/javascript">
+<script>
     $(document).ready(function() {
-    // Menambahkan input anggota tim kerja
-        $('#add-field').click(function() {
-            var inputField = `
-            <div class="input-group mb-2">
-            <select class="form-control" name="anggota_nip[]" required>
-            <option value="" selected disabled>Pilih</option>
-            @foreach($candidate as $item)
-            <option value="{{ $item->nip }}">{{ $item->fullname }}</option>
-            @endforeach
-            </select>
-            <button type="button" class="btn btn-danger remove-field">Remove</button>
-            </div>
-            `;
-            $('#dynamic-input').append(inputField);
+        // Select All functionality for anggota checkboxes
+        $('#selectAll').change(function(){
+            if($(this).is(':checked')){
+                $('.member-checkbox').prop('checked', true);
+            } else {
+                $('.member-checkbox').prop('checked', false);
+            }
         });
 
-    // Menghapus input anggota tim kerja
-        $(document).on('click', '.remove-field', function() {
-            $(this).closest('.input-group').remove();
+        // Individual checkbox change updates selectAll state
+        $(document).on('change', '.member-checkbox', function(){
+            if($('.member-checkbox:checked').length === $('.member-checkbox').length){
+                $('#selectAll').prop('checked', true);
+            } else {
+                $('#selectAll').prop('checked', false);
+            }
+        });
+
+        // Form submit validation: require at least one member
+        $('form').submit(function(e) {
+            if($('.member-checkbox:checked').length === 0) {
+                e.preventDefault();
+                alert('Silakan pilih minimal satu anggota tim kerja');
+                return false;
+            }
         });
     });
-
 </script>
 
 @endsection
