@@ -25,24 +25,27 @@ class AssigntimController extends Controller
      */
     public function index()
     {
-        $assigntim =  DB::table('master_assign_anggota')
+        $query = DB::table('master_assign_anggota')
         ->join('master_kegiatan_utama', 'master_assign_anggota.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
         ->join('master_project', 'master_project.id', '=', 'master_assign_anggota.project_id')
         ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
         ->join('users as ketua_tim', 'master_tim_kerja.nip_ketua_tim', '=', 'ketua_tim.nip')
         ->join('users as anggota_tim', 'master_assign_anggota.anggota_nip', '=', 'anggota_tim.nip')
         ->select(
-            'master_tim_kerja.nama_tim_kerja', 
-            'ketua_tim.fullname as nama_ketua_tim', 
+            'master_tim_kerja.nama_tim_kerja',
+            'ketua_tim.fullname as nama_ketua_tim',
             'ketua_tim.nip as nip_ketua_tim',
-            'master_tim_kerja.tahun_kerja', 
-            'master_project.nama_project', 
+            'master_tim_kerja.tahun_kerja',
+            'master_project.nama_project',
             'master_kegiatan_utama.nama_kegiatan_utama',
             'anggota_tim.fullname as nama_anggota_tim',
-            'master_assign_anggota.*')
-        ->get();
+            'master_assign_anggota.*');
 
-        // dd($assigntim);
+        $tahun = request()->get('tahun', date('Y'));
+        $query->where('master_tim_kerja.tahun_kerja', $tahun);
+
+        $assigntim = $query->get();
+
         return view('assignteam.index', compact('assigntim'))->with('i');
     }
 
@@ -53,10 +56,11 @@ class AssigntimController extends Controller
      */
     public function create()
     {
+        $currentYear = date('Y');
         if (Auth::user()->id == 1) {
-            $timkerja=  DB::table('master_tim_kerja')->select('id', 'nama_tim_kerja')->get();
+            $timkerja=  DB::table('master_tim_kerja')->where('tahun_kerja', $currentYear)->select('id', 'nama_tim_kerja')->get();
         } else {
-            $timkerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id', 'nama_tim_kerja')->get();
+            $timkerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id', 'nama_tim_kerja')->get();
         }
         $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 14])->get();
         return view('assignteam.create', compact('timkerja', 'candidate'));
@@ -66,9 +70,12 @@ class AssigntimController extends Controller
 
     public function getProject(Request $request)
     {
-        $projects = DB::table('master_project') // Ganti 'projects' dengan nama tabel Anda
-            ->where('tim_kerja_id', $request->tim_kerja_id)
-            ->pluck('nama_project', 'id');
+        $currentYear = date('Y');
+        $projects = DB::table('master_project')
+            ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_project.tim_kerja_id')
+            ->where('master_project.tim_kerja_id', $request->tim_kerja_id)
+            ->where('master_tim_kerja.tahun_kerja', $currentYear)
+            ->pluck('nama_project', 'master_project.id');
 
         return response()->json($projects);
     }
@@ -77,9 +84,13 @@ class AssigntimController extends Controller
 
     public function getKegiatanutama(Request $request)
     {
-        $kegiatanutama = DB::table('master_kegiatan_utama') 
-            ->where('project_id', $request->project_id)
-            ->pluck('nama_kegiatan_utama', 'id');
+        $currentYear = date('Y');
+        $kegiatanutama = DB::table('master_kegiatan_utama')
+            ->join('master_project', 'master_project.id', '=', 'master_kegiatan_utama.project_id')
+            ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_project.tim_kerja_id')
+            ->where('master_kegiatan_utama.project_id', $request->project_id)
+            ->where('master_tim_kerja.tahun_kerja', $currentYear)
+            ->pluck('nama_kegiatan_utama', 'master_kegiatan_utama.id');
 
         return response()->json($kegiatanutama);
     }
@@ -153,7 +164,7 @@ class AssigntimController extends Controller
             $projects = DB::table('master_project')
                 ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_project.tim_kerja_id')
                 ->join('users', 'master_tim_kerja.nip_ketua_tim', '=', 'users.nip')
-                ->select('master_tim_kerja.nama_tim_kerja', 'master_tim_kerja.nip_ketua_tim', 'users.fullname as nama_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.nama_project', 'master_kegiatan_utama.*')                
+                ->select('master_tim_kerja.nama_tim_kerja', 'master_tim_kerja.nip_ketua_tim', 'users.fullname as nama_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.nama_project', 'master_kegiatan_utama.*')
                 ->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)
                 ->select('master_project.id', 'master_project.nama_project', 'tim_kerja_id')
                 ->get();
@@ -214,7 +225,7 @@ class AssigntimController extends Controller
 
     public function exportToExcel()
     {
-        // Ambil data dari tabel 
+        // Ambil data dari tabel
         $assigntim =  DB::table('master_assign_anggota')
         ->join('master_kegiatan_utama', 'master_assign_anggota.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
         ->join('master_project', 'master_project.id', '=', 'master_assign_anggota.project_id')
@@ -222,11 +233,11 @@ class AssigntimController extends Controller
         ->join('users as ketua_tim', 'master_tim_kerja.nip_ketua_tim', '=', 'ketua_tim.nip')
         ->join('users as anggota_tim', 'master_assign_anggota.anggota_nip', '=', 'anggota_tim.nip')
         ->select(
-            'master_tim_kerja.nama_tim_kerja', 
-            'ketua_tim.fullname as nama_ketua_tim', 
+            'master_tim_kerja.nama_tim_kerja',
+            'ketua_tim.fullname as nama_ketua_tim',
             'ketua_tim.nip as nip_ketua_tim',
-            'master_tim_kerja.tahun_kerja', 
-            'master_project.nama_project', 
+            'master_tim_kerja.tahun_kerja',
+            'master_project.nama_project',
             'master_kegiatan_utama.nama_kegiatan_utama',
             'anggota_tim.fullname as nama_anggota_tim',
             'master_assign_anggota.*')
@@ -269,7 +280,7 @@ class AssigntimController extends Controller
 
         // Masukkan data ke baris berikutnya
         $row = 2;
-        $i = 1; 
+        $i = 1;
         foreach ($assigntim as $assigntim) {
             $sheet->setCellValue("A{$row}", $i);
             $sheet->setCellValue("B{$row}", $assigntim->nama_tim_kerja);

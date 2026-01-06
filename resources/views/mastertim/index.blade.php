@@ -11,8 +11,24 @@
 <!-- End Page Header -->
 
 @if (Auth::user()->id == 1 || Auth::user()->id == 17 || Auth::user()->id == 20)
-<div class="row mb-4">
-    <div class="col text-right">
+<div class="row mb-4 align-items-center">
+    <div class="col-8 col-sm-6">
+        @php $currentYear = date('Y'); @endphp
+        <form method="GET" action="{{ route('timkerja.index') }}" class="form-inline">
+            <div class="input-group">
+                <select name="tahun" class="form-control form-control-sm">
+                    @for($y = $currentYear - 5; $y <= $currentYear; $y++)
+                        <option value="{{ $y }}" {{ request('tahun', $currentYear) == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+                <div class="input-group-append">
+                    <button class="btn btn-secondary btn-sm" type="submit">Filter</button>
+                    <a href="{{ route('timkerja.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-4 col-sm-6 text-right">
         <a href="{{ route('timkerja.create') }}" class="btn btn-primary btn-sm">
             Tambahkan Tim
         </a>
@@ -65,7 +81,7 @@
                                     @if (Auth::user()->nip == $tk->nip_ketua_tim)
                                         <a class="btn btn-primary btn-sm" href="{{ route('timkerja.edit',$tk->id) }}">Edit</a>
                                     @endif
-                                </form>                                 
+                                </form>
                             </td>
                         </tr>
                         @endforeach
@@ -91,7 +107,7 @@ $(document).ready(function() {
         paging: true,
         pageLength: 10,
         autoWidth: false
-    });    
+    });
 });
 </script>
 @endpush

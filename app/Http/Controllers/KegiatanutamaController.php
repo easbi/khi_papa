@@ -24,14 +24,17 @@ class KegiatanutamaController extends Controller
      */
     public function index()
     {
-        $kegiatanutama =  DB::table('master_kegiatan_utama')
+        $query = DB::table('master_kegiatan_utama')
         ->join('master_project', 'master_project.id', '=', 'master_kegiatan_utama.project_id')
         ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_project.tim_kerja_id')
         ->join('users', 'master_tim_kerja.nip_ketua_tim', '=', 'users.nip')
-        ->select('master_tim_kerja.nama_tim_kerja', 'users.fullname as nama_ketua_tim','users.nip as nip_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.nama_project', 'master_kegiatan_utama.*')
-        ->get();
+        ->select('master_tim_kerja.nama_tim_kerja', 'users.fullname as nama_ketua_tim','users.nip as nip_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.nama_project', 'master_kegiatan_utama.*');
+
+        $tahun = request()->get('tahun', date('Y'));
+        $query->where('master_tim_kerja.tahun_kerja', $tahun);
+
+        $kegiatanutama = $query->get();
         return view('kegiatanutama.index', compact('kegiatanutama'))->with('i');
-        //
     }
 
     /**
@@ -41,19 +44,23 @@ class KegiatanutamaController extends Controller
      */
     public function create()
     {
+        $currentYear = date('Y');
         if (Auth::user()->id == 1) {
-            $timkerja=  DB::table('master_tim_kerja')->select('id', 'nama_tim_kerja')->get();
+            $timkerja=  DB::table('master_tim_kerja')->where('tahun_kerja', $currentYear)->select('id', 'nama_tim_kerja')->get();
         } else {
-            $timkerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id', 'nama_tim_kerja')->get();
+            $timkerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id', 'nama_tim_kerja')->get();
         }
         return view('kegiatanutama.create', compact('timkerja'));
     }
 
     public function getProject(Request $request)
     {
-        $projects = DB::table('master_project') // Ganti 'projects' dengan nama tabel Anda
-        ->where('tim_kerja_id', $request->tim_kerja_id)
-        ->pluck('nama_project', 'id');
+        $currentYear = date('Y');
+        $projects = DB::table('master_project')
+        ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_project.tim_kerja_id')
+        ->where('master_project.tim_kerja_id', $request->tim_kerja_id)
+        ->where('master_tim_kerja.tahun_kerja', $currentYear)
+        ->pluck('nama_project', 'master_project.id');
 
         return response()->json($projects);
     }
@@ -111,7 +118,7 @@ class KegiatanutamaController extends Controller
             $projects = DB::table('master_project')
                 ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_project.tim_kerja_id')
                 ->join('users', 'master_tim_kerja.nip_ketua_tim', '=', 'users.nip')
-                ->select('master_tim_kerja.nama_tim_kerja', 'master_tim_kerja.nip_ketua_tim', 'users.fullname as nama_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.nama_project', 'master_kegiatan_utama.*')                
+                ->select('master_tim_kerja.nama_tim_kerja', 'master_tim_kerja.nip_ketua_tim', 'users.fullname as nama_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.nama_project', 'master_kegiatan_utama.*')
                 ->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)
                 ->select('master_project.id', 'nama_project', 'tim_kerja_id')
                 ->get();
@@ -127,7 +134,7 @@ class KegiatanutamaController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Kegiatanutama $kegiatanutama)
-    {         
+    {
         $request->validate([
             'nama_kegiatan_utama' => 'required',
         ]);

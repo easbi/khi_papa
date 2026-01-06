@@ -10,9 +10,25 @@
 </div>
 <!-- End Page Header -->
 
-<div class="row mb-4">
-    <div class="col text-right d-flex justify-content-end">
-        <a href="{{ route('assigntim.create') }}" class="btn btn-primary btn-sm mr-2"> 
+<div class="row mb-4 align-items-center">
+    <div class="col-6 col-sm-5">
+        @php $currentYear = date('Y'); @endphp
+        <form method="GET" action="{{ route('assigntim.index') }}" class="form-inline">
+            <div class="input-group">
+                <select name="tahun" class="form-control form-control-sm">
+                    @for($y = $currentYear - 5; $y <= $currentYear; $y++)
+                        <option value="{{ $y }}" {{ request('tahun', $currentYear) == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+                <div class="input-group-append">
+                    <button class="btn btn-secondary btn-sm" type="submit">Filter</button>
+                    <a href="{{ route('assigntim.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-6 col-sm-7 text-right d-flex justify-content-end">
+        <a href="{{ route('assigntim.create') }}" class="btn btn-primary btn-sm mr-2">
             Alokasikan Anggota Tim
         </a>
         <a href="{{ route('assigntim.export.excel') }}" class="btn btn-warning btn-sm">
@@ -67,7 +83,7 @@
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
                                     @endif
-                                </form>                                 
+                                </form>
                             </td>
                         </tr>
                         @endforeach
@@ -91,7 +107,7 @@ $(document).ready(function() {
         searching: true,
         ordering: true,
         autoWidth: false
-    });    
+    });
 });
 </script>
 @endpush

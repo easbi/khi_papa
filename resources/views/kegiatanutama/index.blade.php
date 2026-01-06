@@ -10,8 +10,24 @@
 </div>
 <!-- End Page Header -->
 
-<div class="row mb-4">
-    <div class="col text-right">
+<div class="row mb-4 align-items-center">
+    <div class="col-8 col-sm-6">
+        @php $currentYear = date('Y'); @endphp
+        <form method="GET" action="{{ route('kegiatanutama.index') }}" class="form-inline">
+            <div class="input-group">
+                <select name="tahun" class="form-control form-control-sm">
+                    @for($y = $currentYear - 5; $y <= $currentYear; $y++)
+                        <option value="{{ $y }}" {{ request('tahun', $currentYear) == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+                <div class="input-group-append">
+                    <button class="btn btn-secondary btn-sm" type="submit">Filter</button>
+                    <a href="{{ route('kegiatanutama.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-4 col-sm-6 text-right">
         <a href="{{ route('kegiatanutama.create') }}" class="btn btn-primary btn-sm">
             Tambahkan Kegiatan Utama
         </a>
@@ -64,7 +80,7 @@
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
                                     @endif
-                                </form>                                 
+                                </form>
                             </td>
                         </tr>
                         @endforeach
@@ -82,13 +98,13 @@
 <script type="text/javascript">
 $(document).ready(function() {
     // DataTable setup
-    $('#example').DataTable({        
+    $('#example').DataTable({
         scrollX: true,
         responsive: true,
         searching: true,
         ordering: true,
         autoWidth: false
-    });    
+    });
 });
 </script>
 @endpush

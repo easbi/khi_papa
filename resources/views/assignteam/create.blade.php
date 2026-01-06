@@ -5,7 +5,7 @@
 <div class="page-header row no-gutters py-4">
     <div class="col-12 col-sm-4 text-center text-sm-left mb-0">
         <span class="text-uppercase page-subtitle">KHI</span>
-        <h3 class="page-title">Entri Alokasi Anggota Tim Kerja - Project - Kegiatan Utama</h3>
+        <h3 class="page-title">Alokasi Anggota Tim {{ date('Y') }}</h3>
     </div>
 </div>
 
@@ -33,7 +33,7 @@
                             <form action="{{ route('assigntim.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="form-group">
-                                    <label for="">Tim Kerja</label>                                    
+                                    <label for="">Tim Kerja</label>
                                     <select class="form-control" id="tim_kerja_id" name="tim_kerja_id" required>
                                         <option value="" selected disabled>Pilih</option>
                                         @foreach($timkerja as $item)
@@ -42,19 +42,19 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="">Project</label>                                    
+                                    <label for="">Project</label>
                                     <select class="form-control" id="project" name="project_id" required>
                                         <option value="">Pilih Project</option>
-                                    </select>                                        
+                                    </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="">Kegiatan Utama</label>                                    
+                                    <label for="">Kegiatan Utama</label>
                                     <select class="form-control" id="kegiatan_utama" name="kegiatan_utama_id" required>
                                         <option value="">Pilih Kegiatan Utama</option>
-                                    </select>                                        
+                                    </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="">Anggota Tim Kerja</label>                                  
+                                    <label for="">Anggota Tim Kerja</label>
                                     <div id="dynamic-input">
                                         <div class="input-group mb-2">
                                             <select class="form-control" name="anggota_nip[]" required>
@@ -92,7 +92,7 @@
                 // var url = '{{ url("kegiatanutama/getProject") }}/' + tim_kerja_id;
                 // console.log('Project:', url);
                 $.ajax({
-                    url: '{{ url("kegiatanutama/getProject") }}/' + tim_kerja_id,                    
+                    url: '{{ url("kegiatanutama/getProject") }}/' + tim_kerja_id,
                     type: "GET",
                     dataType: "json",
                     success: function(data) {
@@ -122,7 +122,7 @@
             $("#kegiatanutama").html('');
             if (project_id) {
                 $.ajax({
-                    url: '{{ url("assigntim/getKegiatanutama") }}/' + project_id,                    
+                    url: '{{ url("assigntim/getKegiatanutama") }}/' + project_id,
                     type: "GET",
                     dataType: "json",
                     success: function(data) {

@@ -39,9 +39,9 @@ class TempController extends Controller
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
             ->join('users as ketua_tim', 'master_tim_kerja.nip_ketua_tim', '=', 'ketua_tim.nip')
             ->select(
-                'master_tim_kerja.nama_tim_kerja', 
+                'master_tim_kerja.nama_tim_kerja',
                 'ketua_tim.fullname as nama_ketua_tim',
-                'master_project.nama_project', 
+                'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
                 'master_assign_anggota.*')
             ->get();
@@ -59,10 +59,10 @@ class TempController extends Controller
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
             ->where('master_tim_kerja.nip_ketua_tim', '=', Auth::user()->nip)
             ->join('users', 'users.nip', '=', 'master_assign_anggota.anggota_nip')
-            ->select( 
+            ->select(
                 'users.fullname',
                 'users.nip')
-            ->get()            
+            ->get()
             ->unique('nip');
 
         $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 10, 14])->get();
@@ -76,11 +76,14 @@ class TempController extends Controller
 
     public function getProject(Request $request)
     {
+        $currentYear = date('Y');
         $projects = DB::table('master_assign_anggota AS ma')
         ->where('ma.anggota_nip', '=', Auth::user()->nip)
-        ->where('ma.tim_kerja_id', '=', $request->tim_kerja_id) 
+        ->where('ma.tim_kerja_id', '=', $request->tim_kerja_id)
         ->join('master_project AS mp', 'mp.id', '=', 'ma.project_id')
-        ->select('mp.nama_project', 'mp.id') 
+        ->join('master_tim_kerja AS mtk', 'mtk.id', '=', 'ma.tim_kerja_id')
+        ->where('mtk.tahun_kerja', $currentYear)
+        ->select('mp.nama_project', 'mp.id')
         ->distinct()
         ->pluck('mp.nama_project', 'mp.id');
 
@@ -89,11 +92,14 @@ class TempController extends Controller
 
     public function getKegiatanutama(Request $request)
     {
+        $currentYear = date('Y');
         $kegiatanutama = DB::table('master_assign_anggota AS ma')
             ->where('ma.anggota_nip', '=', Auth::user()->nip)
-            ->where('ma.project_id', '=', $request->project_id) 
+            ->where('ma.project_id', '=', $request->project_id)
             ->join('master_kegiatan_utama AS mku', 'mku.id', '=', 'ma.kegiatan_utama_id')
-            ->select('mku.nama_kegiatan_utama', 'mku.id') 
+            ->join('master_tim_kerja AS mtk', 'mtk.id', '=', 'ma.tim_kerja_id')
+            ->where('mtk.tahun_kerja', $currentYear)
+            ->select('mku.nama_kegiatan_utama', 'mku.id')
             ->distinct()
             ->pluck('mku.nama_kegiatan_utama', 'mku.id');
 
@@ -181,8 +187,8 @@ class TempController extends Controller
             ->leftJoin('master_project', 'master_project.id', '=', 'daily_activity.project_id')
             ->leftJoin('master_tim_kerja', 'master_tim_kerja.id', '=', 'daily_activity.tim_kerja_id')
             ->select(
-                'master_tim_kerja.nama_tim_kerja', 
-                'master_project.nama_project', 
+                'master_tim_kerja.nama_tim_kerja',
+                'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
                 'daily_activity.*')
             ->first();
@@ -203,8 +209,8 @@ class TempController extends Controller
             ->leftJoin('master_project', 'master_project.id', '=', 'daily_activity.project_id')
             ->leftJoin('master_tim_kerja', 'master_tim_kerja.id', '=', 'daily_activity.tim_kerja_id')
             ->select(
-                'master_tim_kerja.nama_tim_kerja', 
-                'master_project.nama_project', 
+                'master_tim_kerja.nama_tim_kerja',
+                'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
                 'daily_activity.*')
             ->first();

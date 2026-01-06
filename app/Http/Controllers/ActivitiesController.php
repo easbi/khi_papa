@@ -258,12 +258,14 @@ class ActivitiesController extends Controller
      */
     public function create()
     {
+        $currentYear = date('Y');
         $assigntim=  DB::table('master_assign_anggota')
             ->where('anggota_nip','=', Auth::user()->nip)
             ->join('master_kegiatan_utama', 'master_assign_anggota.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
             ->join('master_project', 'master_project.id', '=', 'master_assign_anggota.project_id')
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
             ->join('users as ketua_tim', 'master_tim_kerja.nip_ketua_tim', '=', 'ketua_tim.nip')
+            ->where('master_tim_kerja.tahun_kerja', $currentYear)
             ->select(
                 'master_tim_kerja.nama_tim_kerja',
                 'ketua_tim.fullname as nama_ketua_tim',
@@ -272,7 +274,7 @@ class ActivitiesController extends Controller
                 'master_assign_anggota.*')
             ->get();
 
-        $isKetuaTimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
+        $isKetuaTimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
 
         $TimKerja = $assigntim->unique('nama_tim_kerja', 'tim_kerja_id')->pluck('tim_kerja_id', 'nama_tim_kerja', 'isKetuaTimKerja');
 
@@ -281,9 +283,11 @@ class ActivitiesController extends Controller
 
     public function createdbyteam()
     {
+        $currentYear = date('Y');
         $teammember=  DB::table('master_assign_anggota')
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
             ->where('master_tim_kerja.nip_ketua_tim', '=', Auth::user()->nip)
+            ->where('master_tim_kerja.tahun_kerja', $currentYear)
             ->join('users', 'users.nip', '=', 'master_assign_anggota.anggota_nip')
             ->select(
                 'users.fullname',
@@ -293,7 +297,7 @@ class ActivitiesController extends Controller
 
         $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 14])->get();
 
-        $TimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
+        $TimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
 
 
 

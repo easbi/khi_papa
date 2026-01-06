@@ -5,7 +5,7 @@
 <div class="page-header row no-gutters py-4">
     <div class="col-12 col-sm-4 text-center text-sm-left mb-0">
         <span class="text-uppercase page-subtitle">KHI</span>
-        <h3 class="page-title">Entri Tim Kerja - Project - Kegiatan Utama</h3>
+        <h3 class="page-title">Entri Kegiatan Utama {{ date('Y') }}</h3>
     </div>
 </div>
 
@@ -33,7 +33,7 @@
                             <form action="{{ route('kegiatanutama.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="form-group">
-                                    <label for="">Tim Kerja</label>                                    
+                                    <label for="">Tim Kerja</label>
                                     <select class="form-control" id="tim_kerja_id" name="tim_kerja_id" required>
                                         <option value="" selected disabled>Pilih</option>
                                         @foreach($timkerja as $item)
@@ -42,10 +42,10 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="">Project</label>                                    
+                                    <label for="">Project</label>
                                     <select class="form-control" id="project" name="project_id" required>
                                         <option value="">Pilih Project</option>
-                                    </select>                                        
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label for="nama_kegiatan_utama">Nama Kegiatan Utama</label>
@@ -74,7 +74,7 @@
                 // var url = '{{ url("kegiatanutama/getProject") }}/' + tim_kerja_id;
                 // console.log('Project:', url);
                 $.ajax({
-                    url: '{{ url("kegiatanutama/getProject") }}/' + tim_kerja_id,                    
+                    url: '{{ url("kegiatanutama/getProject") }}/' + tim_kerja_id,
                     type: "GET",
                     dataType: "json",
                     success: function(data) {

@@ -20,10 +20,14 @@ class TimkerjaController extends Controller
      */
     public function index()
     {
-        $timkerja =  DB::table('master_tim_kerja')
+        $query =  DB::table('master_tim_kerja')
             ->join('users', 'master_tim_kerja.nip_ketua_tim', '=', 'users.nip')
-            ->select('users.fullname as ketua_tim_kerja', 'master_tim_kerja.*')
-            ->get();
+            ->select('users.fullname as ketua_tim_kerja', 'master_tim_kerja.*');
+
+        $tahun = request()->get('tahun', date('Y'));
+        $query->where('master_tim_kerja.tahun_kerja', $tahun);
+
+        $timkerja = $query->get();
         return view('mastertim.index', compact('timkerja'))->with('i');
     }
 
@@ -94,7 +98,7 @@ class TimkerjaController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Timkerja $timkerja)
-    {         
+    {
         $request->validate([
             'nama_tim_kerja' => 'required|string|max:255',
             'nip_ketua_tim' => 'required',

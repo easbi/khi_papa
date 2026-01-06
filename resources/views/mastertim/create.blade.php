@@ -37,7 +37,7 @@
                                     <input type="text" name="nama_tim_kerja" class="form-control form-control-lg mb-3">
                                 </div>
                                 <div class="form-group">
-                                    <label for="">Ketua Tim Kerja</label>                                    
+                                    <label for="">Ketua Tim Kerja</label>
                                     <select class="form-control" id="nip_ketua_tim" name="nip_ketua_tim" required>
                                         <option value="" selected disabled>Pilih</option>
                                         @foreach($candidate as $item)
@@ -47,7 +47,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="tahun_kerja">Tahun Kerja:</label>
-                                    <input type="number" class="form-control" name="tahun_kerja" min="2023" max="2027" placeholder="Masukkan Tahun" value="{{ old('tahun_kerja') }}" required />
+                                    <input type="number" class="form-control" name="tahun_kerja" value="{{ date('Y') }}" readonly required />
+                                    <small class="form-text text-muted d-block mt-2">
+                                        <i class="fa fa-info-circle"></i> Data akan disimpan untuk tim kerja tahun berjalan ({{ date('Y') }})
+                                    </small>
                                 </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-success">Kirim</button>

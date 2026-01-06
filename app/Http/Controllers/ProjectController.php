@@ -21,11 +21,15 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $project =  DB::table('master_project')
+        $query = DB::table('master_project')
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_project.tim_kerja_id')
             ->join('users', 'master_tim_kerja.nip_ketua_tim', '=', 'users.nip')
-            ->select('master_tim_kerja.nama_tim_kerja', 'users.fullname as nama_ketua_tim', 'users.nip as nip_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.*')
-            ->get();
+            ->select('master_tim_kerja.nama_tim_kerja', 'users.fullname as nama_ketua_tim', 'users.nip as nip_ketua_tim', 'master_tim_kerja.tahun_kerja', 'master_project.*');
+
+        $tahun = request()->get('tahun', date('Y'));
+        $query->where('master_tim_kerja.tahun_kerja', $tahun);
+
+        $project = $query->get();
         return view('masterproject.index', compact('project'))->with('i');
     }
 
@@ -36,10 +40,11 @@ class ProjectController extends Controller
      */
     public function create()
     {
+        $currentYear = date('Y');
         if (Auth::user()->id == 1) {
-            $timkerja=  DB::table('master_tim_kerja')->select('id', 'nama_tim_kerja')->get();
+            $timkerja=  DB::table('master_tim_kerja')->where('tahun_kerja', $currentYear)->select('id', 'nama_tim_kerja')->get();
         } else {
-            $timkerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->select('id', 'nama_tim_kerja')->get();
+            $timkerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id', 'nama_tim_kerja')->get();
         }
         return view('masterproject.create', compact('timkerja'));
     }
@@ -102,7 +107,7 @@ class ProjectController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Project $project)
-    {         
+    {
         $request->validate([
             'tim_kerja_id' => 'required',
             'nama_project' => 'required',
