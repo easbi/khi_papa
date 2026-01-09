@@ -44,7 +44,7 @@
                                     @csrf
                                     <div class="form-group">
                                         <label for="tgl">Tanggal Mulai Kegiatan</label>
-                                        <input type="date" class="form-control form-control-lg mb-3" name="tgl"
+                                        <input type="date" id="tgl" class="form-control form-control-lg mb-3" name="tgl"
                                             required>
                                     </div>
 
@@ -57,7 +57,7 @@
 
                                     <div class="form-group" id="end_date_group" style="display: none;">
                                         <label for="tgl_akhir">Tanggal Akhir Kegiatan</label>
-                                        <input type="date" class="form-control form-control-lg mb-3" name="tgl_akhir">
+                                        <input type="date" id="tgl_akhir" class="form-control form-control-lg mb-3" name="tgl_akhir">
                                     </div>
 
                                     <script>
@@ -347,7 +347,59 @@
                         e.preventDefault(); // Mencegah pengiriman form
                         alert(
                             'Untuk Pekerjaan Utama, Anda harus mengisi semua kolom: Tim Kerja, Project, dan Kegiatan Utama.'
-                            );
+                        );
+                        return;
+                    }
+                }
+
+                // Validasi aturan fitur berulang
+                const isRepeated = document.getElementById('is_repeated').checked;
+                if (isRepeated) {
+                    const kegiatanName = (document.getElementById('kegiatan').value || '').toString();
+                    const containsPelatihan = kegiatanName.toLowerCase().includes('pelatihan');
+
+                    const tglVal = document.getElementById('tgl').value;
+                    const tglAkhirVal = document.getElementById('tgl_akhir').value;
+
+                    if (!tglVal || !tglAkhirVal) {
+                        e.preventDefault();
+                        alert('Jika memilih Kegiatan Berulang, isi tanggal mulai dan tanggal akhir.');
+                        return;
+                    }
+
+                    const start = new Date(tglVal);
+                    const end = new Date(tglAkhirVal);
+
+                    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                        e.preventDefault();
+                        alert('Tanggal tidak valid.');
+                        return;
+                    }
+
+                    if (end < start) {
+                        e.preventDefault();
+                        alert('Tanggal akhir harus sama atau setelah tanggal mulai.');
+                        return;
+                    }
+
+                    // Hitung jumlah hari kerja (Senin-Jumat) dalam rentang inklusif
+                    let countWorkDays = 0;
+                    let cursor = new Date(start);
+                    while (cursor <= end) {
+                        const day = cursor.getDay(); // 0 = Sun, 6 = Sat
+                        if (day !== 0 && day !== 6) countWorkDays++;
+                        cursor.setDate(cursor.getDate() + 1);
+                    }
+
+                    const maxDays = containsPelatihan ? 7 : 3;
+
+                    if (countWorkDays > maxDays) {
+                        e.preventDefault();
+                        if (containsPelatihan) {
+                            alert('Nama kegiatan mengandung kata "pelatihan" — rentang tanggal berulang maksimal ' + maxDays + ' hari kerja (Senin-Jumat).');
+                        } else {
+                            alert('Untuk kegiatan tanpa kata "pelatihan", rentang tanggal berulang maksimal ' + maxDays + ' hari kerja (Senin-Jumat).');
+                        }
                         return;
                     }
                 }

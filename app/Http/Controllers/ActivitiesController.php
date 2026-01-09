@@ -364,6 +364,66 @@ class ActivitiesController extends Controller
             'reminder_time' => 'nullable|date_format:H:i',
         ]);
 
+        // Server-side: tambahan validasi untuk aturan kegiatan berulang
+        if ($request->is_repeated == '1') {
+            if (!$request->tgl_akhir) {
+                return back()->withErrors([
+                    'tgl_akhir' => 'Tanggal akhir wajib diisi untuk kegiatan berulang.'
+                ])->withInput();
+            }
+
+            // Normalisasi nama kegiatan: hapus tag HTML dan trim
+            $kegiatanRaw = $request->kegiatan ?? '';
+            $kegiatanText = trim(strip_tags((string) $kegiatanRaw));
+
+            // Gunakan parse yang lebih fleksibel
+            try {
+                $start = Carbon::parse($request->tgl)->startOfDay();
+                $end = Carbon::parse($request->tgl_akhir)->startOfDay();
+            } catch (\Exception $ex) {
+                \Log::warning('ActivitiesController::store - tanggal parse error', ['tgl' => $request->tgl, 'tgl_akhir' => $request->tgl_akhir, 'error' => $ex->getMessage()]);
+                return back()->withErrors([
+                    'tgl_akhir' => 'Tanggal tidak valid.'
+                ])->withInput();
+            }
+
+
+            // Hitung jumlah hari kerja (Senin-Jumat) yang akan disisipkan (inklusif)
+            $period = $start->copy();
+            $jumlahHari = 0;
+            while ($period->lte($end)) {
+                if ($period->isWeekday()) {
+                    $jumlahHari++;
+                }
+                $period->addDay();
+            }
+
+            $isPelatihan = mb_stripos($kegiatanText, 'pelatihan') !== false;
+
+            // Log detail ketika validasi berulang berjalan supaya mudah debugging
+            \Log::info('ActivitiesController::store - repeat validation', [
+                'kegiatan_raw' => $kegiatanRaw,
+                'kegiatan_text' => $kegiatanText,
+                'is_pelatihan' => $isPelatihan,
+                'tgl' => $start->toDateString(),
+                'tgl_akhir' => $end->toDateString(),
+                'jumlah_hari' => $jumlahHari,
+                'is_repeated' => $request->is_repeated,
+            ]);
+
+            if ($isPelatihan && $jumlahHari > 7) {
+                return back()->withErrors([
+                    'tgl_akhir' => 'Kegiatan berulang dengan kata "pelatihan" maksimal 7 hari.'
+                ])->withInput();
+            }
+
+            if (!$isPelatihan && $jumlahHari > 3) {
+                return back()->withErrors([
+                    'tgl_akhir' => 'Kegiatan berulang selain "pelatihan" maksimal 3 hari.'
+                ])->withInput();
+            }
+        }
+
         if (Auth::user()->id == 2 || $request->jenis_kegiatan == 'TAMBAHAN'){
             $data = [
                 'nip' => Auth::user()->nip,

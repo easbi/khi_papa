@@ -56,15 +56,15 @@
                                 @else
                                     <span class="badge badge-success">Selesai</span>
                                 @endif
-                            </td>                            
+                            </td>
                             <td>
                                 @if ($act->berkas == NULL AND $act->link == NULL )
                                     <strong class="text-danger"> Tidak ada! </strong>
                                 @elseif ($act->berkas != NULL AND $act->link == NULL )
                                     <strong class="text-success"> Berkas </strong>
-                                @elseif ($act->berkas == NULL AND $act->link != NULL )                                   
+                                @elseif ($act->berkas == NULL AND $act->link != NULL )
                                     <strong class="text-success"> Link </strong>
-                                @elseif ($act->berkas != NULL AND $act->link != NULL )                                    
+                                @elseif ($act->berkas != NULL AND $act->link != NULL )
                                     <strong class="text-success"> Berkas dan Link </strong>
                                 @endif
                             </td>
@@ -78,7 +78,7 @@
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
                                     @endif
-                                </form>                                 
+                                </form>
                             </td>
                         </tr>
                         @endforeach
