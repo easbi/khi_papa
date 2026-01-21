@@ -531,6 +531,59 @@ class ActivitiesController extends Controller
                     ->withInput();
             }
 
+            // Server-side: validasi tambahan untuk aturan kegiatan berulang
+            if ($request->is_repeated == '1') {
+                // Normalisasi nama kegiatan: hapus tag HTML dan trim
+                $kegiatanRaw = $request->kegiatan ?? '';
+                $kegiatanText = trim(strip_tags((string) $kegiatanRaw));
+
+                // Gunakan parse yang lebih fleksibel
+                try {
+                    $start = Carbon::parse($request->tgl)->startOfDay();
+                    $end = Carbon::parse($request->tgl_akhir)->startOfDay();
+                } catch (\Exception $ex) {
+                    \Log::warning('ActivitiesController::storebyteam - tanggal parse error', ['tgl' => $request->tgl, 'tgl_akhir' => $request->tgl_akhir, 'error' => $ex->getMessage()]);
+                    return redirect()->back()->withErrors([
+                        'tgl_akhir' => 'Tanggal tidak valid.'
+                    ])->withInput();
+                }
+
+                // Hitung jumlah hari kerja (Senin-Jumat) yang akan disisipkan (inklusif)
+                $period = $start->copy();
+                $jumlahHari = 0;
+                while ($period->lte($end)) {
+                    if ($period->isWeekday()) {
+                        $jumlahHari++;
+                    }
+                    $period->addDay();
+                }
+
+                $isPelatihan = mb_stripos($kegiatanText, 'pelatihan') !== false;
+
+                // Log detail ketika validasi berulang berjalan
+                \Log::info('ActivitiesController::storebyteam - repeat validation', [
+                    'kegiatan_raw' => $kegiatanRaw,
+                    'kegiatan_text' => $kegiatanText,
+                    'is_pelatihan' => $isPelatihan,
+                    'tgl' => $start->toDateString(),
+                    'tgl_akhir' => $end->toDateString(),
+                    'jumlah_hari' => $jumlahHari,
+                    'is_repeated' => $request->is_repeated,
+                ]);
+
+                if ($isPelatihan && $jumlahHari > 7) {
+                    return redirect()->back()->withErrors([
+                        'tgl_akhir' => 'Kegiatan berulang dengan kata "pelatihan" maksimal 7 hari kerja.'
+                    ])->withInput();
+                }
+
+                if (!$isPelatihan && $jumlahHari > 3) {
+                    return redirect()->back()->withErrors([
+                        'tgl_akhir' => 'Kegiatan berulang selain "pelatihan" maksimal 3 hari kerja.'
+                    ])->withInput();
+                }
+            }
+
             // Generate tanggal-tanggal yang akan digunakan (exclude weekends)
             $tanggalList = $this->generateWorkingDates($request->tgl, $request->tgl_akhir, $request->is_repeated);
 

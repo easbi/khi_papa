@@ -65,7 +65,7 @@
 
                                 <div class="form-group">
                                     <label for="tgl">Tanggal Mulai</label>
-                                    <input type="date" class="form-control form-control-lg mb-3" name="tgl" required>
+                                    <input type="date" id="tgl" class="form-control form-control-lg mb-3" name="tgl" required>
                                 </div>
 
                                 <div class="form-group">
@@ -80,7 +80,7 @@
 
                                 <div class="form-group" id="tgl_akhir_field" style="display: none;">
                                     <label for="tgl_akhir">Tanggal Akhir</label>
-                                    <input type="date" class="form-control form-control-lg mb-3" name="tgl_akhir">
+                                    <input type="date" id="tgl_akhir" class="form-control form-control-lg mb-3" name="tgl_akhir">
                                     <small class="form-text text-muted">Kegiatan akan dibuat untuk setiap hari kerja (Senin-Jumat) dalam rentang ini</small>
                                 </div>
 
@@ -286,6 +286,58 @@
             e.preventDefault();
             alert('Silakan pilih minimal satu anggota tim kerja');
             return false;
+        }
+
+        // Validasi aturan fitur berulang
+        const isRepeated = document.getElementById('is_repeated').checked;
+        if (isRepeated) {
+            const kegiatanName = (document.getElementById('kegiatan').value || '').toString();
+            const containsPelatihan = kegiatanName.toLowerCase().includes('pelatihan');
+
+            const tglVal = document.getElementById('tgl').value;
+            const tglAkhirVal = document.getElementById('tgl_akhir').value;
+
+            if (!tglVal || !tglAkhirVal) {
+                e.preventDefault();
+                alert('Jika memilih Kegiatan Berulang, isi tanggal mulai dan tanggal akhir.');
+                return false;
+            }
+
+            const start = new Date(tglVal);
+            const end = new Date(tglAkhirVal);
+
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                e.preventDefault();
+                alert('Tanggal tidak valid.');
+                return false;
+            }
+
+            if (end < start) {
+                e.preventDefault();
+                alert('Tanggal akhir harus sama atau setelah tanggal mulai.');
+                return false;
+            }
+
+            // Hitung jumlah hari kerja (Senin-Jumat) dalam rentang inklusif
+            let countWorkDays = 0;
+            let cursor = new Date(start);
+            while (cursor <= end) {
+                const day = cursor.getDay(); // 0 = Sun, 6 = Sat
+                if (day !== 0 && day !== 6) countWorkDays++;
+                cursor.setDate(cursor.getDate() + 1);
+            }
+
+            const maxDays = containsPelatihan ? 7 : 3;
+
+            if (countWorkDays > maxDays) {
+                e.preventDefault();
+                if (containsPelatihan) {
+                    alert('Nama kegiatan mengandung kata "pelatihan" — rentang tanggal berulang maksimal ' + maxDays + ' hari kerja (Senin-Jumat).');
+                } else {
+                    alert('Untuk kegiatan tanpa kata "pelatihan", rentang tanggal berulang maksimal ' + maxDays + ' hari kerja (Senin-Jumat).');
+                }
+                return false;
+            }
         }
 
         // Assign Quill editor content to a hidden input field before form submission
