@@ -74,30 +74,27 @@ class TempController extends Controller
         return view('temp.createdbyteam', compact('TimKerja', 'teammember'));
     }
 
-    public function getProject(Request $request)
+    public function getProject($tim_kerja_id)
     {
         $currentYear = date('Y');
-        $projects = DB::table('master_assign_anggota AS ma')
-        ->where('ma.anggota_nip', '=', Auth::user()->nip)
-        ->where('ma.tim_kerja_id', '=', $request->tim_kerja_id)
-        ->join('master_project AS mp', 'mp.id', '=', 'ma.project_id')
-        ->join('master_tim_kerja AS mtk', 'mtk.id', '=', 'ma.tim_kerja_id')
-        ->where('mtk.tahun_kerja', $currentYear)
-        ->select('mp.nama_project', 'mp.id')
-        ->distinct()
-        ->pluck('mp.nama_project', 'mp.id');
+        $projects = DB::table('master_project AS mp')
+            ->join('master_tim_kerja AS mtk', 'mtk.id', '=', 'mp.tim_kerja_id')
+            ->where('mp.tim_kerja_id', '=', $tim_kerja_id)
+            ->where('mtk.tahun_kerja', $currentYear)
+            ->select('mp.nama_project', 'mp.id')
+            ->distinct()
+            ->pluck('mp.nama_project', 'mp.id');
 
         return response()->json($projects);
     }
 
-    public function getKegiatanutama(Request $request)
+    public function getKegiatanutama($project_id)
     {
         $currentYear = date('Y');
-        $kegiatanutama = DB::table('master_assign_anggota AS ma')
-            ->where('ma.anggota_nip', '=', Auth::user()->nip)
-            ->where('ma.project_id', '=', $request->project_id)
-            ->join('master_kegiatan_utama AS mku', 'mku.id', '=', 'ma.kegiatan_utama_id')
-            ->join('master_tim_kerja AS mtk', 'mtk.id', '=', 'ma.tim_kerja_id')
+        $kegiatanutama = DB::table('master_kegiatan_utama AS mku')
+            ->join('master_project AS mp', 'mp.id', '=', 'mku.project_id')
+            ->join('master_tim_kerja AS mtk', 'mtk.id', '=', 'mp.tim_kerja_id')
+            ->where('mku.project_id', '=', $project_id)
             ->where('mtk.tahun_kerja', $currentYear)
             ->select('mku.nama_kegiatan_utama', 'mku.id')
             ->distinct()

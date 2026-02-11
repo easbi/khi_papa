@@ -458,6 +458,8 @@
             $('#tim_kerja_id').change(function() {
                 var tim_kerja_id = $(this).val();
                 $("#project").html('');
+                if (tim_kerja_id) {
+                    $.ajax({
                         url: '{{ url('temp/getProject') }}/' + tim_kerja_id,
                         type: "GET",
                         dataType: "json",
@@ -486,7 +488,7 @@
 
             $('#project').change(function() {
                 var project_id = $(this).val();
-                $("#kegiatanutama").html('');
+                $("#kegiatan_utama").html('');
                 if (project_id) {
                     $.ajax({
                         url: '{{ url('temp/getKegiatanutama') }}/' + project_id,
