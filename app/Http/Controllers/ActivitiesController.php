@@ -310,10 +310,56 @@ class ActivitiesController extends Controller
         $prefill = $activity->toArray();
         unset($prefill['id'], $prefill['created_at'], $prefill['updated_at']);
 
+        // Ambil data TimKerja sama seperti di method create()
+        $currentYear = date('Y');
+        $assigntim=  DB::table('master_assign_anggota')
+            ->where('anggota_nip','=', Auth::user()->nip)
+            ->join('master_kegiatan_utama', 'master_assign_anggota.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
+            ->join('master_project', 'master_project.id', '=', 'master_assign_anggota.project_id')
+            ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
+            ->join('users as ketua_tim', 'master_tim_kerja.nip_ketua_tim', '=', 'ketua_tim.nip')
+            ->where('master_tim_kerja.tahun_kerja', $currentYear)
+            ->select(
+                'master_tim_kerja.nama_tim_kerja',
+                'ketua_tim.fullname as nama_ketua_tim',
+                'master_project.nama_project',
+                'master_kegiatan_utama.nama_kegiatan_utama',
+                'master_assign_anggota.*')
+            ->get();
+
+        $isKetuaTimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
+
+        $TimKerja = $assigntim->unique('nama_tim_kerja', 'tim_kerja_id')->pluck('tim_kerja_id', 'nama_tim_kerja', 'isKetuaTimKerja');
+
+        // Ambil data project berdasarkan tim_kerja_id dari activity
+        $projects = [];
+        $kegiatanUtamas = [];
+        if ($activity->tim_kerja_id) {
+            $projects = DB::table('master_project')
+                ->join('master_assign_anggota', 'master_project.id', '=', 'master_assign_anggota.project_id')
+                ->where('master_assign_anggota.tim_kerja_id', $activity->tim_kerja_id)
+                ->select('master_project.id', 'master_project.nama_project')
+                ->distinct()
+                ->pluck('nama_project', 'id')
+                ->toArray();
+
+            // Ambil data kegiatan utama berdasarkan project_id dari activity
+            if ($activity->project_id) {
+                $kegiatanUtamas = DB::table('master_kegiatan_utama')
+                    ->where('project_id', $activity->project_id)
+                    ->select('id', 'nama_kegiatan_utama')
+                    ->pluck('nama_kegiatan_utama', 'id')
+                    ->toArray();
+            }
+        }
+
         // kirim ke view create sebagai $activity (dipakai untuk prefill)
         return view('dailyactivity.create', [
             'activity' => (object) $prefill,
             'isDuplicate' => true,
+            'TimKerja' => $TimKerja,
+            'projects' => $projects,
+            'kegiatanUtamas' => $kegiatanUtamas,
         ]);
 
     }
@@ -1254,6 +1300,74 @@ class ActivitiesController extends Controller
         header("Content-Disposition: attachment; filename=\"{$fileName}\"");
         $writer->save('php://output');
         exit;
+    }
+
+    public function showRecapStory()
+    {
+        $nip = Auth::user()->nip; // Asumsi NIP ada di tabel users
+        // Jika NIP tidak di tabel user, sesuaikan, misal: $nip = Auth::user()->username;
+
+        $year = date('Y') - 1;
+
+        // 1. Total Kegiatan
+        $totalKegiatan = DB::table('daily_activity')
+            ->where('nip', $nip)
+            ->whereYear('tgl', $year)
+            ->count();
+
+        // 2. Breakdown Satuan (Top 3)
+        $summarySatuan = DB::table('daily_activity')
+            ->select('satuan', DB::raw('count(*) as total'))
+            ->where('nip', $nip)
+            ->whereYear('tgl', $year)
+            ->groupBy('satuan')
+            ->orderByDesc('total')
+            ->limit(3)
+            ->get();
+
+        // 3. Waktu Tersibuk (Bulan & Tanggal)
+        // Note: Query ini disesuaikan untuk MySQL standar
+        $busiestMonthQuery = DB::table('daily_activity')
+            ->select(DB::raw('MONTH(tgl) as month'), DB::raw('count(*) as total'))
+            ->where('nip', $nip)
+            ->whereYear('tgl', $year)
+            ->groupBy('month')
+            ->orderByDesc('total')
+            ->first();
+
+        $busiestDayQuery = DB::table('daily_activity')
+            ->select('tgl', DB::raw('count(*) as total'))
+            ->where('nip', $nip)
+            ->whereYear('tgl', $year)
+            ->groupBy('tgl')
+            ->orderByDesc('total')
+            ->first();
+
+        // Format data bulan/tanggal agar aman jika null
+        $busiestMonth = $busiestMonthQuery ? Carbon::create()->month($busiestMonthQuery->month)->translatedFormat('F') : '-';
+        $busiestDate  = $busiestDayQuery ? Carbon::parse($busiestDayQuery->tgl)->translatedFormat('d F Y') : '-';
+        $busiestCount = $busiestDayQuery ? $busiestDayQuery->total : 0;
+
+        // 4. Jam Favorit (Berdasarkan created_at)
+        $favHourQuery = DB::table('daily_activity')
+            ->select(DB::raw('HOUR(created_at) as hour'), DB::raw('count(*) as total'))
+            ->where('nip', $nip)
+            ->whereYear('created_at', $year)
+            ->groupBy('hour')
+            ->orderByDesc('total')
+            ->first();
+
+        $favHour = $favHourQuery ? str_pad($favHourQuery->hour, 2, '0', STR_PAD_LEFT) . ':00' : '-';
+
+        // Kirim data ke View (pastikan Anda sudah membuat file view: resources/views/recap/story.blade.php)
+        return view('recap.story', compact(
+            'totalKegiatan',
+            'summarySatuan',
+            'busiestMonth',
+            'busiestDate',
+            'busiestCount',
+            'favHour'
+        ));
     }
 }
 

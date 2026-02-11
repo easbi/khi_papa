@@ -39,6 +39,7 @@ Route::get('act/monitoring', [ActivitiesController::class, 'monitoring'])->name(
 Route::get('act/allactivity', [ActivitiesController::class, 'allActivity'])->name('act.allactivity');
 Route::get('act/filterMonthYear2', [ActivitiesController::class, 'filterMonthYear2'])->name('act.filterMonthYear2');
 Route::get('act/{id}/duplicate', [ActivitiesController::class, 'duplicate'])->name('act.duplicate');
+Route::get('/recap/story', [ActivitiesController::class, 'showRecapStory']);
 Route::resource('act', ActivitiesController::class);
 
 
