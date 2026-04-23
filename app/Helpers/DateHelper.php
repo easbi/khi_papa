@@ -60,17 +60,28 @@ class DateHelper
     }
 
     // Mengambil semua hari kerja dari awal bulan hingga hari ini yang bukan hari libur
-    public static function getWorkingDaysWithoutHolidaysUntilToday()
+    public static function getWorkingDaysWithoutHolidaysUntilToday($bulan = null, $tahun = null)
     {
         $today = Carbon::today();
-        $bulan = $today->month;
-        $tahun = $today->year;
+        $currentMonth = $today->month;
+        $currentYear = $today->year;
+
+        if ($bulan === null || $tahun === null) {
+            $bulan = $currentMonth;
+            $tahun = $currentYear;
+        }
+
         $holidayDates = self::getWeekdayHolidaysUntilToday($bulan, $tahun);
 
-        $workingDays = [];
-        $date = $today->copy()->startOfMonth();
+        $startDate = Carbon::create($tahun, $bulan, 1);
+        $endDate = ($tahun == $currentYear && $bulan == $currentMonth)
+            ? $today
+            : Carbon::create($tahun, $bulan, 1)->endOfMonth();
 
-        while ($date->lessThanOrEqualTo($today)) {
+        $workingDays = [];
+        $date = $startDate->copy();
+
+        while ($date->lessThanOrEqualTo($endDate)) {
             if ($date->isWeekday() && !in_array($date->format('Y-m-d'), $holidayDates)) {
                 $workingDays[] = $date->format('Y-m-d');
             }

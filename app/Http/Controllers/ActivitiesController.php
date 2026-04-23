@@ -166,8 +166,115 @@ class ActivitiesController extends Controller
 
     public function allActivity()
     {
-       $activities = DB::table('daily_activity')->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
-       return view('dailyactivity.allactivity',compact('activities'))->with('i');
+        $years = DB::table('daily_activity')
+            ->select(DB::raw('YEAR(tgl) as year'))
+            ->distinct()
+            ->orderByDesc('year')
+            ->pluck('year');
+
+        return view('dailyactivity.allactivity', compact('years'));
+    }
+
+    public function allActivityData(Request $request)
+    {
+        $query = DB::table('daily_activity')
+            ->join('users', 'daily_activity.nip', '=', 'users.nip')
+            ->select('daily_activity.*', 'users.fullname');
+
+        if ($request->filled('filter_tanggal')) {
+            $query->whereDate('daily_activity.tgl', $request->input('filter_tanggal'));
+        }
+
+        if ($request->filled('filter_bulan')) {
+            $query->whereMonth('daily_activity.tgl', $request->input('filter_bulan'));
+        }
+
+        if ($request->filled('filter_tahun')) {
+            $query->whereYear('daily_activity.tgl', $request->input('filter_tahun'));
+        }
+
+        if ($request->filled('search_custom')) {
+            $search = '%' . $request->input('search_custom') . '%';
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->where('users.fullname', 'like', $search)
+                    ->orWhere('daily_activity.kegiatan', 'like', $search)
+                    ->orWhere('daily_activity.jenis_kegiatan', 'like', $search)
+                    ->orWhere('daily_activity.berkas', 'like', $search)
+                    ->orWhere('daily_activity.link', 'like', $search);
+            });
+        }
+
+        $recordsTotal = DB::table('daily_activity')->count();
+        $recordsFiltered = $query->count();
+
+        $columns = [
+            'daily_activity.id',
+            'users.fullname',
+            'daily_activity.tgl',
+            'daily_activity.jenis_kegiatan',
+            'daily_activity.kegiatan',
+            'daily_activity.is_done',
+            'daily_activity.berkas',
+        ];
+
+        if ($request->has('order')) {
+            $order = $request->input('order')[0];
+            $orderColumn = $columns[$order['column']] ?? 'daily_activity.id';
+            $orderDir = $order['dir'] === 'asc' ? 'asc' : 'desc';
+            $query->orderBy($orderColumn, $orderDir);
+        } else {
+            $query->orderBy('daily_activity.id', 'desc');
+        }
+
+        if ($request->filled('length') && $request->input('length') != -1) {
+            $query->skip($request->input('start', 0))
+                ->take($request->input('length', 10));
+        }
+
+        $activities = $query->get();
+
+        $data = $activities->map(function ($act, $index) use ($request) {
+            $badge = $act->is_done == 2
+                ? '<span class="badge badge-warning">Selesai?</span>'
+                : '<span class="badge badge-success">Selesai</span>';
+
+            $bukti = '<strong class="text-danger">Tidak ada!</strong>';
+            if ($act->berkas != null && $act->link == null) {
+                $bukti = '<strong class="text-success">Berkas</strong>';
+            } elseif ($act->berkas == null && $act->link != null) {
+                $bukti = '<strong class="text-success">Link</strong>';
+            } elseif ($act->berkas != null && $act->link != null) {
+                $bukti = '<strong class="text-success">Berkas dan Link</strong>';
+            }
+
+            $actions = '<a class="btn btn-info btn-sm mr-1" href="' . route('act.show', $act->id) . '">Show</a>';
+            if ($act->nip == Auth::user()->nip || $act->created_by == Auth::user()->nip) {
+                $actions .= '<a class="btn btn-primary btn-sm mr-1" href="' . route('act.edit', $act->id) . '">Edit</a>';
+                $actions .= '<form action="' . route('act.destroy', $act->id) . '" method="POST" class="d-inline-block" onsubmit="return confirm(\'Apakah Anda yakin ingin menghapus data ini?\')">'
+                    . csrf_field()
+                    . method_field('DELETE')
+                    . '<button type="submit" class="btn btn-danger btn-sm">Delete</button>'
+                    . '</form>';
+            }
+
+            return [
+                'no' => intval($request->input('start', 0)) + $index + 1,
+                'fullname' => $act->fullname,
+                'tgl' => Carbon::parse($act->tgl)->format('d-M-Y'),
+                'jenis_kegiatan' => $act->jenis_kegiatan,
+                'kegiatan' => strlen($act->kegiatan) > 65 ? substr($act->kegiatan, 0, 65) . '...' : $act->kegiatan,
+                'progres' => $badge,
+                'bukti' => $bukti,
+                'actions' => $actions,
+            ];
+        })->toArray();
+
+        return response()->json([
+            'draw' => intval($request->input('draw')),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
     }
 
     public function selftable()
@@ -175,6 +282,7 @@ class ActivitiesController extends Controller
         $today = Carbon::today();
         $bulan = "";
         $tahun = "";
+        $noProofCount = 0;
 
         $months = [
             ['value' => 1, 'name' => 'Januari'],
@@ -198,34 +306,40 @@ class ActivitiesController extends Controller
             ->orderBy('year', 'desc')
             ->get();
 
-        //Script Menampilkan Tanggal tidak Mengisi KHI
-        $workingDaysWithoutHolidays = DateHelper::getWorkingDaysWithoutHolidaysUntilToday();
+        $missedDaysFormatted = $this->formatMissedDaysForMonthYear($today->month, $today->year);
 
-        $filledDays = DB::table('daily_activity')
-            ->where('nip', Auth::user()->nip)
-            ->whereMonth('tgl', $today->format('m'))
-            ->whereYear('tgl', $today->format('Y'))
-            ->select(DB::raw('DATE(tgl) as date'))
-            ->pluck('date')
-            ->toArray();
+        $activities = DB::table('daily_activity')
+            ->where('daily_activity.nip', Auth::user()->nip)
+            ->join('users', 'daily_activity.nip', 'users.nip')
+            ->select('daily_activity.*', 'users.fullname')
+            ->orderBy('id', 'desc')
+            ->get();
 
-        $missedDays = array_diff($workingDaysWithoutHolidays, $filledDays);
-        $missedDaysFormatted = array_map(function ($date) {
-            $carbonDate = Carbon::parse($date);
-            return $carbonDate->isoFormat('dddd, DD MMMM YYYY'); // Format dengan hari dalam Bahasa Indonesia
-        }, $missedDays);
-        // dd($missedDaysFormatted);
+        $noProofCount = $activities->filter(function ($act) {
+            return empty($act->berkas) && empty($act->link);
+        })->count();
 
-        $activities = DB::table('daily_activity')->where('daily_activity.nip', Auth::user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
-
-        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted'))->with('i', (request()->input('page', 1) - 1) * 5 );
+        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted', 'noProofCount'))->with('i', (request()->input('page', 1) - 1) * 5 );
     }
 
     public function filterMonthYear(Request $request)
     {
         $bulan = $request->bulan;
         $tahun = $request->tahun;
-        $activities = DB::table('daily_activity')->whereYear('tgl', '=', date($tahun))->whereMonth('tgl', '=', date($bulan))->where('daily_activity.nip', Auth::user()->nip)->join('users', 'daily_activity.nip', 'users.nip')->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
+        $noProofCount = 0;
+
+        $activities = DB::table('daily_activity')
+            ->whereYear('tgl', '=', $tahun)
+            ->whereMonth('tgl', '=', $bulan)
+            ->where('daily_activity.nip', Auth::user()->nip)
+            ->join('users', 'daily_activity.nip', 'users.nip')
+            ->select('daily_activity.*', 'users.fullname')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $noProofCount = $activities->filter(function ($act) {
+            return empty($act->berkas) && empty($act->link);
+        })->count();
 
         $months = [
             ['value' => 1, 'name' => 'Januari'],
@@ -248,7 +362,33 @@ class ActivitiesController extends Controller
             ->orderBy('year', 'desc')
             ->get();
 
-        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun'))->with('i', (request()->input('page', 1) - 1) * 5);
+        $missedDaysFormatted = $this->formatMissedDaysForMonthYear($bulan, $tahun);
+
+        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted', 'noProofCount'))->with('i', (request()->input('page', 1) - 1) * 5);
+    }
+
+    private function formatMissedDaysForMonthYear($bulan, $tahun)
+    {
+        $today = Carbon::today();
+        $selectedMonth = $bulan ?: $today->month;
+        $selectedYear = $tahun ?: $today->year;
+
+        $workingDaysWithoutHolidays = DateHelper::getWorkingDaysWithoutHolidaysUntilToday($selectedMonth, $selectedYear);
+
+        $filledDays = DB::table('daily_activity')
+            ->where('nip', Auth::user()->nip)
+            ->whereMonth('tgl', $selectedMonth)
+            ->whereYear('tgl', $selectedYear)
+            ->select(DB::raw('DATE(tgl) as date'))
+            ->pluck('date')
+            ->toArray();
+
+        $missedDays = array_diff($workingDaysWithoutHolidays, $filledDays);
+
+        return array_map(function ($date) {
+            $carbonDate = Carbon::parse($date);
+            return $carbonDate->isoFormat('dddd, DD MMMM YYYY');
+        }, $missedDays);
     }
 
     /**
@@ -918,7 +1058,7 @@ class ActivitiesController extends Controller
             $activity->updated_at = now();
             $activity->save();
         }
-        return redirect()->route('act.index')->with('success', 'The activity updated successfully');
+        return redirect()->route('act.selftable')->with('success', 'The activity updated successfully');
     }
 
     /**

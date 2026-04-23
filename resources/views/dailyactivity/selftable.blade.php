@@ -74,8 +74,13 @@
                 @if ($bulan <> "")
                 <div class="col-sm-6 d-flex justify-content-end">
                     <div class="form-group m-0">
-                        {{-- <h1>Export User Activities</h1> --}}
-                        <a href="{{ url('export-to-excel/'. $tahun . '/' . $bulan) }}" class="btn btn-primary" id="export">Export to Excel</a>
+                        {{-- DEBUG: {{ $noProofCount }} --}}
+                        <a href="{{ url('export-to-excel/'. $tahun . '/' . $bulan) }}" class="btn btn-primary position-relative" id="export">
+                            Export to Excel
+                            @if ($noProofCount > 0)
+                                <span style="display:inline-block; background:#dc3545; color:#fff; font-size:0.82rem; padding:0.25rem 0.55rem; border-radius:0.4rem; margin-left:0.6rem;">{{ $noProofCount }} tanpa bukti</span>
+                            @endif
+                        </a>
                     </div>
                 </div>
                 @endif
@@ -119,13 +124,13 @@
 
                             <td>
                                 @if ($act->berkas == NULL AND $act->link == NULL )
-                                    <strong class="text-danger"> Tidak ada! </strong>
+                                    <strong class="text-danger no-proof">Tidak ada!</strong>
                                 @elseif ($act->berkas != NULL AND $act->link == NULL )
-                                    <strong class="text-success"> Berkas </strong>
+                                    <strong class="text-success">Berkas</strong>
                                 @elseif ($act->berkas == NULL AND $act->link != NULL )
-                                    <strong class="text-success"> Link </strong>
+                                    <strong class="text-success">Link</strong>
                                 @elseif ($act->berkas != NULL AND $act->link != NULL )
-                                    <strong class="text-success"> Berkas dan Link </strong>
+                                    <strong class="text-success">Berkas dan Link</strong>
                                 @endif
                             </td>
                             <td>
@@ -185,30 +190,26 @@
 @push('scripts')
 <script type="text/javascript">
   $(document).ready(function() {
-    $('#example').DataTable({
+    var table = $('#example').DataTable({
       "scrollX": true,
        responsive: true
     });
     $('#notificationModal').modal('show');
-  } );
 
-  // Get references to the select element and the button
-    const selectElement1 = document.getElementById('bulan');
-    const selectElement2 = document.getElementById('tahun');
-    const buttonElement = document.getElementById('export');
+    $('#export').on('click', function (event) {
+        event.preventDefault();
+        var missingCount = table.rows().nodes().to$().find('strong.no-proof').length;
+        var href = $(this).attr('href');
 
-    // Add event listener to the select element
-    selectElement.addEventListener('change', function() {
-        // Check the selected option's value
-        if ((selectElement1.value === '') || (selectElement2.value === '') ) {
-            // Disable the button if option 1 is selected
-            // event.preventDefault();
-            link.setAttribute('disabled', 'disabled');
+        if (missingCount > 0) {
+            var message = 'Terdapat ' + missingCount + ' kegiatan yang belum memiliki bukti dukung. Kegiatan tersebut tidak akan diekspor. Lanjutkan?';
+            if (confirm(message)) {
+                window.location.href = href;
+            }
         } else {
-            // Enable the button for other options
-            link.removeAttribute('disabled');
+            window.location.href = href;
         }
     });
-
+  });
 </script>
 @endpush
