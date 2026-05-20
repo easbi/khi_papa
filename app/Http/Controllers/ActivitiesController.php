@@ -1112,7 +1112,7 @@ class ActivitiesController extends Controller
                     ->whereMonth('daily_activity.tgl', '=', date('m'))
                     ->whereYear('daily_activity.tgl', '=', date('Y'));
             })
-            ->whereNotIn('users.nip', ['199111052014102001', '196701201993031001'])
+            ->whereNotIn('users.nip', ['196701201993031001'])
             ->where('users.unit_kerja', '=', 'BPS Kota Padang Panjang')
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
