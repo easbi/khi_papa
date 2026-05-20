@@ -75,7 +75,7 @@ class ActivitiesController extends Controller
                      ->whereMonth('daily_activity.tgl', '=', date('m'))
                      ->whereYear('daily_activity.tgl', '=', date('Y'));
             })
-            ->whereNotIn('users.nip', ['199111052014102001', '197612291999011001' ]) // Mengecualikan pegawai tertentu
+            ->whereNotIn('users.nip', ['197612291999011001' ]) // Mengecualikan pegawai tertentu
             ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
@@ -1219,7 +1219,7 @@ class ActivitiesController extends Controller
                          ->whereMonth('daily_activity.tgl', '=', $bulan)
                          ->whereYear('daily_activity.tgl', '=', $tahun);
                 })
-            ->whereNotIn('users.nip', ['199111052014102001', '197612291999011001']) // Mengecualikan pegawai tertentu
+            ->whereNotIn('users.nip', ['197612291999011001']) // Mengecualikan pegawai tertentu
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
             ->orderBy('jumlah_pengisian', 'desc')
@@ -1327,7 +1327,7 @@ class ActivitiesController extends Controller
                          ->whereMonth('daily_activity.tgl', '=', $bulan)
                          ->whereYear('daily_activity.tgl', '=', $tahun);
                 })
-            ->whereNotIn('users.nip', ['199111052014102001', '197612291999011001']) // Mengecualikan pegawai tertentu
+            ->whereNotIn('users.nip', ['197612291999011001']) // Mengecualikan pegawai tertentu
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
             ->orderBy('jumlah_pengisian', 'desc')
