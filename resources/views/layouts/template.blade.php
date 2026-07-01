@@ -66,19 +66,37 @@
                             document.cookie = `${name}=${value};${expires};path=/`;
                         }
 
+                        function clearNotificationState() {
+                            sessionStorage.removeItem('viewedNotifications');
+                            localStorage.removeItem('viewedNotifications');
+                            document.cookie = 'viewedNotifications=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+                        }
+
+                        document.addEventListener('click', function(event) {
+                            const logoutLink = event.target.closest('a[href="/logout"], a[href*="/logout"]');
+                            if (logoutLink) {
+                                clearNotificationState();
+                            }
+                        });
+
                         // Ambil data notifikasi dari API
                         fetch("{{ route('notifications.active') }}")
                             .then(response => response.json())
                             .then(data => {
                                 console.log('Data Notifikasi:', data);
 
-                                // Baca cookie notifikasi yang sudah dilihat
-                                const viewedNotifications = JSON.parse(getCookie('viewedNotifications')) || {};
+                                // Baca notifikasi yang sudah dilihat hari ini dan yang sudah ditutup dalam sesi login
+                                const dailyViewedNotifications = JSON.parse(getCookie('viewedNotifications')) || {};
+                                const sessionViewedNotifications = JSON.parse(sessionStorage.getItem('viewedNotifications') || localStorage.getItem('viewedNotifications') || 'null') || {};
                                 const today = new Date().toISOString().split('T')[0]; // Hari ini (YYYY-MM-DD)
 
-                                // Filter notifikasi yang belum dilihat hari ini
+                                // Filter notifikasi yang belum dilihat
                                 const filteredNotifications = data.filter(notification => {
-                                    return !viewedNotifications[notification.id] || viewedNotifications[notification
+                                    if (notification.always_show) {
+                                        return !sessionViewedNotifications[notification.id];
+                                    }
+
+                                    return !dailyViewedNotifications[notification.id] || dailyViewedNotifications[notification
                                         .id] !== today;
                                 });
 
@@ -87,20 +105,48 @@
 
                                     filteredNotifications.forEach((notification, index) => {
                                         setTimeout(() => {
-                                            Swal.fire({
+                                            const popupOptions = {
                                                 title: notification.title,
-                                                text: notification.description,
+                                                text: notification.description || '',
                                                 icon: notification.type === 'info' ? 'info' :
                                                     'warning',
                                                 confirmButtonText: 'Tutup'
-                                            }).then(() => {
-                                                // Tandai notifikasi sebagai "dilihat"
-                                                viewedNotifications[notification.id] = today;
+                                            };
 
-                                                // Simpan ke cookie
-                                                setCookie('viewedNotifications', JSON.stringify(
-                                                        viewedNotifications),
-                                                    1); // Berlaku selama 1 hari
+                                            if (notification.image_url) {
+                                                popupOptions.title = '';
+                                                popupOptions.text = '';
+                                                popupOptions.icon = undefined;
+                                                popupOptions.background = 'transparent';
+                                                popupOptions.backdrop = 'rgba(0,0,0,0.45)';
+                                                popupOptions.html = `
+                                                    <div style="display:flex; flex-direction:column; align-items:center; gap:0.7rem; padding:0; background: transparent;">
+                                                        <a href="${notification.image_url}" target="_blank" rel="noopener noreferrer"
+                                                           style="display:block; width:100%; border-radius:16px; overflow:hidden; background:transparent;">
+                                                            <img src="${notification.image_url}" alt="${notification.title}" style="display:block; width:100%; max-height:78vh; object-fit:contain;">
+                                                        </a>
+                                                        <a href="${notification.image_url}" target="_blank" rel="noopener noreferrer"
+                                                           style="font-weight:600; color:#2563eb; text-decoration:none; font-size:0.95rem;">
+                                                            Lihat penuh
+                                                        </a>
+                                                    </div>`;
+                                                popupOptions.width = 'min(92vw, 1100px)';
+                                                popupOptions.padding = '0.8rem';
+                                                popupOptions.showCloseButton = true;
+                                                popupOptions.customClass = {
+                                                    popup: 'notification-image-popup',
+                                                    htmlContainer: 'notification-image-html'
+                                                };
+                                            }
+
+                                            Swal.fire(popupOptions).then(() => {
+                                                if (notification.always_show) {
+                                                    sessionViewedNotifications[notification.id] = today;
+                                                    sessionStorage.setItem('viewedNotifications', JSON.stringify(sessionViewedNotifications));
+                                                } else {
+                                                    dailyViewedNotifications[notification.id] = today;
+                                                    setCookie('viewedNotifications', JSON.stringify(dailyViewedNotifications), 1); // Berlaku selama 1 hari
+                                                }
                                             });
                                         }, delay);
 
@@ -115,6 +161,25 @@
                             });
                     });
                 </script>
+
+                <style>
+                    .swal2-popup.notification-image-popup {
+                        background: transparent !important;
+                        box-shadow: none !important;
+                    }
+
+                    .swal2-popup.notification-image-popup .swal2-header,
+                    .swal2-popup.notification-image-popup .swal2-content {
+                        background: transparent !important;
+                        border: none !important;
+                        padding: 0 !important;
+                    }
+
+                    .swal2-popup.notification-image-popup .swal2-html-container.notification-image-html {
+                        padding: 0 !important;
+                        background: transparent !important;
+                    }
+                </style>
 
                 <form action="#" class="main-sidebar__search w-100 border-right d-sm-flex d-md-none d-lg-none">
                     <div class="input-group input-group-seamless ml-3">

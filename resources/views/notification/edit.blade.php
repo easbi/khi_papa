@@ -46,6 +46,21 @@
                                     <input type="text" name="tipe" class="form-control form-control-lg mb-3" value="{{ $notification->type }}">
                                 </div>
                                 <div class="form-group">
+                                    <label for="image">Gambar Notifikasi</label>
+                                    <input type="file" name="image" id="image" class="form-control-file" accept="image/*">
+                                    @if ($notification->image_path)
+                                        <div class="mt-2">
+                                            <img src="{{ asset($notification->image_path) }}" alt="Preview" style="max-width: 220px; max-height: 140px; object-fit: cover; border-radius: 6px;">
+                                        </div>
+                                    @endif
+                                    <small class="form-text text-muted">Kosongkan jika tidak ingin mengubah gambar.</small>
+                                </div>
+                                <div class="form-group form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" id="always_show" name="always_show" value="1" {{ $notification->always_show ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="always_show">Tampil terus selama login ini</label>
+                                    <small class="form-text text-muted">Jika dicentang, notifikasi akan terus muncul pada sesi login ini, tidak hanya saat refresh halaman.</small>
+                                </div>
+                                <div class="form-group">
                                     <label for="start_date">Tanggal Mulai</label>
                                     <input type="date" name="start_date" id="start_date" class="form-control" value="{{ $notification->start_date }}" required>
                                 </div>

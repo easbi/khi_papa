@@ -1,0 +1,1 @@
+{"version":1,"defects":{"Tests\\Feature\\NotificationImageTest::test_store_notification_with_image":3,"Tests\\Feature\\UserLoginTest::test_login_accepts_username_field_for_existing_users":4},"times":{"Tests\\Feature\\NotificationImageTest::test_store_notification_with_image":0.194,"Tests\\Feature\\UserLoginTest::test_login_accepts_username_field_for_existing_users":0.257}}

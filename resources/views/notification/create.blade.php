@@ -45,6 +45,16 @@
                                     <input type="text" name="tipe" class="form-control form-control-lg mb-3">
                                 </div>
                                 <div class="form-group">
+                                    <label for="image">Gambar Notifikasi</label>
+                                    <input type="file" name="image" id="image" class="form-control-file" accept="image/*">
+                                    <small class="form-text text-muted">Format yang didukung: JPG, PNG, GIF, WEBP. Maksimal 2MB.</small>
+                                </div>
+                                <div class="form-group form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" id="always_show" name="always_show" value="1">
+                                    <label class="form-check-label" for="always_show">Tampil terus selama login ini</label>
+                                    <small class="form-text text-muted">Jika dicentang, notifikasi akan terus muncul pada sesi login ini, tidak hanya saat refresh halaman.</small>
+                                </div>
+                                <div class="form-group">
                                     <label for="start_date">Tanggal Mulai</label>
                                     <input type="date" name="start_date" id="start_date" class="form-control" required>
                                 </div>
@@ -53,7 +63,7 @@
                                     <label for="end_date">Tanggal Berakhir</label>
                                     <input type="date" name="end_date" id="end_date" class="form-control" required>
                                 </div>
-                                                                
+
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-success">Kirim</button>
                                 </div>

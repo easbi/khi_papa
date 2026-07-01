@@ -45,7 +45,7 @@
                                     <div class="form-group">
                                         <label for="tgl">Tanggal Mulai Kegiatan</label>
                                         <input type="date" id="tgl" class="form-control form-control-lg mb-3" name="tgl"
-                                            value="{{ isset($activity) ? $activity->tgl : '' }}" required>
+                                            value="{{ isset($activity) ? $activity->tgl : date('Y-m-d') }}" required>
                                     </div>
 
                                     <div class="form-group custom-control custom-checkbox mb-1">

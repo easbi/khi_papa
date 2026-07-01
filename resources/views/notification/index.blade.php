@@ -50,7 +50,9 @@
                             <th>No</th>
                             <th>Judul</th>
                             <th>Deskripsi</th>
+                            <th>Gambar</th>
                             <th>Tipe</th>
+                            <th>Tampil Terus</th>
                             <th>Waktu Pembuatan</th>
                             @if (Auth::user()->id == 1)
                             <th>Aksi</th>
@@ -63,7 +65,15 @@
                             <td>{{ ++$i }}</td>
                             <td>{{ $nt->title }}</td>
                             <td>{{ $nt->description }}</td>
+                            <td>
+                                @if ($nt->image_path)
+                                    <img src="{{ asset($nt->image_path) }}" alt="{{ $nt->title }}" style="max-width: 100px; max-height: 70px; object-fit: cover; border-radius: 4px;">
+                                @else
+                                    -
+                                @endif
+                            </td>
                             <td>{{ $nt->type }}</td>
+                            <td>{{ $nt->always_show ? 'Ya' : 'Tidak' }}</td>
                             <td>{{ $nt->created_at }}</td>
                             @if (Auth::user()->id == 1)
                             <td>
@@ -72,7 +82,7 @@
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Delete</button>
-                                </form>                                 
+                                </form>
                             </td>
                             @endif
                         </tr>
@@ -98,15 +108,15 @@
             ordering: true,
             paging: true,
             pageLength: 10,
-            autoWidth: false, 
+            autoWidth: false,
             columnDefs: [
-                { targets: 0, width: "2%" },   
-                { targets: 1, width: "10%" }, 
-                { targets: 2, width: "50%", className: "text-wrap" }, 
-                { targets: 3, width: "18%" },  
-                { targets: 4, width: "20%" }  
+                { targets: 0, width: "2%" },
+                { targets: 1, width: "10%" },
+                { targets: 2, width: "50%", className: "text-wrap" },
+                { targets: 3, width: "18%" },
+                { targets: 4, width: "20%" }
             ]
-        });    
+        });
     });
 </script>
 
