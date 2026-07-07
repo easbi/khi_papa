@@ -63,6 +63,40 @@
 </div>
 <!-- End Default Pencarian -->
 
+<!-- Triwulan Download Card -->
+<div class="row">
+    <div class="col">
+        <div class="card card-small mb-4">
+            <div class="card-header border-bottom">
+                <h6 class="m-0">Unduh Lembar Triwulan</h6>
+            </div>
+            <div class="card-body">
+                <form id="quarterForm" class="form-inline" onsubmit="return false;">
+                    <div class="form-group mr-3">
+                        <label for="q_year" class="mr-2">Tahun</label>
+                        <select id="q_year" class="form-control">
+                            <option value="" selected disabled>Select</option>
+                            @foreach($years as $y)
+                                <option value="{{$y->year}}">{{$y->year}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group mr-3">
+                        <label for="q_quarter" class="mr-2">Triwulan</label>
+                        <select id="q_quarter" class="form-control">
+                            <option value="" selected disabled>Select</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button id="downloadQuarter" class="btn btn-primary">Unduh Aktivitas Gabungan Triwulan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Triwulan Download Card -->
+
 <!-- Default Light Table -->
 <div class="row">
 	<div class="col">
@@ -209,6 +243,37 @@
         } else {
             window.location.href = href;
         }
+    });
+
+    // Triwulan download logic
+    var quartersByYear = {!! json_encode($quartersByYear ?? []) !!};
+    var baseExportQuarter = "{{ url('act/export-quarter') }}";
+
+    $('#q_year').on('change', function() {
+        var y = $(this).val();
+        var qlist = quartersByYear[y] || [];
+        var $q = $('#q_quarter');
+        $q.empty();
+        if (qlist.length === 0) {
+            $q.append($('<option>').attr('disabled', true).text('Tidak ada data untuk tahun ini'));
+        } else {
+            $q.append($('<option>').attr('value', '').attr('disabled', true).text('Select'));
+            qlist.forEach(function(q) {
+                $q.append($('<option>').val(q).text('Triwulan ' + q));
+            });
+        }
+    });
+
+    $('#downloadQuarter').on('click', function(e) {
+        e.preventDefault();
+        var y = $('#q_year').val();
+        var q = $('#q_quarter').val();
+        if (!y || !q) {
+            alert('Pilih tahun dan triwulan yang tersedia');
+            return;
+        }
+        var href = baseExportQuarter + '/' + y + '/' + q;
+        window.location.href = href;
     });
   });
 </script>

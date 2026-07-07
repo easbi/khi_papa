@@ -20,12 +20,15 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Illuminate\Support\Str;
+use App\Models\PublicLink;
 
 class ActivitiesController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        // allow public access to the one-off public link show page
+        $this->middleware('auth')->except(['publicLinkShow']);
     }
 
     /**
@@ -306,6 +309,19 @@ class ActivitiesController extends Controller
             ->orderBy('year', 'desc')
             ->get();
 
+        // compute available quarters per year for the authenticated user
+        $quartersByYear = [];
+        foreach ($years as $y) {
+            $q = DB::table('daily_activity')
+                ->whereYear('tgl', $y->year)
+                ->where('nip', Auth::user()->nip)
+                ->select(DB::raw('DISTINCT QUARTER(tgl) as quarter'))
+                ->pluck('quarter')
+                ->toArray();
+            sort($q);
+            $quartersByYear[$y->year] = $q;
+        }
+
         $missedDaysFormatted = $this->formatMissedDaysForMonthYear($today->month, $today->year);
 
         $activities = DB::table('daily_activity')
@@ -319,7 +335,7 @@ class ActivitiesController extends Controller
             return empty($act->berkas) && empty($act->link);
         })->count();
 
-        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted', 'noProofCount'))->with('i', (request()->input('page', 1) - 1) * 5 );
+        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted', 'noProofCount', 'quartersByYear'))->with('i', (request()->input('page', 1) - 1) * 5 );
     }
 
     public function filterMonthYear(Request $request)
@@ -362,9 +378,180 @@ class ActivitiesController extends Controller
             ->orderBy('year', 'desc')
             ->get();
 
+        // compute available quarters per year for the authenticated user
+        $quartersByYear = [];
+        foreach ($years as $y) {
+            $q = DB::table('daily_activity')
+                ->whereYear('tgl', $y->year)
+                ->where('nip', Auth::user()->nip)
+                ->select(DB::raw('DISTINCT QUARTER(tgl) as quarter'))
+                ->pluck('quarter')
+                ->toArray();
+            sort($q);
+            $quartersByYear[$y->year] = $q;
+        }
+
         $missedDaysFormatted = $this->formatMissedDaysForMonthYear($bulan, $tahun);
 
-        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted', 'noProofCount'))->with('i', (request()->input('page', 1) - 1) * 5);
+        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted', 'noProofCount', 'quartersByYear'))->with('i', (request()->input('page', 1) - 1) * 5);
+    }
+
+    public function exportQuarter($year, $quarter)
+    {
+        $nip = Auth::user()->nip;
+
+        // map quarter to start and end month
+        $map = [1 => [1,3], 2 => [4,6], 3 => [7,9], 4 => [10,12]];
+        if (!isset($map[$quarter])) {
+            return redirect()->back()->with('error', 'Triwulan tidak valid');
+        }
+        [$startMonth, $endMonth] = $map[$quarter];
+
+        $rows = DB::table('daily_activity')
+            ->leftJoin('master_project', 'daily_activity.project_id', '=', 'master_project.id')
+            ->where('daily_activity.nip', $nip)
+            ->whereYear('daily_activity.tgl', $year)
+            ->whereBetween(DB::raw('MONTH(daily_activity.tgl)'), [$startMonth, $endMonth])
+            ->select('daily_activity.*', 'master_project.nama_project')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return redirect()->back()->with('error', 'Data triwulan tersebut kosong');
+        }
+
+        // First, collect activities per project (projectText) so we can create one public link per project
+        $projectActivities = [];
+        foreach ($rows as $r) {
+            $proj = !empty($r->nama_project) ? $r->nama_project : 'Tambahan';
+            if (!isset($projectActivities[$proj])) $projectActivities[$proj] = [];
+            $projectActivities[$proj][] = $r->id;
+        }
+
+        // aggregate by kegiatan + satuan (kept for row-level aggregation), but we'll attach project text later
+        $groups = [];
+        foreach ($rows as $r) {
+            $kegiatanKey = trim(strip_tags((string)$r->kegiatan));
+            $satuanKey = $r->satuan ?? '';
+            $key = $kegiatanKey . '||' . $satuanKey;
+
+            if (!isset($groups[$key])) {
+                $groups[$key] = [
+                    'projects' => [],
+                    'start_date' => $r->tgl,
+                    'end_date' => $r->tgl,
+                    'kegiatan' => $kegiatanKey,
+                    'satuan' => $satuanKey,
+                    'total_kuantitas' => 0,
+                    'kuantitas_is_numeric' => true,
+                    'links' => [],
+                    'activity_ids' => [],
+                ];
+            }
+
+            // projects
+            $projName = !empty($r->nama_project) ? $r->nama_project : 'Tambahan';
+            $groups[$key]['projects'][] = $projName;
+
+            // dates
+            if ($r->tgl < $groups[$key]['start_date']) $groups[$key]['start_date'] = $r->tgl;
+            if ($r->tgl > $groups[$key]['end_date']) $groups[$key]['end_date'] = $r->tgl;
+
+            // kuantitas
+            if (is_numeric($r->kuantitas)) {
+                $groups[$key]['total_kuantitas'] += floatval($r->kuantitas);
+            } else {
+                $groups[$key]['kuantitas_is_numeric'] = false;
+            }
+
+            // links and berkas
+            if (!empty($r->link)) {
+                $groups[$key]['links'][] = trim($r->link);
+            }
+            if (!empty($r->berkas)) {
+                $groups[$key]['links'][] = asset('bukti/' . $r->berkas);
+            }
+            $groups[$key]['activity_ids'][] = $r->id;
+        }
+
+        // build spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->setCellValue('A1', 'Nama Proyek');
+        $sheet->setCellValue('B1', 'Tanggal Mulai');
+        $sheet->setCellValue('C1', 'Tanggal Akhir');
+        $sheet->setCellValue('D1', 'Kegiatan');
+        $sheet->setCellValue('E1', 'Satuan');
+        $sheet->setCellValue('F1', 'Target Kuantitas');
+        $sheet->setCellValue('G1', 'Link/Data Dukung');
+
+        // Create public links per project, then write rows sorted by project name
+        $projectTokens = [];
+        foreach ($projectActivities as $projName => $actIds) {
+            // create or reuse token for this project+year+quarter+user
+            $token = Str::random(12);
+            $pl = PublicLink::create([
+                'token' => $token,
+                'title' => $projName,
+                'activity_ids' => array_values(array_unique($actIds)),
+                'created_by_nip' => $nip,
+            ]);
+            $projectTokens[$projName] = url('public-link/' . $token);
+        }
+
+        // Sort groups by project name (use first project name in the group's projects list)
+        $groups = array_values($groups);
+        usort($groups, function ($a, $b) {
+            $pa = array_values(array_filter($a['projects']))[0] ?? 'Tambahan';
+            $pb = array_values(array_filter($b['projects']))[0] ?? 'Tambahan';
+            return strcmp($pa, $pb);
+        });
+
+        $rowNum = 2;
+        foreach ($groups as $g) {
+            $projName = array_values(array_filter($g['projects']))[0] ?? 'Tambahan';
+            $projectText = $projName;
+            $linksText = $projectTokens[$projName] ?? '';
+
+            $sheet->setCellValue("A{$rowNum}", $projectText);
+            $sheet->setCellValue("B{$rowNum}", Carbon::parse($g['start_date'])->format('Y-m-d'));
+            $sheet->setCellValue("C{$rowNum}", Carbon::parse($g['end_date'])->format('Y-m-d'));
+            $sheet->setCellValue("D{$rowNum}", $g['kegiatan']);
+            $sheet->setCellValue("E{$rowNum}", $g['satuan']);
+            $sheet->setCellValue("F{$rowNum}", $g['kuantitas_is_numeric'] ? $g['total_kuantitas'] : '');
+            $sheet->setCellValue("G{$rowNum}", $linksText);
+            $rowNum++;
+        }
+
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $fileName = "triwulan_{$quarter}_{$year}.xlsx";
+        $writer = new Xlsx($spreadsheet);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Content-Disposition: attachment; filename=\"{$fileName}\"");
+        $writer->save('php://output');
+        exit;
+    }
+
+    public function publicLinkShow($token)
+    {
+        $record = PublicLink::where('token', $token)->first();
+        if (!$record) {
+            abort(404);
+        }
+
+        $ids = $record->activity_ids ?? [];
+        $activities = DB::table('daily_activity')
+            ->whereIn('daily_activity.id', $ids)
+            ->leftJoin('users', 'daily_activity.nip', '=', 'users.nip')
+            ->select('daily_activity.*', 'users.fullname')
+            ->orderBy('daily_activity.tgl', 'asc')
+            ->get();
+
+        return view('public_links.show', compact('activities', 'record'));
     }
 
     private function formatMissedDaysForMonthYear($bulan, $tahun)
