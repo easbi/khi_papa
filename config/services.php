@@ -30,4 +30,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'gdrive' => [
+        'enabled' => env('GDRIVE_ENABLED', false),
+        'url'     => env('GDRIVE_URL'),
+        'token'   => env('GDRIVE_TOKEN'),
+    ],
+
 ];

@@ -42,8 +42,8 @@ class ActivitiesController extends Controller
         $activities = DB::table('daily_activity')->join('users', 'daily_activity.nip', 'users.nip')->whereDate('daily_activity.tgl', Carbon::today())->select('daily_activity.*', 'users.fullname')->orderBy('id', 'desc')->get();
         $act_count_today = Activity::whereDate('tgl', Carbon::today())->count();
 
-        $yesterday = date("Y-m-d", strtotime( '-1 days' ) );
-        $act_count_yesterday = Activity::whereDate('tgl', $yesterday )->count();
+        $yesterday = date("Y-m-d", strtotime('-1 days'));
+        $act_count_yesterday = Activity::whereDate('tgl', $yesterday)->count();
 
         $userfill = Activity::whereDate('tgl', Carbon::today())->distinct('nip')->count();
 
@@ -54,7 +54,7 @@ class ActivitiesController extends Controller
             ->whereMonth('daily_activity.tgl', '=', date('m'))
             ->whereYear('daily_activity.tgl', '=', date('Y'))
             ->whereDay('daily_activity.tgl', '<=', date('d'))
-            ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
+            ->where('users.unit_kerja', '=', 'BPS Kota Padang Panjang')
             ->groupBy('daily_activity.nip', 'users.fullname')
             ->orderByDesc('jumlah_kegiatan')
             ->limit(5)
@@ -73,19 +73,19 @@ class ActivitiesController extends Controller
 
         // Query to get the 5 employees with the least daily activity submissions for the current month
         $leastEmployees = DB::table('users')
-            ->leftJoin('daily_activity', function($join) {
+            ->leftJoin('daily_activity', function ($join) {
                 $join->on('users.nip', '=', 'daily_activity.nip')
-                     ->whereMonth('daily_activity.tgl', '=', date('m'))
-                     ->whereYear('daily_activity.tgl', '=', date('Y'));
+                    ->whereMonth('daily_activity.tgl', '=', date('m'))
+                    ->whereYear('daily_activity.tgl', '=', date('Y'));
             })
-            ->whereNotIn('users.nip', ['197612291999011001' ]) // Mengecualikan pegawai tertentu
-            ->where('users.unit_kerja', '=' , 'BPS Kota Padang Panjang')
+            ->whereNotIn('users.nip', ['197612291999011001']) // Mengecualikan pegawai tertentu
+            ->where('users.unit_kerja', '=', 'BPS Kota Padang Panjang')
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
             ->orderBy('jumlah_pengisian', 'asc')
             ->limit(5)
             ->get()
-            ->map(function ($user) use ($today){
+            ->map(function ($user) use ($today) {
                 $maxWorkDaysFiltered = Carbon::createFromDate($today->format('Y'), $today->format('m'))->startOfMonth()->diffInDaysFiltered(
                     fn($date) => $date->isWeekday(), // Hanya menghitung hari Senin - Jumat
                     Carbon::today()
@@ -93,8 +93,8 @@ class ActivitiesController extends Controller
                 $datenow = (new \DateTime())->format('Y-m-d');
                 // Hari Libur dalam Senin-Jumat
 
-                $bulan=$today->format('m');
-                $tahun=$today->format('Y');
+                $bulan = $today->format('m');
+                $tahun = $today->format('Y');
 
                 $hariLibur = DateHelper::countWeekdayHolidaysUntilToday($bulan, $tahun);
 
@@ -111,7 +111,7 @@ class ActivitiesController extends Controller
                 $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
 
                 // Menghitung hari kerja yang tidak diisi
-                $user->missed_days = $maxWorkDays-$filledDays;
+                $user->missed_days = $maxWorkDays - $filledDays;
 
                 return $user;
             })
@@ -135,11 +135,11 @@ class ActivitiesController extends Controller
 
         // statuspenyelesaian pekerjaan
         $record_status_penyelesaian = Activity::whereDate('tgl', Carbon::today())
-                ->select('is_done', \DB::raw("COUNT('id') as count"))
-                ->groupBy('is_done')
-                ->get();
+            ->select('is_done', \DB::raw("COUNT('id') as count"))
+            ->groupBy('is_done')
+            ->get();
         $status_penyelesaian = [];
-        foreach($record_status_penyelesaian as $row) {
+        foreach ($record_status_penyelesaian as $row) {
             $status_penyelesaian['label'][] = $row->is_done;
             $status_penyelesaian['data'][] = (int) $row->count;
         }
@@ -148,12 +148,13 @@ class ActivitiesController extends Controller
 
         // Query Siapa yang ulang tahun sekarang ini
         $birthdayToday = User::whereRaw('SUBSTRING(nip,5,2) = ?', [$today->format('m')])
-                                ->whereRaw('SUBSTRING(nip,7,2) = ?', [$today->format('d')])
-                                ->pluck('fullname');
+            ->whereRaw('SUBSTRING(nip,7,2) = ?', [$today->format('d')])
+            ->pluck('fullname');
 
 
         // dd($birthdayToday);
-        return view('dailyactivity.index',
+        return view(
+            'dailyactivity.index',
             compact(
                 'activities',
                 'userfill',
@@ -163,8 +164,9 @@ class ActivitiesController extends Controller
                 'topEmployeesDataJson',
                 'leastEmployeesDataJson',
                 'birthdayToday'
-            ))
-        ->with('i');
+            )
+        )
+            ->with('i');
     }
 
     public function allActivity()
@@ -335,7 +337,7 @@ class ActivitiesController extends Controller
             return empty($act->berkas) && empty($act->link);
         })->count();
 
-        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted', 'noProofCount', 'quartersByYear'))->with('i', (request()->input('page', 1) - 1) * 5 );
+        return view('dailyactivity.selftable', compact('activities', 'months', 'years', 'bulan', 'tahun', 'missedDaysFormatted', 'noProofCount', 'quartersByYear'))->with('i', (request()->input('page', 1) - 1) * 5);
     }
 
     public function filterMonthYear(Request $request)
@@ -401,7 +403,7 @@ class ActivitiesController extends Controller
         $nip = Auth::user()->nip;
 
         // map quarter to start and end month
-        $map = [1 => [1,3], 2 => [4,6], 3 => [7,9], 4 => [10,12]];
+        $map = [1 => [1, 3], 2 => [4, 6], 3 => [7, 9], 4 => [10, 12]];
         if (!isset($map[$quarter])) {
             return redirect()->back()->with('error', 'Triwulan tidak valid');
         }
@@ -423,14 +425,15 @@ class ActivitiesController extends Controller
         $projectActivities = [];
         foreach ($rows as $r) {
             $proj = !empty($r->nama_project) ? $r->nama_project : 'Tambahan';
-            if (!isset($projectActivities[$proj])) $projectActivities[$proj] = [];
+            if (!isset($projectActivities[$proj]))
+                $projectActivities[$proj] = [];
             $projectActivities[$proj][] = $r->id;
         }
 
         // aggregate by kegiatan + satuan (kept for row-level aggregation), but we'll attach project text later
         $groups = [];
         foreach ($rows as $r) {
-            $kegiatanKey = trim(strip_tags((string)$r->kegiatan));
+            $kegiatanKey = trim(strip_tags((string) $r->kegiatan));
             $satuanKey = $r->satuan ?? '';
             $key = $kegiatanKey . '||' . $satuanKey;
 
@@ -453,8 +456,10 @@ class ActivitiesController extends Controller
             $groups[$key]['projects'][] = $projName;
 
             // dates
-            if ($r->tgl < $groups[$key]['start_date']) $groups[$key]['start_date'] = $r->tgl;
-            if ($r->tgl > $groups[$key]['end_date']) $groups[$key]['end_date'] = $r->tgl;
+            if ($r->tgl < $groups[$key]['start_date'])
+                $groups[$key]['start_date'] = $r->tgl;
+            if ($r->tgl > $groups[$key]['end_date'])
+                $groups[$key]['end_date'] = $r->tgl;
 
             // kuantitas
             if (is_numeric($r->kuantitas)) {
@@ -586,8 +591,8 @@ class ActivitiesController extends Controller
     public function create()
     {
         $currentYear = date('Y');
-        $assigntim=  DB::table('master_assign_anggota')
-            ->where('anggota_nip','=', Auth::user()->nip)
+        $assigntim = DB::table('master_assign_anggota')
+            ->where('anggota_nip', '=', Auth::user()->nip)
             ->join('master_kegiatan_utama', 'master_assign_anggota.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
             ->join('master_project', 'master_project.id', '=', 'master_assign_anggota.project_id')
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
@@ -598,10 +603,11 @@ class ActivitiesController extends Controller
                 'ketua_tim.fullname as nama_ketua_tim',
                 'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
-                'master_assign_anggota.*')
+                'master_assign_anggota.*'
+            )
             ->get();
 
-        $isKetuaTimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
+        $isKetuaTimKerja = DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim', '=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
 
         $TimKerja = $assigntim->unique('nama_tim_kerja', 'tim_kerja_id')->pluck('tim_kerja_id', 'nama_tim_kerja', 'isKetuaTimKerja');
 
@@ -611,20 +617,21 @@ class ActivitiesController extends Controller
     public function createdbyteam()
     {
         $currentYear = date('Y');
-        $teammember=  DB::table('master_assign_anggota')
+        $teammember = DB::table('master_assign_anggota')
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
             ->where('master_tim_kerja.nip_ketua_tim', '=', Auth::user()->nip)
             ->where('master_tim_kerja.tahun_kerja', $currentYear)
             ->join('users', 'users.nip', '=', 'master_assign_anggota.anggota_nip')
             ->select(
                 'users.fullname',
-                'users.nip')
+                'users.nip'
+            )
             ->get()
             ->unique('nip');
 
-        $candidate=  DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 14])->get();
+        $candidate = DB::table('users')->select('nip', 'fullname')->whereNotIn('id', [2, 14])->get();
 
-        $TimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
+        $TimKerja = DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim', '=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
 
 
 
@@ -639,8 +646,8 @@ class ActivitiesController extends Controller
 
         // Ambil data TimKerja sama seperti di method create()
         $currentYear = date('Y');
-        $assigntim=  DB::table('master_assign_anggota')
-            ->where('anggota_nip','=', Auth::user()->nip)
+        $assigntim = DB::table('master_assign_anggota')
+            ->where('anggota_nip', '=', Auth::user()->nip)
             ->join('master_kegiatan_utama', 'master_assign_anggota.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
             ->join('master_project', 'master_project.id', '=', 'master_assign_anggota.project_id')
             ->join('master_tim_kerja', 'master_tim_kerja.id', '=', 'master_assign_anggota.tim_kerja_id')
@@ -651,10 +658,11 @@ class ActivitiesController extends Controller
                 'ketua_tim.fullname as nama_ketua_tim',
                 'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
-                'master_assign_anggota.*')
+                'master_assign_anggota.*'
+            )
             ->get();
 
-        $isKetuaTimKerja=  DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim','=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
+        $isKetuaTimKerja = DB::table('master_tim_kerja')->where('master_tim_kerja.nip_ketua_tim', '=', Auth::user()->nip)->where('tahun_kerja', $currentYear)->select('id as tim_kerja_id', 'nama_tim_kerja')->get();
 
         $TimKerja = $assigntim->unique('nama_tim_kerja', 'tim_kerja_id')->pluck('tim_kerja_id', 'nama_tim_kerja', 'isKetuaTimKerja');
 
@@ -699,45 +707,85 @@ class ActivitiesController extends Controller
      */
     public function store(Request $request)
     {
-        $filename = NULL;
-        if ($request->hasFile('berkas'))
-        {
-           $file = $request->file('berkas');
-           $filename = $filename = \Carbon\Carbon::now()->format('Y-m-d H-i').'_'. Auth::user()->nip .'_'. str_replace(' ', '', substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 25)). '.' .$file->getClientOriginalExtension();
-           $file->move('bukti', $filename);
+        // ============================================================
+        // [GDRIVE] Variabel penampung metadata file
+        // ============================================================
+        $filename = null;       // nama file (untuk kolom 'berkas')
+        $driveId = null;       // file ID Google Drive
+        $driveUrl = null;       // URL view Google Drive
+        $storage = 'local';    // 'local' | 'gdrive'
+
+        if ($request->hasFile('berkas')) {
+            $file = $request->file('berkas');
+            $filename = \Carbon\Carbon::now()->format('Y-m-d H-i') . '_'
+                . Auth::user()->nip . '_'
+                . str_replace(' ', '', substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 25))
+                . '.' . $file->getClientOriginalExtension();
+
+            // ============================================================
+            // [GDRIVE] Upload ke Drive atau lokal
+            // ============================================================
+            if (config('services.gdrive.enabled')) {
+                $uploaded = app(\App\Services\GoogleDriveService::class)->upload(
+                    $file->getRealPath(),
+                    $filename,
+                    $file->getMimeType(),
+                    Auth::user()->fullname,      // ✅ pakai NAMA user sebagai folder
+                    now()->format('Y')
+                );
+
+                if ($uploaded) {
+                    $driveId = $uploaded['id'];
+                    $driveUrl = $uploaded['url'];
+                    $storage = 'gdrive';
+                    // $filename TETAP nama file (tidak ditimpa ID)
+                } else {
+                    // Auto-fallback: Drive gagal → simpan lokal
+                    \Log::warning('GDrive upload gagal, fallback ke lokal', [
+                        'filename' => $filename,
+                        'user' => Auth::user()->nip,
+                    ]);
+                    $file->move('bukti', $filename);
+                    $storage = 'local';
+                }
+            } else {
+                // GDrive disabled → simpan lokal seperti biasa
+                $file->move('bukti', $filename);
+            }
         }
 
+        // ============================================================
+        // Bagian di bawah ini TIDAK berubah dari kode asli Anda
+        // ============================================================
         if ($request->is_done == '1') {
-           $tgl_selesai = date('Y-m-d');
+            $tgl_selesai = date('Y-m-d');
         } else {
-           $tgl_selesai = NULL;
+            $tgl_selesai = NULL;
         }
 
         if ($request->is_repeated == '1') {
-           $kuantitas = 1;
-           $satuan = "Hari";
+            $kuantitas = 1;
+            $satuan = "Hari";
         } else {
-           $kuantitas = $request->kuantitas;
-           $satuan = $request->satuan;
+            $kuantitas = $request->kuantitas;
+            $satuan = $request->satuan;
         }
 
-        // Ambil tanggal mulai dan tanggal selesai (opsional)
         $tglMulai = Carbon::createFromFormat('Y-m-d', $request->tgl);
         $tglendLoop = $request->tgl_akhir ? Carbon::createFromFormat('Y-m-d', $request->tgl_akhir) : $tglMulai;
-
 
         $request->validate([
             'wfo_wfh' => 'required',
             'jenis_kegiatan' => 'required',
-            'kegiatan'=> 'required',
-            'satuan'=> 'nullable',
-            'kuantitas'=> 'nullable',
-            'tgl'=> 'required',
+            'kegiatan' => 'required',
+            'satuan' => 'nullable',
+            'kuantitas' => 'nullable',
+            'tgl' => 'required',
             'tgl_akhir' => 'nullable|date|after_or_equal:tgl',
             'reminder_time' => 'nullable|date_format:H:i',
         ]);
 
-        // Server-side: tambahan validasi untuk aturan kegiatan berulang
+        // Server-side: validasi kegiatan berulang (tidak berubah)
         if ($request->is_repeated == '1') {
             if (!$request->tgl_akhir) {
                 return back()->withErrors([
@@ -745,11 +793,9 @@ class ActivitiesController extends Controller
                 ])->withInput();
             }
 
-            // Normalisasi nama kegiatan: hapus tag HTML dan trim
             $kegiatanRaw = $request->kegiatan ?? '';
             $kegiatanText = trim(strip_tags((string) $kegiatanRaw));
 
-            // Gunakan parse yang lebih fleksibel
             try {
                 $start = Carbon::parse($request->tgl)->startOfDay();
                 $end = Carbon::parse($request->tgl_akhir)->startOfDay();
@@ -760,8 +806,6 @@ class ActivitiesController extends Controller
                 ])->withInput();
             }
 
-
-            // Hitung jumlah hari kerja (Senin-Jumat) yang akan disisipkan (inklusif)
             $period = $start->copy();
             $jumlahHari = 0;
             while ($period->lte($end)) {
@@ -773,7 +817,6 @@ class ActivitiesController extends Controller
 
             $isPelatihan = mb_stripos($kegiatanText, 'pelatihan') !== false;
 
-            // Log detail ketika validasi berulang berjalan supaya mudah debugging
             \Log::info('ActivitiesController::store - repeat validation', [
                 'kegiatan_raw' => $kegiatanRaw,
                 'kegiatan_text' => $kegiatanText,
@@ -797,7 +840,10 @@ class ActivitiesController extends Controller
             }
         }
 
-        if (Auth::user()->id == 2 || $request->jenis_kegiatan == 'TAMBAHAN'){
+        // ============================================================
+        // [GDRIVE] $data — tambah 3 field metadata Drive
+        // ============================================================
+        if (Auth::user()->id == 2 || $request->jenis_kegiatan == 'TAMBAHAN') {
             $data = [
                 'nip' => Auth::user()->nip,
                 'wfo_wfh' => $request->wfo_wfh,
@@ -810,6 +856,9 @@ class ActivitiesController extends Controller
                 'is_done' => $request->is_done,
                 'tgl_selesai' => $tgl_selesai,
                 'berkas' => $filename,
+                'berkas_drive_id' => $driveId,      // ✅ BARU
+                'berkas_url' => $driveUrl,           // ✅ BARU
+                'berkas_storage' => $storage,        // ✅ BARU
                 'link' => $request->link,
             ];
         } elseif (Auth::user()->id != 2 && $request->jenis_kegiatan == 'UTAMA') {
@@ -830,6 +879,9 @@ class ActivitiesController extends Controller
                 'is_done' => $request->is_done,
                 'tgl_selesai' => $tgl_selesai,
                 'berkas' => $filename,
+                'berkas_drive_id' => $driveId,      // ✅ BARU
+                'berkas_url' => $driveUrl,           // ✅ BARU
+                'berkas_storage' => $storage,        // ✅ BARU
                 'link' => $request->link,
                 'tim_kerja_id' => $request->tim_kerja_id,
                 'project_id' => $request->project_id,
@@ -847,27 +899,24 @@ class ActivitiesController extends Controller
                 'reminder_at' => ($request->enable_reminder == '1' && $reminderTime)
                     ? Carbon::createFromFormat('Y-m-d H:i', $tglMulai->format('Y-m-d') . ' ' . $reminderTime)
                     : null
-
             ]);
         } else {
-            // Loop untuk setiap hari dalam rentang tanggal
             while ($tglMulai->format('Y-m-d') <= $tglendLoop->format('Y-m-d')) {
                 if ($tglMulai->dayOfWeek != 6 && $tglMulai->dayOfWeek != 0) {
                     $insertData[] = array_merge($data, [
                         'tgl' => $tglMulai->format('Y-m-d'),
                         'reminder_at' => ($request->enable_reminder == '1' && $reminderTime)
-                    ? Carbon::createFromFormat('Y-m-d H:i', $tglMulai->format('Y-m-d') . ' ' . $reminderTime)
-                    : null
+                            ? Carbon::createFromFormat('Y-m-d H:i', $tglMulai->format('Y-m-d') . ' ' . $reminderTime)
+                            : null
                     ]);
                 }
-                $tglMulai->addDay(); // Tambahkan 1 hari
+                $tglMulai->addDay();
             }
         }
 
-        // Simpan semua data ke database
         $result = Activity::insert($insertData);
 
-        return redirect()->route('act.index')->with('success','Kegiatan Sukses Ditambahkan!');
+        return redirect()->route('act.index')->with('success', 'Kegiatan Sukses Ditambahkan!');
     }
 
     public function storebyteam(Request $request)
@@ -1167,7 +1216,7 @@ class ActivitiesController extends Controller
      */
     public function show($id)
     {
-        $activity=  DB::table('daily_activity')
+        $activity = DB::table('daily_activity')
             ->where('daily_activity.id', $id)
             ->leftJoin('master_kegiatan_utama', 'daily_activity.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
             ->leftJoin('master_project', 'master_project.id', '=', 'daily_activity.project_id')
@@ -1176,9 +1225,10 @@ class ActivitiesController extends Controller
                 'master_tim_kerja.nama_tim_kerja',
                 'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
-                'daily_activity.*')
+                'daily_activity.*'
+            )
             ->first();
-        return view('dailyactivity.show',compact('activity'));
+        return view('dailyactivity.show', compact('activity'));
     }
 
     /**
@@ -1189,7 +1239,7 @@ class ActivitiesController extends Controller
      */
     public function edit($id)
     {
-        $activity=  DB::table('daily_activity')
+        $activity = DB::table('daily_activity')
             ->where('daily_activity.id', $id)
             ->leftJoin('master_kegiatan_utama', 'daily_activity.kegiatan_utama_id', '=', 'master_kegiatan_utama.id')
             ->leftJoin('master_project', 'master_project.id', '=', 'daily_activity.project_id')
@@ -1198,10 +1248,11 @@ class ActivitiesController extends Controller
                 'master_tim_kerja.nama_tim_kerja',
                 'master_project.nama_project',
                 'master_kegiatan_utama.nama_kegiatan_utama',
-                'daily_activity.*')
+                'daily_activity.*'
+            )
             ->first();
         // dd($activity);
-        return view('dailyactivity.edit',compact('activity'));
+        return view('dailyactivity.edit', compact('activity'));
     }
 
     /**
@@ -1213,39 +1264,215 @@ class ActivitiesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //check the existing of file upload Berkas
-        $filename = NULL;
-        if ($request->hasFile('berkas'))
-        {
-           $file = $request->file('berkas');
-           $filename = $filename = \Carbon\Carbon::now()->format('Y-m-d H-i').'_'. Auth::user()->nip .'_'. str_replace(' ', '', substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 25)). '.' .$file->getClientOriginalExtension();
-           $file->move('bukti', $filename);
-        }
+        $activity = Activity::findOrFail($id);
 
-        if($request->has('checkbox')) {
-            $tgl_selesai = $request->tgl_selesai;
+        // ============================================================
+        // [GDRIVE] Simpan nilai LAMA sebelum diubah
+        // ============================================================
+        $oldDriveId = $activity->berkas_drive_id;
+        $oldBerkas = $activity->berkas;
+        $oldStorage = $activity->berkas_storage ?? 'local';
+
+        // ============================================================
+        // [GDRIVE] Nilai default = pertahankan yang lama
+        // ============================================================
+        $filename = $oldBerkas;
+        $driveId = $oldDriveId;
+        $driveUrl = $activity->berkas_url;
+        $storage = $oldStorage;
+
+        $pakaiLink = $request->filled('link');
+
+        // ------------------------------------------------------------
+        // Skenario C: user pakai LINK (tidak upload file)
+        // ------------------------------------------------------------
+        if ($pakaiLink) {
+            $filename = null;
+            $driveId = null;
+            $driveUrl = null;
+            $storage = 'local';
+
+            // Hapus file lama HANYA kalau tidak dipakai record lain
+            if ($oldStorage === 'gdrive' && $oldDriveId) {
+                $this->hapusFileGdriveJikaTidakDipakai($oldDriveId, $activity->id);
+            } elseif ($oldStorage === 'local' && $oldBerkas) {
+                $this->hapusFileLokalJikaTidakDipakai($oldBerkas, $activity->id);
+            }
+        }
+        // ------------------------------------------------------------
+        // Skenario A: user upload file BARU
+        // ------------------------------------------------------------
+        elseif ($request->hasFile('berkas')) {
+            $file = $request->file('berkas');
+            $newFilename = \Carbon\Carbon::now()->format('Y-m-d H-i') . '_'
+                . Auth::user()->nip . '_'
+                . str_replace(' ', '', substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 25))
+                . '.' . $file->getClientOriginalExtension();
+
+            if (config('services.gdrive.enabled')) {
+                $uploaded = app(\App\Services\GoogleDriveService::class)->upload(
+                    $file->getRealPath(),
+                    $newFilename,
+                    $file->getMimeType(),
+                    Auth::user()->fullname ?: 'User_' . Auth::user()->nip,
+                    now()->format('Y')
+                );
+
+                if ($uploaded) {
+                    $filename = $newFilename;
+                    $driveId = $uploaded['id'];
+                    $driveUrl = $uploaded['url'];
+                    $storage = 'gdrive';
+
+                    // Hapus file lama HANYA kalau tidak dipakai record lain
+                    if ($oldStorage === 'gdrive' && $oldDriveId && $oldDriveId !== $driveId) {
+                        $this->hapusFileGdriveJikaTidakDipakai($oldDriveId, $activity->id);
+                    } elseif ($oldStorage === 'local' && $oldBerkas) {
+                        $this->hapusFileLokalJikaTidakDipakai($oldBerkas, $activity->id);
+                    }
+                } else {
+                    // Fallback lokal
+                    \Log::warning('GDrive update gagal, fallback ke lokal', ['filename' => $newFilename]);
+                    $file->move('bukti', $newFilename);
+                    $filename = $newFilename;
+                    $driveId = null;
+                    $driveUrl = null;
+                    $storage = 'local';
+                }
+            } else {
+                // Lokal biasa
+                $file->move('bukti', $newFilename);
+
+                // Hapus file lokal lama kalau tidak dipakai record lain
+                if ($oldStorage === 'local' && $oldBerkas && $oldBerkas !== $newFilename) {
+                    $this->hapusFileLokalJikaTidakDipakai($oldBerkas, $activity->id);
+                }
+
+                $filename = $newFilename;
+                $driveId = null;
+                $driveUrl = null;
+                $storage = 'local';
+            }
+        }
+        // ------------------------------------------------------------
+        // Skenario B: tidak upload & tidak isi link → pertahankan lama
+        // ------------------------------------------------------------
+
+        // ============================================================
+        // Validasi (sama seperti store)
+        // ============================================================
+        $request->validate([
+            'wfo_wfh' => 'required',
+            'jenis_kegiatan' => 'required',
+            'kegiatan' => 'required',
+            'satuan' => 'nullable',
+            'kuantitas' => 'nullable',
+            'tgl' => 'required',
+            'tgl_akhir' => 'nullable|date|after_or_equal:tgl',
+            'reminder_time' => 'nullable|date_format:H:i',
+        ]);
+
+        // ============================================================
+        // Status selesai & kuantitas
+        // ============================================================
+        $tgl_selesai = $request->is_done == '1' ? date('Y-m-d') : null;
+
+        if ($request->is_repeated == '1') {
+            $kuantitas = 1;
+            $satuan = 'Hari';
         } else {
-            $tgl_selesai = date('Y-m-d');
+            $kuantitas = $request->kuantitas;
+            $satuan = $request->satuan;
         }
 
-        $activity = Activity::find($id);
-        if($activity) {
-            $activity->wfo_wfh = $request->wfo_wfh;
-            $activity->kegiatan = $request->kegiatan;
-            $activity->keterangan = $request->keterangan_kegiatan;
-            $activity->jenis_kegiatan = $request->jenis_kegiatan;
-            $activity->satuan = $request->satuan;
-            $activity->kuantitas = $request->kuantitas;
-            $activity->tgl = $request->tgl;
-            $activity->is_done = $request->is_done;
-            $activity->tgl_selesai = $tgl_selesai;
-            $activity->created_by = Auth::user()->nip;
-            $activity->berkas = $filename;
-            $activity->link = $request->link;
-            $activity->updated_at = now();
-            $activity->save();
+        // ============================================================
+        // Susun data update — HANYA record ini (id = $id)
+        // ============================================================
+        $data = [
+            'nip' => Auth::user()->nip,
+            'wfo_wfh' => $request->wfo_wfh,
+            'jenis_kegiatan' => $request->jenis_kegiatan,
+            'kegiatan' => $request->kegiatan,
+            'keterangan' => $request->keterangan_kegiatan,
+            'satuan' => $satuan,
+            'kuantitas' => $kuantitas,
+            'created_by' => Auth::user()->nip,
+            'is_done' => $request->is_done,
+            'tgl_selesai' => $tgl_selesai,
+            'tgl' => $request->tgl,
+            'berkas' => $filename,
+            'berkas_drive_id' => $driveId,
+            'berkas_url' => $driveUrl,
+            'berkas_storage' => $storage,
+            'link' => $request->link,
+        ];
+
+        // Field kondisional untuk UTAMA
+        if (Auth::user()->id != 2 && $request->jenis_kegiatan == 'UTAMA') {
+            $data['tim_kerja_id'] = $request->tim_kerja_id;
+            $data['project_id'] = $request->project_id;
+            $data['kegiatan_utama_id'] = $request->kegiatan_utama_id;
+            $data['is_reminded'] = $request->enable_reminder == '1' ? 1 : 0;
         }
-        return redirect()->route('act.selftable')->with('success', 'The activity updated successfully');
+
+        // Reminder
+        $reminderTime = $request->reminder_time;
+        $data['reminder_at'] = ($request->enable_reminder == '1' && $reminderTime)
+            ? \Carbon\Carbon::createFromFormat('Y-m-d H:i', $request->tgl . ' ' . $reminderTime)
+            : null;
+
+        // ============================================================
+        // Update — HANYA record ini
+        // ============================================================
+        $activity->update($data);
+
+        return redirect()->route('act.index')->with('success', 'Kegiatan berhasil diupdate!');
+    }
+
+    // ============================================================
+// Helper: hapus file Drive kalau tidak dipakai record lain
+// ============================================================
+    private function hapusFileGdriveJikaTidakDipakai(string $driveId, int $excludeActivityId): void
+    {
+        $masihDipakai = Activity::where('berkas_drive_id', $driveId)
+            ->where('id', '!=', $excludeActivityId)
+            ->exists();
+
+        if ($masihDipakai) {
+            \Log::info('GDrive file masih dipakai record lain, tidak dihapus', [
+                'drive_id' => $driveId,
+            ]);
+            return;
+        }
+
+        try {
+            app(\App\Services\GoogleDriveService::class)->delete($driveId);
+        } catch (\Throwable $e) {
+            \Log::warning('GDrive delete lama gagal', [
+                'drive_id' => $driveId,
+                'msg' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    // ============================================================
+    // Helper: hapus file lokal kalau tidak dipakai record lain
+    // ============================================================
+    private function hapusFileLokalJikaTidakDipakai(string $berkas, int $excludeActivityId): void
+    {
+        $masihDipakai = Activity::where('berkas', $berkas)
+            ->where('berkas_storage', 'local')
+            ->where('id', '!=', $excludeActivityId)
+            ->exists();
+
+        if ($masihDipakai) {
+            return;
+        }
+
+        $path = public_path('bukti/' . $berkas);
+        if (file_exists($path)) {
+            @unlink($path);
+        }
     }
 
     /**
@@ -1256,9 +1483,67 @@ class ActivitiesController extends Controller
      */
     public function destroy($id)
     {
-        $act = Activity::find($id);
-        $act->delete();
-        return redirect('/act/selftable');
+        $activity = Activity::findOrFail($id);
+
+        // ============================================================
+        // 1. Hapus file Drive — HANYA kalau tidak dipakai record lain
+        // ============================================================
+        if ($activity->berkas_storage === 'gdrive' && $activity->berkas_drive_id) {
+            // cek apakah masih ada record lain yang refer ke file yang sama
+            $masihDipakai = Activity::where('berkas_drive_id', $activity->berkas_drive_id)
+                ->where('id', '!=', $activity->id)
+                ->exists();
+
+            if (!$masihDipakai) {
+                try {
+                    app(\App\Services\GoogleDriveService::class)->delete($activity->berkas_drive_id);
+                } catch (\Throwable $e) {
+                    \Log::warning('GDrive delete gagal saat destroy', [
+                        'activity_id' => $activity->id,
+                        'file_id' => $activity->berkas_drive_id,
+                        'msg' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+        // ============================================================
+        // 2. Hapus file lokal — HANYA kalau tidak dipakai record lain
+        // ============================================================
+        elseif ($activity->berkas_storage === 'local' && $activity->berkas) {
+            $masihDipakai = Activity::where('berkas', $activity->berkas)
+                ->where('berkas_storage', 'local')
+                ->where('id', '!=', $activity->id)
+                ->exists();
+
+            if (!$masihDipakai) {
+                $path = public_path('bukti/' . $activity->berkas);
+                if (file_exists($path)) {
+                    @unlink($path);
+                }
+            }
+        }
+
+        // ============================================================
+        // 3. Hapus record dari DB
+        // ============================================================
+        $activity->delete();
+
+        return redirect()->route('act.index')->with('success', 'Kegiatan berhasil dihapus.');
+    }
+    public function delete(string $fileId): bool
+    {
+        try {
+            $response = Http::timeout(30)->asJson()->post(config('services.gdrive.url'), [
+                'action' => 'delete',
+                'token' => config('services.gdrive.token'),
+                'file_id' => $fileId,
+            ]);
+
+            return ($response->json()['success'] ?? false) === true;
+        } catch (\Throwable $e) {
+            Log::error('GDrive delete exception', ['id' => $fileId, 'msg' => $e->getMessage()]);
+            return false;
+        }
     }
 
     public function monitoring()
@@ -1401,11 +1686,11 @@ class ActivitiesController extends Controller
 
         // Query to get employees with the most daily activity submissions
         $rankTodayEmployees = DB::table('users')
-            ->leftJoin('daily_activity', function($join) use ($bulan, $tahun) {
-                    $join->on('users.nip', '=', 'daily_activity.nip')
-                         ->whereMonth('daily_activity.tgl', '=', $bulan)
-                         ->whereYear('daily_activity.tgl', '=', $tahun);
-                })
+            ->leftJoin('daily_activity', function ($join) use ($bulan, $tahun) {
+                $join->on('users.nip', '=', 'daily_activity.nip')
+                    ->whereMonth('daily_activity.tgl', '=', $bulan)
+                    ->whereYear('daily_activity.tgl', '=', $tahun);
+            })
             ->whereNotIn('users.nip', ['197612291999011001']) // Mengecualikan pegawai tertentu
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
@@ -1420,7 +1705,7 @@ class ActivitiesController extends Controller
                 );
 
                 // Hari Libur dalam Senin-Jumat
-                $hariLibur = DateHelper::countWeekdayHolidaysFullMonth($bulan,$tahun);
+                $hariLibur = DateHelper::countWeekdayHolidaysFullMonth($bulan, $tahun);
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
@@ -1435,7 +1720,7 @@ class ActivitiesController extends Controller
                 $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
 
                 // Menghitung hari kerja yang tidak diisi
-                $user->missed_days = $maxWorkDays-$filledDays;
+                $user->missed_days = $maxWorkDays - $filledDays;
 
                 // Menambahkan jumlah hari yang diisi ke objek pengguna
                 $user->filled_days = $filledDays;
@@ -1509,11 +1794,11 @@ class ActivitiesController extends Controller
 
         // Query to get employees with the most daily activity submissions
         $rankTodayEmployees = DB::table('users')
-            ->leftJoin('daily_activity', function($join) use ($bulan, $tahun) {
-                    $join->on('users.nip', '=', 'daily_activity.nip')
-                         ->whereMonth('daily_activity.tgl', '=', $bulan)
-                         ->whereYear('daily_activity.tgl', '=', $tahun);
-                })
+            ->leftJoin('daily_activity', function ($join) use ($bulan, $tahun) {
+                $join->on('users.nip', '=', 'daily_activity.nip')
+                    ->whereMonth('daily_activity.tgl', '=', $bulan)
+                    ->whereYear('daily_activity.tgl', '=', $tahun);
+            })
             ->whereNotIn('users.nip', ['197612291999011001']) // Mengecualikan pegawai tertentu
             ->select('users.nip', 'users.fullname', DB::raw('COALESCE(COUNT(daily_activity.id), 0) as jumlah_pengisian'))
             ->groupBy('users.nip', 'users.fullname')
@@ -1528,7 +1813,7 @@ class ActivitiesController extends Controller
                 );
 
                 // Hari Libur dalam Senin-Jumat
-                $hariLibur = DateHelper::countWeekdayHolidaysFullMonth($bulan,$tahun);
+                $hariLibur = DateHelper::countWeekdayHolidaysFullMonth($bulan, $tahun);
 
                 // Hitung hari yang sudah diisi oleh pengguna
                 $filledDays = DB::table('daily_activity')
@@ -1543,7 +1828,7 @@ class ActivitiesController extends Controller
                 $maxWorkDays = $maxWorkDaysFiltered - $hariLibur;
 
                 // Menghitung hari kerja yang tidak diisi
-                $user->missed_days = $maxWorkDays-$filledDays;
+                $user->missed_days = $maxWorkDays - $filledDays;
 
                 // Menambahkan jumlah hari yang diisi ke objek pengguna
                 $user->filled_days = $filledDays;
@@ -1672,7 +1957,7 @@ class ActivitiesController extends Controller
 
         // Format data bulan/tanggal agar aman jika null
         $busiestMonth = $busiestMonthQuery ? Carbon::create()->month($busiestMonthQuery->month)->translatedFormat('F') : '-';
-        $busiestDate  = $busiestDayQuery ? Carbon::parse($busiestDayQuery->tgl)->translatedFormat('d F Y') : '-';
+        $busiestDate = $busiestDayQuery ? Carbon::parse($busiestDayQuery->tgl)->translatedFormat('d F Y') : '-';
         $busiestCount = $busiestDayQuery ? $busiestDayQuery->total : 0;
 
         // 4. Jam Favorit (Berdasarkan created_at)

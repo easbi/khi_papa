@@ -44,8 +44,9 @@
                                     @csrf
                                     <div class="form-group">
                                         <label for="tgl">Tanggal Mulai Kegiatan</label>
-                                        <input type="date" id="tgl" class="form-control form-control-lg mb-3" name="tgl"
-                                            value="{{ isset($activity) ? $activity->tgl : date('Y-m-d') }}" required>
+                                        <input type="date" id="tgl" class="form-control form-control-lg mb-3"
+                                            name="tgl" value="{{ isset($activity) ? $activity->tgl : date('Y-m-d') }}"
+                                            required>
                                     </div>
 
                                     <div class="form-group custom-control custom-checkbox mb-1">
@@ -57,7 +58,8 @@
 
                                     <div class="form-group" id="end_date_group" style="display: none;">
                                         <label for="tgl_akhir">Tanggal Akhir Kegiatan</label>
-                                        <input type="date" id="tgl_akhir" class="form-control form-control-lg mb-3" name="tgl_akhir">
+                                        <input type="date" id="tgl_akhir" class="form-control form-control-lg mb-3"
+                                            name="tgl_akhir">
                                     </div>
 
                                     <script>
@@ -107,12 +109,24 @@
                                     <div class="form-group">
                                         <label for="wfo_wfh">WFO/WFH:</label>
                                         <select class="form-control" id="wfo_wfh" name="wfo_wfh" required>
-                                            <option value="WFO" {{ isset($activity) && $activity->wfo_wfh == 'WFO' ? 'selected' : (isset($activity) ? '' : 'selected') }}>WFO - Work From Office</option>
-                                            <option value="WFA" {{ isset($activity) && $activity->wfo_wfh == 'WFA' ? 'selected' : '' }}>WFA - Work From Anywhere</option>
-                                            <option value="Lembur" {{ isset($activity) && $activity->wfo_wfh == 'Lembur' ? 'selected' : '' }}>Lembur (Official)</option>
-                                            <option value="Adhoc" {{ isset($activity) && $activity->wfo_wfh == 'Adhoc' ? 'selected' : '' }}>Tugas Adhoc / Genting / Prioritas</option>
-                                            <option value="TL" {{ isset($activity) && $activity->wfo_wfh == 'TL' ? 'selected' : '' }}>Tugas Luar</option>
-                                            <option value="Lainnya" {{ isset($activity) && $activity->wfo_wfh == 'Lainnya' ? 'selected' : '' }}>Lainnya (Cuti, Sakit, Izin)</option>
+                                            <option value="WFO"
+                                                {{ isset($activity) && $activity->wfo_wfh == 'WFO' ? 'selected' : (isset($activity) ? '' : 'selected') }}>
+                                                WFO - Work From Office</option>
+                                            <option value="WFA"
+                                                {{ isset($activity) && $activity->wfo_wfh == 'WFA' ? 'selected' : '' }}>WFA
+                                                - Work From Anywhere</option>
+                                            <option value="Lembur"
+                                                {{ isset($activity) && $activity->wfo_wfh == 'Lembur' ? 'selected' : '' }}>
+                                                Lembur (Official)</option>
+                                            <option value="Adhoc"
+                                                {{ isset($activity) && $activity->wfo_wfh == 'Adhoc' ? 'selected' : '' }}>
+                                                Tugas Adhoc / Genting / Prioritas</option>
+                                            <option value="TL"
+                                                {{ isset($activity) && $activity->wfo_wfh == 'TL' ? 'selected' : '' }}>Tugas
+                                                Luar</option>
+                                            <option value="Lainnya"
+                                                {{ isset($activity) && $activity->wfo_wfh == 'Lainnya' ? 'selected' : '' }}>
+                                                Lainnya (Cuti, Sakit, Izin)</option>
                                         </select>
                                     </div>
 
@@ -120,16 +134,24 @@
                                         <div class="form-group">
                                             <label for="jenis_kegiatan">Pekerjaan Utama/Tambahan</label>
                                             <select class="form-control" name="jenis_kegiatan" required>
-                                                <option value="UTAMA" {{ isset($activity) && $activity->jenis_kegiatan == 'UTAMA' ? 'selected' : 'selected' }}>Pekerjaan Utama</option>
-                                                <option value="TAMBAHAN" {{ isset($activity) && $activity->jenis_kegiatan == 'TAMBAHAN' ? 'selected' : '' }}>Pekerjaan Tambahan</option>
+                                                <option value="UTAMA"
+                                                    {{ isset($activity) && $activity->jenis_kegiatan == 'UTAMA' ? 'selected' : 'selected' }}>
+                                                    Pekerjaan Utama</option>
+                                                <option value="TAMBAHAN"
+                                                    {{ isset($activity) && $activity->jenis_kegiatan == 'TAMBAHAN' ? 'selected' : '' }}>
+                                                    Pekerjaan Tambahan</option>
                                             </select>
                                         </div>
                                     @else
                                         <div class="form-group">
                                             <label for="jenis_kegiatan">Pekerjaan Utama/Tambahan</label>
                                             <select class="form-control" id="jenis_kegiatan" name="jenis_kegiatan" required>
-                                                <option value="UTAMA" {{ isset($activity) && $activity->jenis_kegiatan == 'UTAMA' ? 'selected' : 'selected' }}>Pekerjaan Utama</option>
-                                                <option value="TAMBAHAN" {{ isset($activity) && $activity->jenis_kegiatan == 'TAMBAHAN' ? 'selected' : '' }}>Pekerjaan Tambahan</option>
+                                                <option value="UTAMA"
+                                                    {{ isset($activity) && $activity->jenis_kegiatan == 'UTAMA' ? 'selected' : 'selected' }}>
+                                                    Pekerjaan Utama</option>
+                                                <option value="TAMBAHAN"
+                                                    {{ isset($activity) && $activity->jenis_kegiatan == 'TAMBAHAN' ? 'selected' : '' }}>
+                                                    Pekerjaan Tambahan</option>
                                             </select>
                                         </div>
                                         <div class="form-group" id="tim_kerja_field">
@@ -137,7 +159,9 @@
                                             <select class="form-control" id="tim_kerja_id" name="tim_kerja_id">
                                                 <option value="" selected disabled>Pilih</option>
                                                 @foreach ($TimKerja as $nama_tim_kerja => $tim_kerja_id)
-                                                    <option value="{{ $tim_kerja_id }}" {{ isset($activity) && $activity->tim_kerja_id == $tim_kerja_id ? 'selected' : '' }}>{{ $nama_tim_kerja }}</option>
+                                                    <option value="{{ $tim_kerja_id }}"
+                                                        {{ isset($activity) && $activity->tim_kerja_id == $tim_kerja_id ? 'selected' : '' }}>
+                                                        {{ $nama_tim_kerja }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -145,9 +169,11 @@
                                             <label for="">Project</label>
                                             <select class="form-control" id="project" name="project_id">
                                                 <option value="">Pilih Project</option>
-                                                @if(isset($projects) && $isDuplicate)
+                                                @if (isset($projects) && $isDuplicate)
                                                     @foreach ($projects as $project_id => $project_name)
-                                                        <option value="{{ $project_id }}" {{ $activity->project_id == $project_id ? 'selected' : '' }}>{{ $project_name }}</option>
+                                                        <option value="{{ $project_id }}"
+                                                            {{ $activity->project_id == $project_id ? 'selected' : '' }}>
+                                                            {{ $project_name }}</option>
                                                     @endforeach
                                                 @endif
                                             </select>
@@ -156,9 +182,11 @@
                                             <label for="">Kegiatan Utama</label>
                                             <select class="form-control" id="kegiatan_utama" name="kegiatan_utama_id">
                                                 <option value="">Pilih Kegiatan Utama</option>
-                                                @if(isset($kegiatanUtamas) && $isDuplicate)
+                                                @if (isset($kegiatanUtamas) && $isDuplicate)
                                                     @foreach ($kegiatanUtamas as $kegiatan_id => $kegiatan_name)
-                                                        <option value="{{ $kegiatan_id }}" {{ $activity->kegiatan_utama_id == $kegiatan_id ? 'selected' : '' }}>{{ $kegiatan_name }}</option>
+                                                        <option value="{{ $kegiatan_id }}"
+                                                            {{ $activity->kegiatan_utama_id == $kegiatan_id ? 'selected' : '' }}>
+                                                            {{ $kegiatan_name }}</option>
                                                     @endforeach
                                                 @endif
                                             </select>
@@ -168,44 +196,96 @@
                                     <div class="form-group">
                                         <label for="kegiatan">Nama Kegiatan:</label>
                                         <input list="kegiatan-options" class="form-control" name="kegiatan"
-                                            id="kegiatan" autocomplete="off" value="{{ isset($activity) ? $activity->kegiatan : '' }}" required />
+                                            id="kegiatan" autocomplete="off"
+                                            value="{{ isset($activity) ? $activity->kegiatan : '' }}" required />
                                         <datalist id="kegiatan-options">
                                             <!-- Options will be populated via JavaScript -->
                                         </datalist>
                                     </div>
                                     <div class="form-group" id="kuantitas" style="display: block;">
                                         <label for="kuantitas">Jumlah:</label>
-                                        <input type="number" class="form-control" name="kuantitas" value="{{ isset($activity) ? $activity->kuantitas : '' }}" />
+                                        <input type="number" class="form-control" name="kuantitas"
+                                            value="{{ isset($activity) ? $activity->kuantitas : '' }}" />
                                     </div>
                                     <div class="form-group" id="satuan" style="display: block;">
                                         <label for="satuan">Satuan:</label>
                                         <select class="form-control" name="satuan" id="satuanSelect" required>
                                             <option value="">-- Pilih Satuan --</option>
-                                            <option value="Kegiatan" {{ isset($activity) && $activity->satuan == 'Kegiatan' ? 'selected' : 'selected' }}>Kegiatan</option>
-                                            <option value="Hari" {{ isset($activity) && $activity->satuan == 'Hari' ? 'selected' : '' }}>Hari</option>
-                                            <option value="Dokumen" {{ isset($activity) && $activity->satuan == 'Dokumen' ? 'selected' : '' }}>Dokumen</option>
-                                            <option value="Laporan" {{ isset($activity) && $activity->satuan == 'Laporan' ? 'selected' : '' }}>Laporan</option>
-                                            <option value="Publikasi" {{ isset($activity) && $activity->satuan == 'Publikasi' ? 'selected' : '' }}>Publikasi</option>
-                                            <option value="Blok Sensus" {{ isset($activity) && $activity->satuan == 'Blok Sensus' ? 'selected' : '' }}>Blok Sensus</option>
-                                            <option value="Paket" {{ isset($activity) && $activity->satuan == 'Paket' ? 'selected' : '' }}>Paket</option>
-                                            <option value="Sampel" {{ isset($activity) && $activity->satuan == 'Sampel' ? 'selected' : '' }}>Sampel</option>
-                                            <option value="Tabel" {{ isset($activity) && $activity->satuan == 'Tabel' ? 'selected' : '' }}>Tabel</option>
-                                            <option value="File" {{ isset($activity) && $activity->satuan == 'File' ? 'selected' : '' }}>File</option>
-                                            <option value="Daftar" {{ isset($activity) && $activity->satuan == 'Daftar' ? 'selected' : '' }}>Daftar</option>
-                                            <option value="Responden" {{ isset($activity) && $activity->satuan == 'Responden' ? 'selected' : '' }}>Responden</option>
-                                            <option value="Jam Pelatihan" {{ isset($activity) && $activity->satuan == 'Jam Pelatihan' ? 'selected' : '' }}>Jam Pelatiha (JP)</option>
-                                            <option value="Transaksi" {{ isset($activity) && $activity->satuan == 'Transaksi' ? 'selected' : '' }}>Transaksi</option>
-                                            <option value="Jam" {{ isset($activity) && $activity->satuan == 'Jam' ? 'selected' : '' }}>Jam</option>
-                                            <option value="Petugas" {{ isset($activity) && $activity->satuan == 'Petugas' ? 'selected' : '' }}>Petugas</option>
-                                            <option value="Kali" {{ isset($activity) && $activity->satuan == 'Kali' ? 'selected' : '' }}>Kali</option>
-                                            <option value="E-Form" {{ isset($activity) && $activity->satuan == 'E-Form' ? 'selected' : '' }}>E-Form</option>
-                                            <option value="Buku" {{ isset($activity) && $activity->satuan == 'Buku' ? 'selected' : '' }}>Buku</option>
-                                            <option value="Konten" {{ isset($activity) && $activity->satuan == 'Konten' ? 'selected' : '' }}>Konten</option>
-                                            <option value="Rumah Tangga" {{ isset($activity) && $activity->satuan == 'Rumah Tangga' ? 'selected' : '' }}>Rumah Tangga</option>
-                                            <option value="Pertemuan" {{ isset($activity) && $activity->satuan == 'Pertemuan' ? 'selected' : '' }}>Pertemuan</option>
-                                            <option value="Bab" {{ isset($activity) && $activity->satuan == 'Bab' ? 'selected' : '' }}>Bab</option>
-                                            <option value="Blok" {{ isset($activity) && $activity->satuan == 'Blok' ? 'selected' : '' }}>Blok</option>
-                                            <option value="Segmen" {{ isset($activity) && $activity->satuan == 'Segmen' ? 'selected' : '' }}>Segmen</option>
+                                            <option value="Kegiatan"
+                                                {{ isset($activity) && $activity->satuan == 'Kegiatan' ? 'selected' : 'selected' }}>
+                                                Kegiatan</option>
+                                            <option value="Hari"
+                                                {{ isset($activity) && $activity->satuan == 'Hari' ? 'selected' : '' }}>
+                                                Hari</option>
+                                            <option value="Dokumen"
+                                                {{ isset($activity) && $activity->satuan == 'Dokumen' ? 'selected' : '' }}>
+                                                Dokumen</option>
+                                            <option value="Laporan"
+                                                {{ isset($activity) && $activity->satuan == 'Laporan' ? 'selected' : '' }}>
+                                                Laporan</option>
+                                            <option value="Publikasi"
+                                                {{ isset($activity) && $activity->satuan == 'Publikasi' ? 'selected' : '' }}>
+                                                Publikasi</option>
+                                            <option value="Blok Sensus"
+                                                {{ isset($activity) && $activity->satuan == 'Blok Sensus' ? 'selected' : '' }}>
+                                                Blok Sensus</option>
+                                            <option value="Paket"
+                                                {{ isset($activity) && $activity->satuan == 'Paket' ? 'selected' : '' }}>
+                                                Paket</option>
+                                            <option value="Sampel"
+                                                {{ isset($activity) && $activity->satuan == 'Sampel' ? 'selected' : '' }}>
+                                                Sampel</option>
+                                            <option value="Tabel"
+                                                {{ isset($activity) && $activity->satuan == 'Tabel' ? 'selected' : '' }}>
+                                                Tabel</option>
+                                            <option value="File"
+                                                {{ isset($activity) && $activity->satuan == 'File' ? 'selected' : '' }}>
+                                                File</option>
+                                            <option value="Daftar"
+                                                {{ isset($activity) && $activity->satuan == 'Daftar' ? 'selected' : '' }}>
+                                                Daftar</option>
+                                            <option value="Responden"
+                                                {{ isset($activity) && $activity->satuan == 'Responden' ? 'selected' : '' }}>
+                                                Responden</option>
+                                            <option value="Jam Pelatihan"
+                                                {{ isset($activity) && $activity->satuan == 'Jam Pelatihan' ? 'selected' : '' }}>
+                                                Jam Pelatiha (JP)</option>
+                                            <option value="Transaksi"
+                                                {{ isset($activity) && $activity->satuan == 'Transaksi' ? 'selected' : '' }}>
+                                                Transaksi</option>
+                                            <option value="Jam"
+                                                {{ isset($activity) && $activity->satuan == 'Jam' ? 'selected' : '' }}>Jam
+                                            </option>
+                                            <option value="Petugas"
+                                                {{ isset($activity) && $activity->satuan == 'Petugas' ? 'selected' : '' }}>
+                                                Petugas</option>
+                                            <option value="Kali"
+                                                {{ isset($activity) && $activity->satuan == 'Kali' ? 'selected' : '' }}>
+                                                Kali</option>
+                                            <option value="E-Form"
+                                                {{ isset($activity) && $activity->satuan == 'E-Form' ? 'selected' : '' }}>
+                                                E-Form</option>
+                                            <option value="Buku"
+                                                {{ isset($activity) && $activity->satuan == 'Buku' ? 'selected' : '' }}>
+                                                Buku</option>
+                                            <option value="Konten"
+                                                {{ isset($activity) && $activity->satuan == 'Konten' ? 'selected' : '' }}>
+                                                Konten</option>
+                                            <option value="Rumah Tangga"
+                                                {{ isset($activity) && $activity->satuan == 'Rumah Tangga' ? 'selected' : '' }}>
+                                                Rumah Tangga</option>
+                                            <option value="Pertemuan"
+                                                {{ isset($activity) && $activity->satuan == 'Pertemuan' ? 'selected' : '' }}>
+                                                Pertemuan</option>
+                                            <option value="Bab"
+                                                {{ isset($activity) && $activity->satuan == 'Bab' ? 'selected' : '' }}>Bab
+                                            </option>
+                                            <option value="Blok"
+                                                {{ isset($activity) && $activity->satuan == 'Blok' ? 'selected' : '' }}>
+                                                Blok</option>
+                                            <option value="Segmen"
+                                                {{ isset($activity) && $activity->satuan == 'Segmen' ? 'selected' : '' }}>
+                                                Segmen</option>
                                         </select>
                                     </div>
 
@@ -218,40 +298,107 @@
                                     <div class="form-group">
                                         <label for="is_done"><b>Status Penyelesaian</b></label>
                                         <select id="is_done" class="form-control" name="is_done">
-                                            <option value="2" {{ isset($activity) && $activity->is_done == 2 ? 'selected' : (isset($activity) ? '' : 'selected') }}>Belum Selesai</option>
-                                            <option value="1" {{ isset($activity) && $activity->is_done == 1 ? 'selected' : '' }}>Sudah Selesai</option>
+                                            <option value="2"
+                                                {{ isset($activity) && $activity->is_done == 2 ? 'selected' : (isset($activity) ? '' : 'selected') }}>
+                                                Belum Selesai</option>
+                                            <option value="1"
+                                                {{ isset($activity) && $activity->is_done == 1 ? 'selected' : '' }}>Sudah
+                                                Selesai</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label for="berkas0"><b>Bukti Kegiatan:<b></label>
+                                        <label for="berkas0"><b>Bukti Kegiatan:</b></label>
                                         <br>
+
+                                        {{-- ===== [GDRIVE] Preview file lama saat edit/duplicate ===== --}}
+                                        @if (isset($activity) && $activity->berkas)
+                                            @if ($activity->berkas_storage === 'gdrive' && $activity->berkas_url)
+                                                <div class="alert alert-info py-2">
+                                                    <i class="fas fa-cloud"></i>
+                                                    <strong>File saat ini ada di Google Drive:</strong>
+                                                    <a href="{{ $activity->berkas_url }}" target="_blank">
+                                                        {{ $activity->berkas }}
+                                                    </a>
+                                                    <br>
+                                                    <small class="text-muted">Upload file baru jika ingin
+                                                        mengganti.</small>
+                                                </div>
+                                            @else
+                                                <div class="alert alert-secondary py-2">
+                                                    <i class="fas fa-file"></i>
+                                                    <strong>File saat ini di server lokal:</strong>
+                                                    <a href="{{ asset('bukti/' . $activity->berkas) }}" target="_blank">
+                                                        {{ $activity->berkas }}
+                                                    </a>
+                                                    <br>
+                                                    <small class="text-muted">Upload file baru jika ingin
+                                                        mengganti.</small>
+                                                </div>
+                                            @endif
+                                        @endif
+
+                                        {{-- ===== [GDRIVE] Info lokasi penyimpanan file baru ===== --}}
+                                        <div id="infoStorage">
+                                            @if (config('services.gdrive.enabled'))
+                                                <div class="alert alert-warning py-2">
+                                                    <i class="fas fa-cloud-upload-alt"></i>
+                                                    Jika Memilih Upload File. File tersebut akan disimpan ke <strong>Google
+                                                        Drive BPS Padang Panjang</strong>.
+                                                    <small class="d-block">Maksimal 40 MB per file.</small>
+                                                </div>
+                                            @else
+                                                <div class="alert alert-light py-2">
+                                                    <i class="fas fa-hdd"></i>
+                                                    File baru akan disimpan ke <strong>server lokal</strong>.
+                                                </div>
+                                            @endif
+                                        </div>
+
+
                                         <input type="checkbox" id="toggleCheckbox" onclick="toggleForm()">
                                         <label for="toggleCheckbox">Ceklist Jika Ingin Menggunakan Opsi Pencantuman
                                             Link</label>
+
                                         <div id="formContainer" class="hidden">
                                             <label for="link">Link Bukti Kegiatan:</label>
-                                            <input type="link" class="form-control form-control-lg mb-3"
-                                                name="link">
+                                            <input type="url" class="form-control form-control-lg mb-3"
+                                                name="link" value="{{ isset($activity) ? $activity->link : '' }}">
                                         </div>
-                                        <div id="formContainer2" class="hidden">
+
+                                        <div id="formContainer2">
                                             <label for="berkas">Berkas Bukti Kegiatan:</label>
-                                            <input type="file" name="berkas">
+                                            <input type="file" name="berkas" id="berkasInput">
+                                            <small class="text-muted d-block">Format: PDF, JPG, PNG, DOC/DOCX. Maks 40
+                                                MB.</small>
+                                            @error('berkas')
+                                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                            @enderror
                                         </div>
+
                                         <script>
                                             function toggleForm() {
                                                 var checkbox = document.getElementById("toggleCheckbox");
                                                 var formContainer = document.getElementById("formContainer");
                                                 var formContainer2 = document.getElementById("formContainer2");
-                                                var textLabel = document.getElementById("textLabel");
+                                                var infoStorage = document.getElementById("infoStorage");
 
                                                 if (checkbox.checked) {
+                                                    // mode LINK → tampilkan form link, sembunyikan file + info storage
                                                     formContainer.classList.remove("hidden");
                                                     formContainer2.classList.add("hidden");
+                                                    if (infoStorage) infoStorage.classList.add("hidden");
                                                 } else {
+                                                    // mode FILE → tampilkan file + info storage, sembunyikan link
                                                     formContainer.classList.add("hidden");
                                                     formContainer2.classList.remove("hidden");
+                                                    if (infoStorage) infoStorage.classList.remove("hidden");
                                                 }
                                             }
+
+                                            // Default state: file input terlihat (karena biasanya user upload file)
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                toggleForm();
+                                            });
                                         </script>
                                     </div>
                                     <div class="form-group">
@@ -333,7 +480,7 @@
         });
 
         // Prefill keterangan kegiatan jika mode duplicate
-        @if(isset($activity) && $isDuplicate)
+        @if (isset($activity) && $isDuplicate)
             setTimeout(function() {
                 var keterangan = `{!! $activity->keterangan ?? '' !!}`;
                 quill.root.innerHTML = keterangan;
@@ -414,9 +561,11 @@
                     if (countWorkDays > maxDays) {
                         e.preventDefault();
                         if (containsPelatihan) {
-                            alert('Nama kegiatan mengandung kata "pelatihan" — rentang tanggal berulang maksimal ' + maxDays + ' hari kerja (Senin-Jumat).');
+                            alert('Nama kegiatan mengandung kata "pelatihan" — rentang tanggal berulang maksimal ' +
+                                maxDays + ' hari kerja (Senin-Jumat).');
                         } else {
-                            alert('Untuk kegiatan tanpa kata "pelatihan", rentang tanggal berulang maksimal ' + maxDays + ' hari kerja (Senin-Jumat).');
+                            alert('Untuk kegiatan tanpa kata "pelatihan", rentang tanggal berulang maksimal ' +
+                                maxDays + ' hari kerja (Senin-Jumat).');
                         }
                         return;
                     }
@@ -496,7 +645,8 @@
                         dataType: "json",
                         success: function(data) {
                             $('#kegiatan_utama').empty().append(
-                                '<option value="" selected disabled>Pilih Kegiatan Utama</option>');
+                                '<option value="" selected disabled>Pilih Kegiatan Utama</option>'
+                            );
                             if ($.isEmptyObject(data)) {
                                 alert('Tidak ada kegiatan_utama untuk Project yang dipilih.');
                             } else {
@@ -514,6 +664,28 @@
                 } else {
                     $('#kegiatan_utama').empty().append(
                         '<option value="" selected disabled>Pilih Kegiatan Utama</option>');
+                }
+            });
+        });
+    </script>
+
+    {{-- [GDRIVE] Batas ukuran file agar tidak melebihi limit Apps Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var fileInput = document.getElementById('berkasInput');
+            if (!fileInput) return;
+
+            var MAX_SIZE_MB = {{ config('services.gdrive.enabled') ? 40 : 20 }};
+
+            fileInput.addEventListener('change', function() {
+                if (!this.files.length) return;
+                var file = this.files[0];
+                var sizeMb = file.size / 1024 / 1024;
+
+                if (sizeMb > MAX_SIZE_MB) {
+                    alert('Ukuran file ' + sizeMb.toFixed(1) + ' MB melebihi batas ' + MAX_SIZE_MB +
+                        ' MB.');
+                    this.value = ''; // reset
                 }
             });
         });

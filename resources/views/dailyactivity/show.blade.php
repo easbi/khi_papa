@@ -69,18 +69,40 @@
                             <span class="d-flex">
                                 <i class="material-icons mr-1">score</i>
                                 <strong class="mr-1">Berkas/Bukti Kegiatan:</strong>
-                                @if ($activity->berkas == null and $activity->link == null)
+
+                                @if ($activity->berkas == null && $activity->link == null)
                                     <strong class="text-danger"> Belum ada Bukti Penyelesaian! </strong>
-                                @elseif ($activity->berkas != null and $activity->link == null)
-                                    <a class="btn btn-primary btn-sm" href="{{ url('/bukti', $activity->berkas) }}"
-                                        target="_blank">Berkas</a>
-                                @elseif ($activity->berkas == null and $activity->link != null)
-                                    <a class="btn btn-primary btn-sm" href="{{ $activity->link }}" target="_blank">Link</a>
-                                @elseif ($activity->berkas != null and $activity->link != null)
-                                    <a class="btn btn-primary btn-sm" href="{{ url('/bukti', $activity->berkas) }}"
-                                        target="_blank">Berkas</a>
-                                    dan
-                                    <a class="btn btn-primary btn-sm" href="{{ $activity->link }}" target="_blank">Link</a>
+                                @else
+                                    {{-- ===== [GDRIVE] Tombol Berkas: cek storage ===== --}}
+                                    @if ($activity->berkas != null)
+                                        @if ($activity->berkas_storage === 'gdrive' && $activity->berkas_url)
+                                            {{-- File di Google Drive --}}
+                                            <a class="btn btn-primary btn-sm" href="{{ $activity->berkas_url }}"
+                                                target="_blank" rel="noopener">
+                                                <i class="fas fa-cloud"></i> Berkas
+                                            </a>
+                                        @else
+                                            {{-- File di server lokal --}}
+                                            <a class="btn btn-secondary btn-sm"
+                                                href="{{ url('/bukti', $activity->berkas) }}" target="_blank"
+                                                rel="noopener">
+                                                <i class="fas fa-file"></i> Berkas
+                                            </a>
+                                        @endif
+                                    @endif
+
+                                    {{-- "dan" hanya muncul kalau ada dua-duanya --}}
+                                    @if ($activity->berkas != null && $activity->link != null)
+                                        dan
+                                    @endif
+
+                                    {{-- ===== Tombol Link (tidak berubah) ===== --}}
+                                    @if ($activity->link != null)
+                                        <a class="btn btn-primary btn-sm" href="{{ $activity->link }}" target="_blank"
+                                            rel="noopener">
+                                            <i class="fas fa-link"></i> Link
+                                        </a>
+                                    @endif
                                 @endif
                             </span>
                             <span class="d-flex">
