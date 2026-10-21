@@ -1,0 +1,109 @@
+/* ==========================================================
+   Upload Progress Overlay — KHI
+   ========================================================== */
+
+.upload-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.upload-overlay.hidden { display: none; }
+.upload-overlay.show   { opacity: 1; }
+
+.upload-modal {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 340px;
+    max-width: 90vw;
+    text-align: center;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+    transform: scale(0.92);
+    transition: transform 0.25s ease;
+}
+.upload-overlay.show .upload-modal { transform: scale(1); }
+
+.upload-icon {
+    font-size: 42px;
+    margin-bottom: 8px;
+    animation: uploadFloat 2s ease-in-out infinite;
+}
+@keyframes uploadFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+}
+
+.upload-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+.upload-subtitle {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+.upload-progress-wrap {
+    width: 100%;
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.upload-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+.upload-progress-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: progressShimmer 1.5s linear infinite;
+}
+@keyframes progressShimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.upload-percent {
+    font-size: 22px;
+    font-weight: 800;
+    color: #2563eb;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+}
+.upload-phase {
+    font-size: 11px;
+    color: #64748b;
+    min-height: 16px;
+}
+
+/* Selesai */
+.upload-overlay.done .upload-icon    { animation: none; transform: scale(1.3); }
+.upload-overlay.done .upload-progress-bar {
+    background: linear-gradient(90deg, #10b981, #059669);
+}
+.upload-overlay.done .upload-percent { color: #059669; }
+
+/* Error */
+.upload-overlay.error .upload-icon   { animation: none; }
+.upload-overlay.error .upload-progress-bar {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+.upload-overlay.error .upload-percent { color: #dc2626; }

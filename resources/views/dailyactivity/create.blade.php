@@ -40,7 +40,7 @@
                         @endif
                         <div class="row">
                             <div class="col-sm-12 col-md-12">
-                                <form action="{{ route('act.store') }}" method="POST" enctype="multipart/form-data">
+                                <form action="{{ route('act.store') }}" method="POST" enctype="multipart/form-data" data-upload-progress data-upload-progress-redirect="{{ route('act.index') }}">
                                     @csrf
                                     <div class="form-group">
                                         <label for="tgl">Tanggal Mulai Kegiatan</label>

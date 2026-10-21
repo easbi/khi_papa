@@ -526,6 +526,9 @@
         </div>
     </div>
 
+     {{-- Upload Progress Overlay (auto-aktif di form yang punya data-upload-progress) --}}
+    <x-upload-progress />
+
     <script>
         function openRecapModal() {
             $('#recapModal').modal('show');
@@ -549,6 +552,8 @@
 
 
     @stack('scripts')
+
+
 </body>
 
 </html>
