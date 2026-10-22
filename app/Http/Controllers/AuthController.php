@@ -81,4 +81,29 @@ class AuthController extends Controller
             'expires_in' => 3600,
         ]);
     }
+
+
+    public function updateNotification(Request $request)
+{
+    $request->validate([
+        'notification' => 'required|in:0,1',
+    ]);
+
+    $user = Auth::user();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'User not found',
+        ], 404);
+    }
+
+    $user->notification = $request->notification;
+    $user->save();
+
+    return response()->json([
+        'success'      => true,
+        'notification' => $user->notification,
+    ]);
+}
 }

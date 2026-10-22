@@ -87,4 +87,7 @@ Route::get('/autocomplete/search', [SuggestController::class, 'search'])->name('
 
 Route::resource('notif', NotificationController::class);
 
+Route::post('/user/notification', [App\Http\Controllers\AuthController::class, 'updateNotification'])
+    ->name('user.notification.update');
+
 

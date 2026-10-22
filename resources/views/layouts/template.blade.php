@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>KHI - Kerjaan Harian Ku</title>
     <meta name="description" content="A high-quality &amp; application as your book journey.">
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
@@ -87,7 +88,9 @@
 
                                 // Baca notifikasi yang sudah dilihat hari ini dan yang sudah ditutup dalam sesi login
                                 const dailyViewedNotifications = JSON.parse(getCookie('viewedNotifications')) || {};
-                                const sessionViewedNotifications = JSON.parse(sessionStorage.getItem('viewedNotifications') || localStorage.getItem('viewedNotifications') || 'null') || {};
+                                const sessionViewedNotifications = JSON.parse(sessionStorage.getItem(
+                                    'viewedNotifications') || localStorage.getItem('viewedNotifications') || 'null') ||
+                                {};
                                 const today = new Date().toISOString().split('T')[0]; // Hari ini (YYYY-MM-DD)
 
                                 // Filter notifikasi yang belum dilihat
@@ -96,7 +99,8 @@
                                         return !sessionViewedNotifications[notification.id];
                                     }
 
-                                    return !dailyViewedNotifications[notification.id] || dailyViewedNotifications[notification
+                                    return !dailyViewedNotifications[notification.id] || dailyViewedNotifications[
+                                        notification
                                         .id] !== today;
                                 });
 
@@ -108,8 +112,7 @@
                                             const popupOptions = {
                                                 title: notification.title,
                                                 text: notification.description || '',
-                                                icon: notification.type === 'info' ? 'info' :
-                                                    'warning',
+                                                icon: notification.type === 'info' ? 'info' : 'warning',
                                                 confirmButtonText: 'Tutup'
                                             };
 
@@ -141,11 +144,17 @@
 
                                             Swal.fire(popupOptions).then(() => {
                                                 if (notification.always_show) {
-                                                    sessionViewedNotifications[notification.id] = today;
-                                                    sessionStorage.setItem('viewedNotifications', JSON.stringify(sessionViewedNotifications));
+                                                    sessionViewedNotifications[notification.id] =
+                                                        today;
+                                                    sessionStorage.setItem('viewedNotifications',
+                                                        JSON.stringify(
+                                                            sessionViewedNotifications));
                                                 } else {
-                                                    dailyViewedNotifications[notification.id] = today;
-                                                    setCookie('viewedNotifications', JSON.stringify(dailyViewedNotifications), 1); // Berlaku selama 1 hari
+                                                    dailyViewedNotifications[notification.id] =
+                                                        today;
+                                                    setCookie('viewedNotifications', JSON.stringify(
+                                                            dailyViewedNotifications),
+                                                        1); // Berlaku selama 1 hari
                                                 }
                                             });
                                         }, delay);
@@ -462,10 +471,35 @@
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-small">
                                     <a class="dropdown-item" href="{{ url('/user/profile') }}">
-                                        <i class="material-icons">&#xE7FD;</i> Profile</a>
+                                        <i class="material-icons">&#xE7FD;</i> Profile
+                                    </a>
+
                                     <div class="dropdown-divider"></div>
+
+                                    {{-- Switch Notifikasi --}}
+                                    <div class="dropdown-item d-flex align-items-center justify-content-between"
+                                        style="cursor: default;" onclick="event.stopPropagation();">
+
+                                        <span class="d-flex align-items-center text-muted">
+                                            <i class="material-icons mr-2" style="font-size: 20px;">notifications</i>
+                                            Notifikasi
+                                        </span>
+
+                                        {{-- Toggle Switch ala Shards Dashboard --}}
+                                        <div class="custom-control custom-toggle custom-toggle-sm mb-0 ml-3">
+                                            <input type="checkbox" id="notificationSwitch"
+                                                class="custom-control-input"
+                                                data-url="{{ route('user.notification.update') }}"
+                                                {{ Auth::user()->notification == '1' ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="notificationSwitch"></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="dropdown-divider"></div>
+
                                     <a class="dropdown-item text-danger" href="{{ url('/logout') }}">
-                                        <i class="material-icons text-danger">&#xE879;</i> Logout </a>
+                                        <i class="material-icons text-danger">&#xE879;</i> Logout
+                                    </a>
                                 </div>
                             </li>
                         </ul>
@@ -526,13 +560,63 @@
         </div>
     </div>
 
-     {{-- Upload Progress Overlay (auto-aktif di form yang punya data-upload-progress) --}}
+    {{-- Upload Progress Overlay (auto-aktif di form yang punya data-upload-progress) --}}
     <x-upload-progress />
 
     <script>
         function openRecapModal() {
             $('#recapModal').modal('show');
         }
+
+        // Pastikan JS ini tetap ada di layout Anda
+        document.addEventListener('DOMContentLoaded', function() {
+            const sw = document.getElementById('notificationSwitch');
+            if (!sw) return;
+
+            sw.addEventListener('change', function() {
+                const value = this.checked ? '1' : '0';
+                const url = this.dataset.url;
+                const token = document.querySelector('meta[name="csrf-token"]').content;
+                const el = this;
+
+                el.disabled = true;
+
+                fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            notification: value
+                        })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.success) throw new Error('Gagal');
+
+                        // Opsional: Tampilkan notifikasi sukses (jika SweetAlert tersedia)
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: `Notifikasi ${value === '1' ? 'diaktifkan' : 'dinonaktifkan'}`,
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        el.checked = !el.checked; // Kembalikan posisi jika gagal
+                    })
+                    .finally(() => {
+                        el.disabled = false;
+                    });
+            });
+        });
     </script>
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
